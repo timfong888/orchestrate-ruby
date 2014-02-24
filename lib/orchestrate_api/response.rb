@@ -72,7 +72,7 @@ module Orchestrate::API
     attr_reader :results
 
     # Set for list, search, get_events, and get_graph results.
-    attr_reader:count
+    attr_reader :count
 
     # Set for search results.
     attr_reader :total_count
