@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
 	                 'lib/orchestrate_api/request.rb',
 	                 'lib/orchestrate_api/response.rb'
 	               ]
-	s.homepage    = 'https://github.com/jimcar/orchestrate/api'
+	s.homepage    = 'https://github.com/jimcar/orchestrate-api'
 	s.license     = 'MIT'
 	s.add_dependency "httparty"
 	s.add_dependency "activerecord"
