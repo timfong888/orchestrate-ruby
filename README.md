@@ -1,4 +1,4 @@
 orchestrate-api
 ===============
 
-Ruby gem to provide an interface for the Orchestrate.io DBaaS API.
+Ruby gem to provide an interface for the Orchestrate.io REST API.
