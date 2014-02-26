@@ -30,7 +30,8 @@ module Orchestrate::API
       orch_config = ::ActiveSupport::JSON.decode open(config_file).read
       @base_url = orch_config['base_url']
       @user     = orch_config['user']
-      @verbose  = orch_config['verbose'] ? orch_config['verbose'] : false
+      @verbose  = orch_config['verbose'] && orch_config['verbose'] == 'true' ? true
+                                                                             : false
     end
 
     # Creates the Request object and sends it via the perform method,
@@ -71,9 +72,8 @@ module Orchestrate::API
               uri << "/relations/#{args[:kind]}"
             end
           end
-        elsif args[:path]
-          uri << args[:path]
         end
+        uri << args[:path] if args[:path]
         uri
       end
 

@@ -20,7 +20,7 @@ module Orchestrate::API
     #  * required: { collection }
     #
     def search(args)
-      send_request :get, args.merge(path: "/?query=#{args[:query].gsub(/\s/, '%20')}")
+      send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
     end
 
     #  * required: { collection }
@@ -48,6 +48,12 @@ module Orchestrate::API
     #
     def delete_key(args)
       send_request :delete, args
+    end
+
+    #  * required: { collection, key }
+    #
+    def purge_key(args)
+      send_request :delete, args.merge(path: "?purge=true")
     end
 
     # -------------------------------------------------------------------------
