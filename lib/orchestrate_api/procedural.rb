@@ -112,7 +112,7 @@ module Orchestrate::API
     #  * required: { collection, key, kind, to_collection, to_key }
     #
     def delete_graph(args)
-      send_request :put, args.merge(path: "?purge=true")
+      send_request :delete, args.merge(path: "?purge=true")
     end
 
   end
