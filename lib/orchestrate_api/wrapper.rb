@@ -66,10 +66,10 @@ module Orchestrate::API
               end
             end
           elsif args[:kind]
-            if method == :put
-              uri << "/relation/#{args[:kind]}/#{args[:to_collection]}/#{args[:to_key]}"
-            else
+            if method == :get
               uri << "/relations/#{args[:kind]}"
+            else
+              uri << "/relation/#{args[:kind]}/#{args[:to_collection]}/#{args[:to_key]}"
             end
           end
         end

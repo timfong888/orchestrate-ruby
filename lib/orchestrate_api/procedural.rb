@@ -12,6 +12,7 @@ module Orchestrate::API
     #  collection
 
     #  * required: { collection }
+    #  * optional: { path }, which should have been called <em>params</em>
     #
     def list(args)
       send_request :get, args
