@@ -58,11 +58,11 @@ module Orchestrate::API
             uri << "/refs/#{args[:ref].gsub(/"/, '')}" if method == :get
           elsif args[:event_type]
             uri << "/events/#{args[:event_type]}"
-            if args[:timestamp]
-              if method == :put && args[:timestamp][:start]
+            unless args[:timestamp].blank?
+              if method == :get && args[:timestamp][:start]
                 uri << "?start=#{args[:timestamp][:start]}&end=#{args[:timestamp][:end]}"
-              elsif method == :get && !args[:timestamp].blank?
-                uri << "?timestamp=#{timestamp}"
+              elsif method == :put
+                uri << "?timestamp=#{args[:timestamp]}"
               end
             end
           elsif args[:kind]
