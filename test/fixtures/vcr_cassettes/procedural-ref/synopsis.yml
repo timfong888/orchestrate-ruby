@@ -1,0 +1,328 @@
+---
+http_interactions:
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1a","DESC":"desc_1a"}'
+    headers:
+      Content-Type:
+      - application/json
+      If-None-Match:
+      - '"*"'
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:23 GMT
+      Etag:
+      - '"54e57a4cf8d77708"'
+      Location:
+      - "/v0/test_models/instance_1/refs/54e57a4cf8d77708"
+      X-Orchestrate-Req-Id:
+      - 50e115f0-b54b-11e3-8746-12313d2f7cdc
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:23 GMT
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1b","DESC":"desc_1b"}'
+    headers:
+      Content-Type:
+      - application/json
+      If-None-Match:
+      - '"*"'
+  response:
+    status:
+      code: 412
+      message: Precondition Failed
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:23 GMT
+      X-Orchestrate-Req-Id:
+      - 5137e880-b54b-11e3-90ce-12313d2f50f8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"message":"The item is already present.","code":"item_already_present"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:24 GMT
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1c","DESC":"desc_1c"}'
+    headers:
+      Content-Type:
+      - application/json
+      If-Match:
+      - '"54e57a4cf8d77708"'
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:24 GMT
+      Etag:
+      - '"70a6765f39b7c9c5"'
+      Location:
+      - "/v0/test_models/instance_1/refs/70a6765f39b7c9c5"
+      X-Orchestrate-Req-Id:
+      - 51882b60-b54b-11e3-8746-12313d2f7cdc
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:24 GMT
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1d","DESC":"desc_1d"}'
+    headers:
+      Content-Type:
+      - application/json
+      If-Match:
+      - bogus
+  response:
+    status:
+      code: 400
+      message: Bad Request
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:25 GMT
+      X-Orchestrate-Req-Id:
+      - 51d44f90-b54b-11e3-ad12-12313d2f9238
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"message":"Invalid value for header ''If-Match''.","code":"api_bad_request"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
+- request:
+    method: get
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:25 GMT
+      Etag:
+      - '"54e57a4cf8d77708"'
+      X-Orchestrate-Req-Id:
+      - 520c7690-b54b-11e3-90ce-12313d2f50f8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1a","DESC":"desc_1a"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
+- request:
+    method: get
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Location:
+      - "/v0/test_models/instance_1/refs/70a6765f39b7c9c5"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:25 GMT
+      Etag:
+      - '"70a6765f39b7c9c5"'
+      X-Orchestrate-Req-Id:
+      - 5245d610-b54b-11e3-8746-12313d2f7cdc
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1c","DESC":"desc_1c"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
+- request:
+    method: delete
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 204
+      message: No Content
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:26 GMT
+      X-Orchestrate-Req-Id:
+      - 527e2420-b54b-11e3-ad12-12313d2f9238
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:26 GMT
+- request:
+    method: get
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:26 GMT
+      X-Orchestrate-Req-Id:
+      - 52b69940-b54b-11e3-90ce-12313d2f50f8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"message":"The requested items could not be found.","details":{"items":[{"collection":"test_models","key":"instance_1"}]},"code":"items_not_found"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:26 GMT
+- request:
+    method: get
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:26 GMT
+      Etag:
+      - '"54e57a4cf8d77708"'
+      X-Orchestrate-Req-Id:
+      - 52eff8c0-b54b-11e3-ad12-12313d2f9238
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1a","DESC":"desc_1a"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
+- request:
+    method: delete
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1?purge=true
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 204
+      message: No Content
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:27 GMT
+      X-Orchestrate-Req-Id:
+      - 532b5410-b54b-11e3-90ce-12313d2f50f8
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
+- request:
+    method: get
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:27 GMT
+      X-Orchestrate-Req-Id:
+      - 5364b390-b54b-11e3-8746-12313d2f7cdc
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: '{"message":"The requested items could not be found.","details":{"items":[{"collection":"test_models","key":"instance_1","ref":"54e57a4cf8d77708"}]},"code":"items_not_found"}'
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
+recorded_with: VCR 2.8.0

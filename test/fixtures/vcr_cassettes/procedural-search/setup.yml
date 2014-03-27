@@ -1,0 +1,102 @@
+---
+http_interactions:
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_1","DESC":"desc_1"}'
+    headers:
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:29 GMT
+      Etag:
+      - '"e2adb4604b0ff752"'
+      Location:
+      - "/v0/test_models/instance_1/refs/e2adb4604b0ff752"
+      X-Orchestrate-Req-Id:
+      - 544ffdf0-b54b-11e3-ad12-12313d2f9238
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:29 GMT
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_2
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_2","DESC":"desc_2"}'
+    headers:
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:29 GMT
+      Etag:
+      - '"eb4ffa61141379cb"'
+      Location:
+      - "/v0/test_models/instance_2/refs/eb4ffa61141379cb"
+      X-Orchestrate-Req-Id:
+      - 549d0c80-b54b-11e3-90ce-12313d2f50f8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:29 GMT
+- request:
+    method: put
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_3
+    body:
+      encoding: UTF-8
+      string: '{"Name":"test_3","DESC":"desc_3"}'
+    headers:
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 201
+      message: Created
+    headers:
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 27 Mar 2014 01:01:30 GMT
+      Etag:
+      - '"821158b04e8b1479"'
+      Location:
+      - "/v0/test_models/instance_3/refs/821158b04e8b1479"
+      X-Orchestrate-Req-Id:
+      - 54e97ed0-b54b-11e3-ad12-12313d2f9238
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Thu, 27 Mar 2014 01:01:30 GMT
+recorded_with: VCR 2.8.0
