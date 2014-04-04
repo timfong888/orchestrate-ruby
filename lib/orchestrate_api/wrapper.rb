@@ -1,7 +1,5 @@
 module Orchestrate::API
 
-  require "active_support/core_ext"
-
   # ==== Ruby wrapper for the Orchestrate.io REST *API*.
   #
   # The primary entry point is the <b> #send_request</b> method, which
@@ -27,7 +25,7 @@ module Orchestrate::API
     #   }
     #
     def initialize(config_file)
-      orch_config = ::ActiveSupport::JSON.decode open(config_file).read
+      orch_config = JSON.parse open(config_file).read
       @base_url = orch_config['base_url']
       @user     = orch_config['user']
       @verbose  = orch_config['verbose'] && orch_config['verbose'] == 'true' ? true
@@ -58,7 +56,7 @@ module Orchestrate::API
             uri << "/refs/#{args[:ref].gsub(/"/, '')}" if method == :get
           elsif args[:event_type]
             uri << "/events/#{args[:event_type]}"
-            unless args[:timestamp].blank?
+            unless args[:timestamp].nil? || args[:timestamp] == ''
               if method == :get && args[:timestamp][:start]
                 uri << "?start=#{args[:timestamp][:start]}&end=#{args[:timestamp][:end]}"
               elsif method == :put

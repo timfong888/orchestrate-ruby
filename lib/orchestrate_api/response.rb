@@ -89,7 +89,7 @@ module Orchestrate::API
     # Initialize instance variables, based on response body contents.
     def initialize(body)
       @content = body
-      @to_hash = body.blank? ? {} : ActiveSupport::JSON.decode(body)
+      @to_hash = (body.nil? || body == '' || body == {}) ? {} : JSON.parse(body)
       to_hash.each { |k,v| instance_variable_set "@#{k}", v }
     end
 
