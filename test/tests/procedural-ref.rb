@@ -3,7 +3,7 @@ module Test
   module ProceduralRef
 
     def client
-      @@client ||= Orchestrate::API::Wrapper.new './lib/orch_config-demo.json'
+      Test.client
     end
 
     # methods: put_key_if_match, put_key_if_none_match, get_by_ref, purge_key

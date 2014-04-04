@@ -3,7 +3,7 @@ module Test
   module ProceduralEvent
 
     def client
-      @@client ||= Orchestrate::API::Wrapper.new './lib/orch_config-demo.json'
+      Test.client
     end
 
     # methods: put_event, get_events, purge_key

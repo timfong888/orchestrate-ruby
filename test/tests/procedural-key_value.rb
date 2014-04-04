@@ -3,7 +3,7 @@ module Test
   module ProceduralKeyValue
 
     def client
-      @@client ||= Orchestrate::API::Wrapper.new './lib/orch_config-demo.json'
+      Test.client
     end
 
     # methods: put_key, get_key, delete_key

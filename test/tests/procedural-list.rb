@@ -3,7 +3,7 @@ module Test
   module ProceduralList
 
     def client
-      @@client ||= Orchestrate::API::Wrapper.new './lib/orch_config-demo.json'
+      Test.client
     end
 
     # methods: list, delete_collection

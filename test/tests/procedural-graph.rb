@@ -3,7 +3,7 @@ module Test
   module ProceduralGraph
 
     def client
-      @@client ||= Orchestrate::API::Wrapper.new './lib/orch_config-demo.json'
+      Test.client
     end
 
     # methods: put_graph, get_graph, delete_graph
