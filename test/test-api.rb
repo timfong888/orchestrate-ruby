@@ -1,11 +1,12 @@
 tests = File.expand_path('..', __FILE__)
 $LOAD_PATH.unshift(tests) unless $LOAD_PATH.include?(tests)
 
+  require 'orchestrate-api'
+
   require 'rubygems'
   require 'minitest/autorun'
-  require 'vcr'
 
-  require 'orchestrate-api'
+  require 'vcr'
 
   require 'tests/procedural-event'
   require 'tests/procedural-graph'
@@ -29,7 +30,7 @@ $LOAD_PATH.unshift(tests) unless $LOAD_PATH.include?(tests)
     VCR.configure do |c|
       # c.allow_http_connections_when_no_cassette = true
       c.hook_into :webmock
-      c.cassette_library_dir = 'fixtures/vcr_cassettes'
+      c.cassette_library_dir = File.join(File.dirname(__FILE__), "fixtures", "vcr_cassettes")
       default_cassette_options = { :record => :all }
     end
 
