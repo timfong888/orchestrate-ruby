@@ -11,12 +11,10 @@ module Orchestrate
 
   module API
 
-    # require "active_support/core_ext"
-
-    require "orchestrate_api/procedural"
-    require "orchestrate_api/wrapper"
-    require "orchestrate_api/request"
-    require "orchestrate_api/response"
+    require "orchestrate/api/procedural"
+    require "orchestrate/api/wrapper"
+    require "orchestrate/api/request"
+    require "orchestrate/api/response"
 
   end
 end
