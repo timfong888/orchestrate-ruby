@@ -1,0 +1,25 @@
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'orchestrate/api/version'
+
+Gem::Specification.new do |s|
+	s.name          = 'orchestrate-api'
+	s.version       = Orchestrate::API::VERSION
+	s.date          = '2014-03-23'
+	s.authors       = ['James Carrasquer']
+	s.email         = 'jimcar@aracnet.com'
+	s.summary       = 'Summary for orchestrate-api'
+	s.description   = 'Wrapper for the Orchestrate.io REST API'
+	s.homepage      = 'https://github.com/jimcar/orchestrate-api'
+	s.license       = 'MIT'
+
+	s.files         = `git ls-files -z`.split("\x0")
+	s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+	s.test_files    = s.files.grep(%r{^(test|spec|features)/})
+	s.require_paths = ["lib"]
+
+	s.add_development_dependency "vcr"
+	s.add_development_dependency "webmock"
+
+	s.add_runtime_dependency "httparty"
+end
