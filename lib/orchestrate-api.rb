@@ -15,6 +15,7 @@ module Orchestrate
     require "orchestrate/api/wrapper"
     require "orchestrate/api/request"
     require "orchestrate/api/response"
+    require "orchestrate/api/version"
 
   end
 end

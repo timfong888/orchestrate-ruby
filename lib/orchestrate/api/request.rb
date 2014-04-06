@@ -45,15 +45,15 @@ module Orchestrate::API
       # Sets up the HTTParty options hash.
       def options
         options = { basic_auth: { username: user, password: nil }}
+        headers = { 'Orchestrate-Client' => "ruby/orchestrate-api/#{Orchestrate::API::VERSION}" }
         if method == :put
-          headers = { 'Content-Type' => 'application/json' }
+          headers.merge!('Content-Type' => 'application/json')
           if ref
             header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
             headers.merge!(header => ref)
           end
-          options.merge!(headers: headers, body: data)
         end
-        options
+        options.merge(headers: headers, body: data)
       end
 
       def verbose?
