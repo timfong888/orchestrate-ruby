@@ -49,30 +49,7 @@ module Orchestrate::API
       # Builds the URL for each HTTP request to the orchestrate.io api.
       #
       def build_url(method, args)
-        uri = "#{@base_url}/#{args[:collection]}"
-        if args[:key]
-          uri << "/#{args[:key]}"
-          if args[:ref]
-            uri << "/refs/#{args[:ref].gsub(/"/, '')}" if method == :get
-          elsif args[:event_type]
-            uri << "/events/#{args[:event_type]}"
-            unless args[:timestamp].nil? || args[:timestamp] == ''
-              if method == :get && args[:timestamp][:start]
-                uri << "?start=#{args[:timestamp][:start]}&end=#{args[:timestamp][:end]}"
-              elsif method == :put
-                uri << "?timestamp=#{args[:timestamp]}"
-              end
-            end
-          elsif args[:kind]
-            if method == :get
-              uri << "/relations/#{args[:kind]}"
-            else
-              uri << "/relation/#{args[:kind]}/#{args[:to_collection]}/#{args[:to_key]}"
-            end
-          end
-        end
-        uri << args[:path] if args[:path]
-        uri
+        Orchestrate::API::URL.new(method, @base_url, args).path
       end
 
   end
