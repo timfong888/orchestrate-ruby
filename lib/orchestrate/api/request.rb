@@ -40,28 +40,10 @@ module Orchestrate::API
 
       uri = URI(url)
 
-      case
-      when method == :get
-        request = Net::HTTP::Get.new(uri)
-      when method == :put
-        request = Net::HTTP::Put.new(uri)
-        request['Content-Type'] = 'application/json'
-        if ref
-          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
-          request[header] = ref
-        end
-        request.body = data
-      when method == :delete
-        request = Net::HTTP::Delete.new(uri)
-      end
-
-      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
-      request.basic_auth @user, nil
-
       response = Net::HTTP.start(uri.hostname, uri.port,
         :use_ssl => uri.scheme == 'https' ) { |http|
         puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
-        http.request(request)
+        http.request(request(uri))
       }
 
       # Response expects an HTTParty response, so just fake it - for now... JMC
@@ -71,9 +53,36 @@ module Orchestrate::API
           response.to_hash,
           response.code.to_i,
           response.message,
-          response.body
+          response.body,
+          response['Etag']
         )
       )
+    end
+
+    # Assembles the Net::HTTP request.
+    #
+    def request(uri)
+      case
+      when method == :get
+        request = Net::HTTP::Get.new(uri)
+      when method == :put
+        request = Net::HTTP::Put.new(uri)
+        request['Content-Type'] = 'application/json'
+        # request['Accept'] = 'application/json'
+        if ref
+          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
+          request[header] = ref
+        end
+        request.body = data
+      when method == :delete
+        request = Net::HTTP::Delete.new(uri)
+      end
+
+      # request['Accept'] = 'application/json'
+      # request['Content-Type'] = 'application/json'
+      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
+      request.basic_auth @user, nil
+      request
     end
   end
 
@@ -86,7 +95,7 @@ module Orchestrate::API
 
     attr_accessor :headers, :code, :msg, :body
 
-    def initialize(headers, code, msg, body)
+    def initialize(headers, code, msg, body, etag)
       @headers, @code, @msg, @body = headers, code, msg, body
 
       if code == 200 && headers['etag']
