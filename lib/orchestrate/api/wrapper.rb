@@ -1,5 +1,7 @@
 module Orchestrate::API
 
+  require 'json'
+
   # ==== Ruby wrapper for the Orchestrate.io REST *API*.
   #
   # The primary entry point is the <b> #send_request</b> method, which
