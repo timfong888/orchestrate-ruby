@@ -2,11 +2,15 @@
 http_interactions:
 - request:
     method: get
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 200
@@ -15,9 +19,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:05 GMT
+      - Mon, 07 Apr 2014 21:14:15 GMT
       X-Orchestrate-Req-Id:
-      - 45fd4e10-b54b-11e3-8746-12313d2f7cdc
+      - 92c5ff10-be99-11e3-9411-12313d2f50f8
       Transfer-Encoding:
       - chunked
       Connection:
@@ -26,16 +30,18 @@ http_interactions:
       encoding: UTF-8
       string: '{"count":0,"results":[]}'
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:05 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:15 GMT
 - request:
     method: put
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_101
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_101
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Content-Type:
       - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 204
@@ -44,25 +50,27 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:05 GMT
+      - Mon, 07 Apr 2014 21:14:15 GMT
       X-Orchestrate-Req-Id:
-      - 463722c0-b54b-11e3-ad12-12313d2f9238
+      - 92fffad0-be99-11e3-a0ba-12313d2f7cdc
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:05 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:15 GMT
 - request:
     method: put
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_102
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_102
     body:
       encoding: US-ASCII
       string: ''
     headers:
       Content-Type:
       - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 204
@@ -71,23 +79,27 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:06 GMT
+      - Mon, 07 Apr 2014 21:14:16 GMT
       X-Orchestrate-Req-Id:
-      - 4673dda0-b54b-11e3-90ce-12313d2f50f8
+      - 933c6790-be99-11e3-b1d9-12313d2f9238
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:06 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:16 GMT
 - request:
     method: get
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 200
@@ -96,25 +108,29 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:06 GMT
+      - Mon, 07 Apr 2014 21:14:16 GMT
       X-Orchestrate-Req-Id:
-      - 46ae0070-b54b-11e3-8746-12313d2f7cdc
+      - 93785f20-be99-11e3-9411-12313d2f50f8
       Transfer-Encoding:
       - chunked
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
-      string: '{"count":2,"results":[{"path":{"collection":"test_models","key":"instance_102","ref":"3bd3aa38b494a5df"},"value":{"Name":"test_102","DESC":"desc_102"}},{"path":{"collection":"test_models","key":"instance_101","ref":"0c4a331497e37091"},"value":{"Name":"test_101","DESC":"desc_101"}}]}'
+      string: '{"count":2,"results":[{"path":{"collection":"test_models","key":"instance_101","ref":"0c4a331497e37091"},"value":{"Name":"test_101","DESC":"desc_101"}},{"path":{"collection":"test_models","key":"instance_102","ref":"3bd3aa38b494a5df"},"value":{"Name":"test_102","DESC":"desc_102"}}]}'
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:06 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:16 GMT
 - request:
     method: delete
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_102?purge=true
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relation/add_100_or_more/test_models/instance_102?purge=true
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 204
@@ -123,23 +139,27 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:06 GMT
+      - Mon, 07 Apr 2014 21:14:16 GMT
       X-Orchestrate-Req-Id:
-      - 46e6c3b0-b54b-11e3-8746-12313d2f7cdc
+      - 93b14970-be99-11e3-a0ba-12313d2f7cdc
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:06 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:16 GMT
 - request:
     method: get
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 200
@@ -148,9 +168,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:07 GMT
+      - Mon, 07 Apr 2014 21:14:17 GMT
       X-Orchestrate-Req-Id:
-      - 471e9c90-b54b-11e3-ad12-12313d2f9238
+      - 93e99780-be99-11e3-b1d9-12313d2f9238
       Transfer-Encoding:
       - chunked
       Connection:
@@ -159,14 +179,18 @@ http_interactions:
       encoding: UTF-8
       string: '{"count":1,"results":[{"path":{"collection":"test_models","key":"instance_101","ref":"0c4a331497e37091"},"value":{"Name":"test_101","DESC":"desc_101"}}]}'
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:07 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:17 GMT
 - request:
     method: delete
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1?purge=true
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1?purge=true
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 204
@@ -175,23 +199,27 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:07 GMT
+      - Mon, 07 Apr 2014 21:14:17 GMT
       X-Orchestrate-Req-Id:
-      - 47564e60-b54b-11e3-ad12-12313d2f9238
+      - 9420ad10-be99-11e3-9411-12313d2f50f8
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:07 GMT
+  recorded_at: Mon, 07 Apr 2014 21:14:17 GMT
 - request:
     method: get
-    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
+    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/relations/add_100_or_more
     body:
       encoding: US-ASCII
       string: ''
-    headers: {}
+    headers:
+      Content-Type:
+      - application/json
+      Orchestrate-Client:
+      - ruby/orchestrate-api/0.1.4
   response:
     status:
       code: 404
@@ -200,9 +228,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 27 Mar 2014 01:01:07 GMT
+      - Mon, 07 Apr 2014 21:14:17 GMT
       X-Orchestrate-Req-Id:
-      - 478d63f0-b54b-11e3-90ce-12313d2f50f8
+      - 945810c0-be99-11e3-a0ba-12313d2f7cdc
       Transfer-Encoding:
       - chunked
       Connection:
@@ -211,5 +239,5 @@ http_interactions:
       encoding: UTF-8
       string: '{"message":"The requested items could not be found.","details":{"items":[{"collection":"test_models","key":"instance_1"}]},"code":"items_not_found"}'
     http_version: 
-  recorded_at: Thu, 27 Mar 2014 01:01:07 GMT
-recorded_with: VCR 2.8.0
+  recorded_at: Mon, 07 Apr 2014 21:14:17 GMT
+recorded_with: VCR 2.9.0
