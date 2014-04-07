@@ -8,12 +8,12 @@ module Orchestrate::API
       # Support args[:path] for backward compatibility (until 1.0.0)
       args[:params] = args[:path] unless args[:path].blank?
 
-      @path = "#{base_url}/#{args[:collection]}" +
-              Key.new(args[:key]).path +
-              Ref.new(method, args[:ref]).path +
-              Event.new(method, args[:event_type], args[:timestamp]).path +
-              Graph.new(method, args[:kind], args[:to_collection], args[:to_key]).path +
-              Params.new(args[:params]).path
+      @path = "#{base_url}/#{args[:collection]}"
+      @path << Key.new(args[:key]).path
+      @path << Ref.new(method, args[:ref]).path
+      @path << Event.new(method, args[:event_type], args[:timestamp]).path
+      @path << Graph.new(method, args[:kind], args[:to_collection], args[:to_key]).path
+      @path << Params.new(args[:params]).path
     end
 
     class Key
