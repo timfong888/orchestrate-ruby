@@ -3,7 +3,7 @@ require "rake/testtask"
 
 Rake::TestTask.new do |t|
   t.libs << "lib/orchestrate-api"
-  t.test_files = ["test/test-api.rb"]
+  t.test_files = FileList["test/tests/**/*_test.rb"]
   t.verbose = true
 end
 
