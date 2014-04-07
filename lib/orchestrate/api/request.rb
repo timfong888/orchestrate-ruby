@@ -1,10 +1,7 @@
 module Orchestrate::API
 
-  require 'httparty'
+  require 'net/http'
 
-  #  Uses HTTParty to make the HTTP calls,
-  #  and returns a Response object.
-  #
   class Request < Object
 
     # The HTTP method - must be one of: [ :get, :put, :delete ].
@@ -30,34 +27,79 @@ module Orchestrate::API
     #
     def initialize(method, url, user)
       @method, @url, @user = method, url, user
-      @data = {}
+      @data = ''
       yield self if block_given?
+    end
+
+    def verbose?
+      verbose == true
     end
 
     # Sends the HTTP request and returns a Response object.
     def perform
-      puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
-      Response.new HTTParty.send(method, url, options)
+
+      uri = URI(url)
+
+      case
+      when method == :get
+        request = Net::HTTP::Get.new(uri)
+      when method == :put
+        request = Net::HTTP::Put.new(uri)
+        request['Content-Type'] = 'application/json'
+        if ref
+          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
+          request[header] = ref
+        end
+        request.body = data
+      when method == :delete
+        request = Net::HTTP::Delete.new(uri)
+      end
+
+      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
+      request.basic_auth @user, nil
+
+      response = Net::HTTP.start(uri.hostname, uri.port,
+        :use_ssl => uri.scheme == 'https' ) { |http|
+        puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
+        http.request(request)
+      }
+
+      # Response expects an HTTParty response, so just fake it - for now... JMC
+      # See below for more details...
+      Response.new(
+        FakePartayResponse.new(
+          response.to_hash,
+          response.code.to_i,
+          response.message,
+          response.body
+        )
+      )
+    end
+  end
+
+  # Just fake the HTTParty response - for now... JMC
+  #
+  # This is also a convenient place to stash the *very temporary* hack to work
+  # around the mysterious disappearance of the Etag header when using Net::HTTP.
+  #
+  class FakePartayResponse
+
+    attr_accessor :headers, :code, :msg, :body
+
+    def initialize(headers, code, msg, body)
+      @headers, @code, @msg, @body = headers, code, msg, body
+
+      if code == 200 && headers['etag']
+        @headers['etag'] = headers['etag'].first.sub(/\-gzip/, '')
+      elsif code == 201 && @headers['location']
+        @headers['etag'] = "\"#{@headers['location'].first.split('/').last}\""
+      end
     end
 
-    private
-
-      # Sets up the HTTParty options hash.
-      def options
-        options = { basic_auth: { username: user, password: nil }}
-        headers = { 'Orchestrate-Client' => "ruby/orchestrate-api/#{Orchestrate::API::VERSION}" }
-        if method == :put
-          headers.merge!('Content-Type' => 'application/json')
-          if ref
-            header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
-            headers.merge!(header => ref)
-          end
-        end
-        options.merge(headers: headers, body: data)
-      end
-
-      def verbose?
-        verbose == true
-      end
+    def success?
+      [200, 201, 204].include? code
+    end
   end
+
 end
+
