@@ -2,15 +2,13 @@
 http_interactions:
 - request:
     method: put
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: UTF-8
       string: '{"Name":"test_1a","DESC":"desc_1a"}'
     headers:
       Content-Type:
       - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
       If-None-Match:
       - '"*"'
   response:
@@ -21,13 +19,13 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:24 GMT
+      - Thu, 27 Mar 2014 01:01:23 GMT
       Etag:
       - '"54e57a4cf8d77708"'
       Location:
       - "/v0/test_models/instance_1/refs/54e57a4cf8d77708"
       X-Orchestrate-Req-Id:
-      - d2cc3650-be95-11e3-b1d9-12313d2f9238
+      - 50e115f0-b54b-11e3-8746-12313d2f7cdc
       Transfer-Encoding:
       - chunked
       Connection:
@@ -36,18 +34,16 @@ http_interactions:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:24 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:23 GMT
 - request:
     method: put
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: UTF-8
       string: '{"Name":"test_1b","DESC":"desc_1b"}'
     headers:
       Content-Type:
       - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
       If-None-Match:
       - '"*"'
   response:
@@ -58,9 +54,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:25 GMT
+      - Thu, 27 Mar 2014 01:01:23 GMT
       X-Orchestrate-Req-Id:
-      - d3174910-be95-11e3-a0ba-12313d2f7cdc
+      - 5137e880-b54b-11e3-90ce-12313d2f50f8
       Transfer-Encoding:
       - chunked
       Connection:
@@ -69,18 +65,16 @@ http_interactions:
       encoding: UTF-8
       string: '{"message":"The item is already present.","code":"item_already_present"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:25 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:24 GMT
 - request:
     method: put
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: UTF-8
       string: '{"Name":"test_1c","DESC":"desc_1c"}'
     headers:
       Content-Type:
       - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
       If-Match:
       - '"54e57a4cf8d77708"'
   response:
@@ -91,13 +85,13 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:25 GMT
+      - Thu, 27 Mar 2014 01:01:24 GMT
       Etag:
       - '"70a6765f39b7c9c5"'
       Location:
       - "/v0/test_models/instance_1/refs/70a6765f39b7c9c5"
       X-Orchestrate-Req-Id:
-      - d3631f20-be95-11e3-9411-12313d2f50f8
+      - 51882b60-b54b-11e3-8746-12313d2f7cdc
       Transfer-Encoding:
       - chunked
       Connection:
@@ -106,18 +100,16 @@ http_interactions:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:25 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:24 GMT
 - request:
     method: put
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: UTF-8
       string: '{"Name":"test_1d","DESC":"desc_1d"}'
     headers:
       Content-Type:
       - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
       If-Match:
       - bogus
   response:
@@ -128,9 +120,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:26 GMT
+      - Thu, 27 Mar 2014 01:01:25 GMT
       X-Orchestrate-Req-Id:
-      - d3b0c9f0-be95-11e3-b1d9-12313d2f9238
+      - 51d44f90-b54b-11e3-ad12-12313d2f9238
       Transfer-Encoding:
       - chunked
       Connection:
@@ -139,18 +131,14 @@ http_interactions:
       encoding: UTF-8
       string: '{"message":"Invalid value for header ''If-Match''.","code":"api_bad_request"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:26 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
 - request:
     method: get
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 200
@@ -159,11 +147,11 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:26 GMT
+      - Thu, 27 Mar 2014 01:01:25 GMT
       Etag:
       - '"54e57a4cf8d77708"'
       X-Orchestrate-Req-Id:
-      - d3e8a2d0-be95-11e3-9411-12313d2f50f8
+      - 520c7690-b54b-11e3-90ce-12313d2f50f8
       Transfer-Encoding:
       - chunked
       Connection:
@@ -172,18 +160,14 @@ http_interactions:
       encoding: UTF-8
       string: '{"Name":"test_1a","DESC":"desc_1a"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:26 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
 - request:
     method: get
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 200
@@ -194,11 +178,11 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:26 GMT
+      - Thu, 27 Mar 2014 01:01:25 GMT
       Etag:
       - '"70a6765f39b7c9c5"'
       X-Orchestrate-Req-Id:
-      - d4222960-be95-11e3-b1d9-12313d2f9238
+      - 5245d610-b54b-11e3-8746-12313d2f7cdc
       Transfer-Encoding:
       - chunked
       Connection:
@@ -207,18 +191,14 @@ http_interactions:
       encoding: UTF-8
       string: '{"Name":"test_1c","DESC":"desc_1c"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:27 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:25 GMT
 - request:
     method: delete
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 204
@@ -227,27 +207,23 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:27 GMT
+      - Thu, 27 Mar 2014 01:01:26 GMT
       X-Orchestrate-Req-Id:
-      - d45c4c30-be95-11e3-a0ba-12313d2f7cdc
+      - 527e2420-b54b-11e3-ad12-12313d2f9238
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:27 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:26 GMT
 - request:
     method: get
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 404
@@ -256,9 +232,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:27 GMT
+      - Thu, 27 Mar 2014 01:01:26 GMT
       X-Orchestrate-Req-Id:
-      - d4933ab0-be95-11e3-9411-12313d2f50f8
+      - 52b69940-b54b-11e3-90ce-12313d2f50f8
       Transfer-Encoding:
       - chunked
       Connection:
@@ -267,18 +243,14 @@ http_interactions:
       encoding: UTF-8
       string: '{"message":"The requested items could not be found.","details":{"items":[{"collection":"test_models","key":"instance_1"}]},"code":"items_not_found"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:27 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:26 GMT
 - request:
     method: get
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 200
@@ -287,11 +259,11 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:28 GMT
+      - Thu, 27 Mar 2014 01:01:26 GMT
       Etag:
       - '"54e57a4cf8d77708"'
       X-Orchestrate-Req-Id:
-      - d4cc4c10-be95-11e3-b1d9-12313d2f9238
+      - 52eff8c0-b54b-11e3-ad12-12313d2f9238
       Transfer-Encoding:
       - chunked
       Connection:
@@ -300,18 +272,14 @@ http_interactions:
       encoding: UTF-8
       string: '{"Name":"test_1a","DESC":"desc_1a"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:28 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
 - request:
     method: delete
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1?purge=true
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1?purge=true
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 204
@@ -320,27 +288,23 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:28 GMT
+      - Thu, 27 Mar 2014 01:01:27 GMT
       X-Orchestrate-Req-Id:
-      - d505ab90-be95-11e3-a0ba-12313d2f7cdc
+      - 532b5410-b54b-11e3-90ce-12313d2f50f8
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:28 GMT
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
 - request:
     method: get
-    uri: https://0384407c-95e1-4b27-aa6f-c5a7cb685015:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
+    uri: https://50703846-3a59-4086-85eb-34ffe700fec9:@api.orchestrate.io/v0/test_models/instance_1/refs/54e57a4cf8d77708
     body:
       encoding: US-ASCII
       string: ''
-    headers:
-      Content-Type:
-      - application/json
-      Orchestrate-Client:
-      - ruby/orchestrate-api/0.1.4
+    headers: {}
   response:
     status:
       code: 404
@@ -349,9 +313,9 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 07 Apr 2014 20:47:28 GMT
+      - Thu, 27 Mar 2014 01:01:27 GMT
       X-Orchestrate-Req-Id:
-      - d53ee400-be95-11e3-9411-12313d2f50f8
+      - 5364b390-b54b-11e3-8746-12313d2f7cdc
       Transfer-Encoding:
       - chunked
       Connection:
@@ -360,5 +324,5 @@ http_interactions:
       encoding: UTF-8
       string: '{"message":"The requested items could not be found.","details":{"items":[{"collection":"test_models","key":"instance_1","ref":"54e57a4cf8d77708"}]},"code":"items_not_found"}'
     http_version: 
-  recorded_at: Mon, 07 Apr 2014 20:47:28 GMT
-recorded_with: VCR 2.9.0
+  recorded_at: Thu, 27 Mar 2014 01:01:27 GMT
+recorded_with: VCR 2.8.0
