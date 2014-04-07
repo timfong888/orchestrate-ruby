@@ -45,9 +45,9 @@ module Orchestrate::API
       # Sets up the HTTParty options hash.
       def options
         options = { basic_auth: { username: user, password: nil }}
-        headers = { 'Orchestrate-Client' => "ruby/orchestrate-api/#{Orchestrate::API::VERSION}" }
+        headers = { 'Content-Type' => 'application/json',
+                    'Orchestrate-Client' => "ruby/orchestrate-api/#{Orchestrate::API::VERSION}" }
         if method == :put
-          headers.merge!('Content-Type' => 'application/json')
           if ref
             header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
             headers.merge!(header => ref)
