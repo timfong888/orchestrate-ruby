@@ -6,7 +6,7 @@ module Orchestrate::API
     attr_reader :path
     def initialize(method, base_url, args)
       # Support args[:path] for backward compatibility (until 1.0.0)
-      args[:params] = args[:path] unless args[:path].blank?
+      args[:params] = args[:path] if args[:params].blank?
 
       @path = "#{base_url}/#{args[:collection]}"
       @path << Key.new(args[:key]).path
