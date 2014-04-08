@@ -1,10 +1,7 @@
 module Orchestrate::API
 
-  require 'httparty'
+  require 'net/http'
 
-  #  Uses HTTParty to make the HTTP calls,
-  #  and returns a Response object.
-  #
   class Request < Object
 
     # The HTTP method - must be one of: [ :get, :put, :delete ].
@@ -30,34 +27,48 @@ module Orchestrate::API
     #
     def initialize(method, url, user)
       @method, @url, @user = method, url, user
-      @data = {}
+      @data = ''
       yield self if block_given?
     end
 
     # Sends the HTTP request and returns a Response object.
     def perform
-      puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
-      Response.new HTTParty.send(method, url, options)
+      uri = URI(url)
+      response = Net::HTTP.start(uri.hostname, uri.port,
+        :use_ssl => uri.scheme == 'https' ) { |http|
+        puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
+        http.request(request(uri))
+      }
+      Response.new(response)
     end
 
-    private
-
-      # Sets up the HTTParty options hash.
-      def options
-        options = { basic_auth: { username: user, password: nil }}
-        headers = { 'Content-Type' => 'application/json',
-                    'Orchestrate-Client' => "ruby/orchestrate-api/#{Orchestrate::API::VERSION}" }
-        if method == :put
-          if ref
-            header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
-            headers.merge!(header => ref)
-          end
+    # Creates the Net::HTTP request.
+    #
+    def request(uri)
+      case
+      when method == :get
+        request = Net::HTTP::Get.new(uri)
+      when method == :put
+        request = Net::HTTP::Put.new(uri)
+        request['Content-Type'] = 'application/json'
+        if ref
+          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
+          request[header] = ref
         end
-        options.merge(headers: headers, body: data)
+        request.body = data
+      when method == :delete
+        request = Net::HTTP::Delete.new(uri)
       end
 
-      def verbose?
-        verbose == true
-      end
+      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
+      request.basic_auth @user, nil
+      request
+    end
+
+    def verbose?
+      verbose == true
+    end
+
   end
 end
+
