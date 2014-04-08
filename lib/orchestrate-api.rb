@@ -17,6 +17,7 @@ module Orchestrate
     require "orchestrate/api/response"
     require "orchestrate/api/url"
     require "orchestrate/api/version"
+    require "orchestrate/api/extensions"
 
   end
 end

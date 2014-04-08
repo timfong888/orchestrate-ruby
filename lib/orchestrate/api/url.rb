@@ -72,16 +72,5 @@ module Orchestrate::API
     end
 
   end
-
-  # Implement the blank? helper here, instead of requiring active_support/core_ext.
-  class ::Object
-    def blank?
-      respond_to?(:empty?) ? empty? : !self
-    end
-
-    def present?
-      !blank?
-    end
-  end
 end
 
