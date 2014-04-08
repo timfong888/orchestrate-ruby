@@ -18,7 +18,7 @@ module Orchestrate::API
       send_request :get, args
     end
 
-    #  * required: { collection }
+    #  * required: { collection, query }
     #
     def search(args)
       send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
