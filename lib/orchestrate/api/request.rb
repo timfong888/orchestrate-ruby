@@ -31,35 +31,18 @@ module Orchestrate::API
       yield self if block_given?
     end
 
-    def verbose?
-      verbose == true
-    end
-
     # Sends the HTTP request and returns a Response object.
     def perform
-
       uri = URI(url)
-
       response = Net::HTTP.start(uri.hostname, uri.port,
         :use_ssl => uri.scheme == 'https' ) { |http|
         puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
         http.request(request(uri))
       }
-
-      # Response expects an HTTParty response, so just fake it - for now... JMC
-      # See below for more details...
-      Response.new(
-        FakePartayResponse.new(
-          response.to_hash,
-          response.code.to_i,
-          response.message,
-          response.body,
-          response['Etag']
-        )
-      )
+      Response.new(response)
     end
 
-    # Assembles the Net::HTTP request.
+    # Creates the Net::HTTP request.
     #
     def request(uri)
       case
@@ -68,7 +51,6 @@ module Orchestrate::API
       when method == :put
         request = Net::HTTP::Put.new(uri)
         request['Content-Type'] = 'application/json'
-        # request['Accept'] = 'application/json'
         if ref
           header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
           request[header] = ref
@@ -78,37 +60,15 @@ module Orchestrate::API
         request = Net::HTTP::Delete.new(uri)
       end
 
-      # request['Accept'] = 'application/json'
-      # request['Content-Type'] = 'application/json'
       request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
       request.basic_auth @user, nil
       request
     end
-  end
 
-  # Just fake the HTTParty response - for now... JMC
-  #
-  # This is also a convenient place to stash the *very temporary* hack to work
-  # around the mysterious disappearance of the Etag header when using Net::HTTP.
-  #
-  class FakePartayResponse
-
-    attr_accessor :headers, :code, :msg, :body
-
-    def initialize(headers, code, msg, body, etag)
-      @headers, @code, @msg, @body = headers, code, msg, body
-
-      if code == 200 && headers['etag']
-        @headers['etag'] = headers['etag'].first.sub(/\-gzip/, '')
-      elsif code == 201 && @headers['location']
-        @headers['etag'] = "\"#{@headers['location'].first.split('/').last}\""
-      end
+    def verbose?
+      verbose == true
     end
 
-    def success?
-      [200, 201, 204].include? code
-    end
   end
-
 end
 

@@ -1,6 +1,6 @@
 module Orchestrate::API
 
-  # Transforms the HTTParty response into a structure that provides ready
+  # Transforms the Net::HTTP response into a structure that provides ready
   # access to relevant orchestrate.io response data.
   #
   class Response
@@ -10,22 +10,19 @@ module Orchestrate::API
     # ResponseBody
     attr_reader :body
 
-    # Creates Header and ResponseBody objects from the HTTParty response.
-    # Let's Partay!
-    #
-    def initialize(partay)
-      @success = partay.success?
-      @header = Header.new partay.headers, partay.code, partay.msg
-      @body = ResponseBody.new partay.body
+    def initialize(response)
+      @success = [200, 201, 204].include? response.code.to_i
+      @header  = Header.new(response.to_hash, response.code.to_i, response.message)
+      @body    = ResponseBody.new(response.body)
     end
 
-    # Returns the value of HTTParty.success?
+    # Returns boolean.
     def success?
       @success
     end
 
     # Provides methods for ready access to relevant information extracted
-    # from the HTTParty response headers.
+    # from the Net::HTTP response headers.
     #
     class Header
 
@@ -50,9 +47,18 @@ module Orchestrate::API
         @content = headers
         @code, @status = code, msg
         @timestamp = headers['date']
-        @etag = headers['etag'] if headers['etag']
+        @etag = get_etag
         @link = headers['link'] if headers['link']
       end
+
+      private
+        def get_etag
+          if @code == 200 && @content['etag']
+            @content['etag'].first.sub(/\-gzip/, '')
+          elsif @code == 201 && @content['location'].present?
+            "\"#{@content['location'].first.split('/').last}\""
+          end
+        end
     end
   end
 
@@ -62,7 +68,7 @@ module Orchestrate::API
   #
   class ResponseBody
 
-    # Original response body from HTTParty.
+    # Original response body from Net::HTTP.
     attr_reader :content
 
     # The json response body converted to a hash.
