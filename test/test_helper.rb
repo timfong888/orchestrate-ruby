@@ -1,13 +1,19 @@
 require "minitest/autorun"
+require "json"
 require "vcr"
 
 require "orchestrate-api"
 
 # Configure Orchestrate API Client -------------------------------------------
 
+Orchestrate.configure do |config|
+  config.api_key = ENV["TEST_API_KEY"]
+  config.verbose = true
+end
+
 module Test
   def client
-    @@client ||= Orchestrate::API::Wrapper.new File.join(File.dirname(__FILE__), "lib", "orch_config-demo.json")
+    @@client ||= Orchestrate::API::Wrapper.new
   end
 end
 

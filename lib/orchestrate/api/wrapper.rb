@@ -1,57 +1,64 @@
 module Orchestrate::API
 
-  require 'json'
-
-  # ==== Ruby wrapper for the Orchestrate.io REST *API*.
+  # ==== Ruby wrapper for the Orchestrate REST *API*.
   #
-  # The primary entry point is the <b> #send_request</b> method, which
-  # generates a <b> Request</b>, and returns the
-  # <b> Response</b> to the caller.
-  # <b>{Usage examples for each HTTP request}[Procedural.html]</b>
-  # are documented in the <b> Procedural</b> interface module.
+  # The primary entry point is the #send_request method, which generates a
+  # Request, and returns the Response to the caller.
+  #
+  # {Usage examples for each HTTP request}[Procedural.html] are documented in
+  # the Procedural interface module.
   #
   class Wrapper
+
     include Orchestrate::API::Procedural
 
-    attr_accessor :verbose
+    #
+    # Configuration for the wrapper instance. If configuration is not
+    # explicitly provided during initialization, this will default to
+    # Orchestrate.config.
+    #
+    attr_accessor :config
 
-    # Loads settings from the configuration file and returns the client
-    # handle to be used for subsequent requests.
     #
-    #  Example config file: "./lib/orch_config.json"
+    # Returns the wrapper configuration. If the wrapper does not have
+    # explicitly provided configuration, this will return the global
+    # configuration from Orchestrate.config.
     #
-    #   {
-    #     "base_url":"https://api.orchestrate.io/v0",
-    #     "user":"<user-key-from-orchestrate.io>",
-    #     "verbose":"false"
-    #   }
-    #
-    def initialize(config_file)
-      orch_config = JSON.parse open(config_file).read
-      @base_url = orch_config['base_url']
-      @user     = orch_config['user']
-      @verbose  = orch_config['verbose'] && orch_config['verbose'] == 'true' ? true
-                                                                             : false
+    def config # :nodoc:
+      @config ||= Orchestrate.config
     end
 
+    #
+    # Initialize and return a new Wrapper instance. Optionally, configure
+    # options for the instance by passing a Configuration object. If no
+    # custom configuration is provided, the configuration options from
+    # Orchestrate.config will be used.
+    def initialize(config = nil)
+      @config = config
+    end
+
+    #
     # Creates the Request object and sends it via the perform method,
     # which generates and returns the Response object.
     #
     def send_request(method, args)
-      request = Orchestrate::API::Request.new(method, build_url(method, args), @user) do |r|
+      request = Orchestrate::API::Request.new(method, build_url(method, args), config.api_key) do |r|
         r.data = args[:json] if args[:json]
         r.ref = args[:ref] if args[:ref]
-        r.verbose = verbose
+        r.verbose = config.verbose
       end
       request.perform
     end
 
+    # ------------------------------------------------------------------------
+
     private
 
+      #
       # Builds the URL for each HTTP request to the orchestrate.io api.
       #
       def build_url(method, args)
-        Orchestrate::API::URL.new(method, @base_url, args).path
+        Orchestrate::API::URL.new(method, config.base_url, args).path
       end
 
   end
