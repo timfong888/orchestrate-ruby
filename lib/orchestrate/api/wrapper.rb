@@ -10,7 +10,7 @@ module Orchestrate::API
   # <b>{Usage examples for each HTTP request}[Procedural.html]</b>
   # are documented in the <b> Procedural</b> interface module.
   #
-  class Wrapper < Object
+  class Wrapper
     include Orchestrate::API::Procedural
 
     attr_accessor :verbose

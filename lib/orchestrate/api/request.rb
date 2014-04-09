@@ -2,7 +2,7 @@ module Orchestrate::API
 
   require 'net/http'
 
-  class Request < Object
+  class Request
 
     # The HTTP method - must be one of: [ :get, :put, :delete ].
     attr_accessor :method
