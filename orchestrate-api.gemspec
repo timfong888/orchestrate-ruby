@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 	s.authors       = ['James Carrasquer']
 	s.email         = 'jimcar@aracnet.com'
 	s.summary       = 'Summary for orchestrate-api'
-	s.description   = 'Wrapper for the Orchestrate.io REST API'
+	s.description   = 'Client for the Orchestrate.io REST API'
 	s.homepage      = 'https://github.com/jimcar/orchestrate-api'
 	s.license       = 'MIT'
 

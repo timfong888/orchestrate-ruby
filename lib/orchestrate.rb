@@ -1,4 +1,6 @@
 require "orchestrate/api"
+require "orchestrate/client"
+require "orchestrate/configuration"
 
 #
 # A library for supporting connections to the \Orchestrate API.

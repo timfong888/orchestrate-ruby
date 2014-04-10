@@ -3,7 +3,7 @@ require "test_helper"
 class ProceduralTest < MiniTest::Unit::TestCase
 
   def setup
-    @client = Orchestrate::API::Wrapper.new
+    @client = Orchestrate::Client.new
   end
 
   # methods: put_event, get_events, purge_key

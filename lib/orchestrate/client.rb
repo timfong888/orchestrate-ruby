@@ -1,6 +1,8 @@
-module Orchestrate::API
+require "orchestrate/api/procedural"
 
-  # ==== Ruby wrapper for the Orchestrate REST *API*.
+module Orchestrate
+
+  # ==== Ruby Client for the Orchestrate REST *API*.
   #
   # The primary entry point is the #send_request method, which generates a
   # Request, and returns the Response to the caller.
@@ -8,9 +10,9 @@ module Orchestrate::API
   # {Usage examples for each HTTP request}[Procedural.html] are documented in
   # the Procedural interface module.
   #
-  class Wrapper
+  class Client
 
-    include Orchestrate::API::Procedural
+    include API::Procedural
 
     #
     # Configuration for the wrapper instance. If configuration is not
@@ -29,7 +31,7 @@ module Orchestrate::API
     end
 
     #
-    # Initialize and return a new Wrapper instance. Optionally, configure
+    # Initialize and return a new Client instance. Optionally, configure
     # options for the instance by passing a Configuration object. If no
     # custom configuration is provided, the configuration options from
     # Orchestrate.config will be used.
@@ -42,7 +44,7 @@ module Orchestrate::API
     # which generates and returns the Response object.
     #
     def send_request(method, args)
-      request = Orchestrate::API::Request.new(method, build_url(method, args), config.api_key) do |r|
+      request = API::Request.new(method, build_url(method, args), config.api_key) do |r|
         r.data = args[:json] if args[:json]
         r.ref = args[:ref] if args[:ref]
         r.verbose = config.verbose
@@ -58,10 +60,9 @@ module Orchestrate::API
       # Builds the URL for each HTTP request to the orchestrate.io api.
       #
       def build_url(method, args)
-        Orchestrate::API::URL.new(method, config.base_url, args).path
+        API::URL.new(method, config.base_url, args).path
       end
 
   end
+
 end
-
-
