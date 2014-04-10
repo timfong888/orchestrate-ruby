@@ -5,7 +5,6 @@ require "rdoc/task"
 task default: :test
 
 Rake::TestTask.new do |test|
-  test.libs << "lib/orchestrate-api"
   test.test_files = FileList["test/tests/**/*_test.rb"]
   test.verbose = true
 end

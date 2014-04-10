@@ -1,8 +1,7 @@
+require "orchestrate/api"
 require "minitest/autorun"
 require "json"
 require "vcr"
-
-require "orchestrate-api"
 
 # Configure Orchestrate API Client -------------------------------------------
 
