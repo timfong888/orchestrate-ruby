@@ -10,12 +10,6 @@ Orchestrate.configure do |config|
   config.verbose = true
 end
 
-module Test
-  def client
-    @@client ||= Orchestrate::API::Wrapper.new
-  end
-end
-
 # Configure VCR --------------------------------------------------------------
 
 VCR.configure do |c|
