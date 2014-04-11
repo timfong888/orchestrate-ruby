@@ -7,6 +7,7 @@ require "vcr"
 
 Orchestrate.configure do |config|
   config.api_key = ENV["TEST_API_KEY"]
+  config.logger = Logger.new(File.join(File.dirname(__FILE__), "test.log"))
 end
 
 # Configure VCR --------------------------------------------------------------
@@ -22,5 +23,5 @@ end
 
 def output_message(name, msg = nil)
   msg = "START TEST" if msg.blank?
-  puts "\n======= #{msg}: #{name} ======="
+  Orchestrate.config.logger.debug "\n======= #{msg}: #{name} ======="
 end
