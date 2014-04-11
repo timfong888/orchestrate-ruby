@@ -60,7 +60,7 @@ module Orchestrate::API
         request = Net::HTTP::Delete.new(uri)
       end
 
-      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::API::VERSION}"
+      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::VERSION}"
       request.basic_auth @user, nil
       request
     end
