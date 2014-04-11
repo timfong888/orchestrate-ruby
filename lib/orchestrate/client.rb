@@ -47,7 +47,6 @@ module Orchestrate
       request = API::Request.new(method, build_url(method, args), config.api_key) do |r|
         r.data = args[:json] if args[:json]
         r.ref = args[:ref] if args[:ref]
-        r.verbose = config.verbose
       end
       request.perform
     end

@@ -19,9 +19,6 @@ module Orchestrate::API
     # The ref value associated with a key.
     attr_accessor  :ref
 
-    # Boolean
-    attr_accessor  :verbose
-
     # Sets the universal attributes from the params; any additional
     # attributes are set from the block.
     #
@@ -36,7 +33,7 @@ module Orchestrate::API
       uri = URI(url)
       response = Net::HTTP.start(uri.hostname, uri.port,
         :use_ssl => uri.scheme == 'https' ) { |http|
-        puts "\n------- #{method.to_s.upcase} \"#{url}\" ------" if verbose?
+        Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         http.request(request(uri))
       }
       Response.new(response)
@@ -63,10 +60,6 @@ module Orchestrate::API
       request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::VERSION}"
       request.basic_auth @user, nil
       request
-    end
-
-    def verbose?
-      verbose == true
     end
 
   end

@@ -1,3 +1,5 @@
+require "logger"
+
 module Orchestrate
 
   #
@@ -13,7 +15,6 @@ module Orchestrate
   #
   #     Orchestrate.configure do |config|
   #       config.api_key = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  #       config.verbose = true
   #     end
   #
   class Configuration
@@ -29,11 +30,9 @@ module Orchestrate
     attr_accessor :base_url
 
     #
-    # Controlers whether verbose output is enabled. Default +false+.
+    # The logger instances to send messages to. Defaults to +STDOUT+.
     #
-    # TODO Replace this with logger with log levels
-    #
-    attr_accessor :verbose
+    attr_accessor :logger
 
     #
     # Initialize and return a new instance of Configuration.
@@ -41,7 +40,7 @@ module Orchestrate
     def initialize(options = {}) # :nodoc:
       @api_key = options[:api_key]
       @base_url = options[:base_url] || "https://api.orchestrate.io/v0"
-      @verbose = options[:verbose].nil? ? false : options[:verbose]
+      @logger = options[:logger] || Logger.new(STDOUT)
     end
 
   end

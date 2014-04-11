@@ -7,7 +7,6 @@ require "vcr"
 
 Orchestrate.configure do |config|
   config.api_key = ENV["TEST_API_KEY"]
-  config.verbose = true
 end
 
 # Configure VCR --------------------------------------------------------------
