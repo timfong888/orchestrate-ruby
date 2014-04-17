@@ -5,7 +5,6 @@ require 'orchestrate/version'
 Gem::Specification.new do |s|
 	s.name          = 'orchestrate'
 	s.version       = Orchestrate::VERSION
-	s.date          = '2014-03-23'
 	s.authors       = ['James Carrasquer']
 	s.email         = ['jimcar@aracnet.com']
 	s.summary       = 'Ruby client for Orchestrate.io'
