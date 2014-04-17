@@ -3,14 +3,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'orchestrate/version'
 
 Gem::Specification.new do |s|
-	s.name          = 'orchestrate-api'
+	s.name          = 'orchestrate'
 	s.version       = Orchestrate::VERSION
-	s.date          = '2014-03-23'
 	s.authors       = ['James Carrasquer']
 	s.email         = ['jimcar@aracnet.com']
-	s.summary       = 'Summary for orchestrate-api'
+	s.summary       = 'Ruby client for Orchestrate.io'
 	s.description   = 'Client for the Orchestrate REST API'
-	s.homepage      = 'https://github.com/jimcar/orchestrate-api'
+	s.homepage      = 'https://github.com/orchestrate-io/orchestrate-ruby'
 	s.license       = 'MIT'
 
 	s.files         = `git ls-files -z`.split("\x0")
