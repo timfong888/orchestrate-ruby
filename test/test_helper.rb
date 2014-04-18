@@ -2,6 +2,7 @@ require "orchestrate/api"
 require "minitest/autorun"
 require "json"
 require "vcr"
+require "faraday"
 
 # Configure Orchestrate API Client -------------------------------------------
 

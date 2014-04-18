@@ -1,5 +1,6 @@
 module Orchestrate::API
 
+  require 'faraday'
   require 'net/http'
 
   class Request
@@ -30,15 +31,33 @@ module Orchestrate::API
 
     # Sends the HTTP request and returns a Response object.
     def perform
-      uri = URI(url)
-      response = Net::HTTP.start(uri.hostname, uri.port,
-        :use_ssl => uri.scheme == 'https' ) { |http|
-        Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
-        http.request(request(uri))
-      }
-      Response.new(response)
+      # TODO store the Faraday 'connection' in the config, 
+      # investigate if that's a good idea.
+      conn = Faraday.new(Orchestrate.config.base_url) do |faraday|
+        if adapter = Orchestrate.config.faraday_adapter
+          faraday.adapter(*adapter)
+        end
+        faraday.request :basic_auth, @user, ''
+        # faraday seems to want you do specify these twice.
+        faraday.basic_auth @user, ''
+      end
+      conn.send(method) do |request|
+        request.url url
+        if method == :put
+          request.headers['Content-Type'] = 'application/json'
+          # TODO abstract this out
+          if ref == "*"
+            request['If-None-Match'] = ref
+          elsif ref
+            request['If-Match'] = ref
+          end
+          request.body = data
+        end
+        request.headers['Orchestrate-Client'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+      end
     end
 
+    # TODO remove this
     # Creates the Net::HTTP request.
     #
     def request(uri)
