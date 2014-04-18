@@ -3,6 +3,7 @@ require "test_helper"
 class ProceduralTest < MiniTest::Unit::TestCase
 
   def setup
+    raise "these tests are deprecated"
     @client = Orchestrate::Client.new
   end
 
@@ -20,8 +21,9 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
     VCR.use_cassette("#{test_root_name}/setup") do
       response = @client.purge_key(collection: name, key: key)
-      assert response.success? == true
-      assert response.header.code == 204
+      output_message response.finished?, 'blah'
+      assert_equal 204, response.status
+      assert_equal true, response.success?
 
       jdoc = { 'Name' => 'test_1a', 'DESC' => 'desc_1a'}.to_json
       response = @client.put_key(collection: name, key: key, json: jdoc)

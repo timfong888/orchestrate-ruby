@@ -3,13 +3,8 @@ require "minitest/autorun"
 require "json"
 require "vcr"
 require "faraday"
-
-# Configure Orchestrate API Client -------------------------------------------
-
-Orchestrate.configure do |config|
-  config.api_key = ENV["TEST_API_KEY"]
-  config.logger = Logger.new(File.join(File.dirname(__FILE__), "test.log"))
-end
+require "securerandom"
+require "time"
 
 # Configure VCR --------------------------------------------------------------
 
@@ -26,3 +21,35 @@ def output_message(name, msg = nil)
   msg = "START TEST" if msg.blank?
   Orchestrate.config.logger.debug "\n======= #{msg}: #{name} ======="
 end
+
+# TODO this is a bit messy for now at least but there's a bunch of
+# intermediate state we'd have to deal with in a bunch of other places
+def make_client_and_artifacts
+  api_key = SecureRandom.hex(24)
+  basic_auth = "Basic #{Base64.encode64("#{api_key}:").gsub(/\n/,'')}"
+  stubs = Faraday::Adapter::Test::Stubs.new
+  # TODO: make it such that the client passes its optional config to the API::Request class
+  Orchestrate.configure do |config|
+    config.faraday_adapter = [:test, stubs]
+    config.api_key = api_key
+    config.logger = Logger.new(File.join(File.dirname(__FILE__), "test.log"))
+  end
+  client = Orchestrate::Client.new
+  [client, stubs, basic_auth]
+end
+
+def response_headers(specified={})
+  {
+    'Content-Type' => 'application/json',
+    'X-Orchestrate-Req-Id' => SecureRandom.uuid,
+    'Date' => Time.now.httpdate,
+    'Connection' => 'keep-alive'
+  }.merge(specified)
+end
+
+# Assertion Helpers
+
+def assert_authorization(expected, env)
+  assert_equal expected, env.request_headers['Authorization']
+end
+
