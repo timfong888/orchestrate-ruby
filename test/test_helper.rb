@@ -47,6 +47,10 @@ def response_headers(specified={})
   }.merge(specified)
 end
 
+def chunked_encoding_header
+  { 'transfer-encoding' => 'chunked' }
+end
+
 # Assertion Helpers
 
 def assert_authorization(expected, env)
