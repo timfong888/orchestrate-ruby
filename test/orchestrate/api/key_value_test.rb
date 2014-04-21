@@ -40,6 +40,19 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_match(/items_not_found/, response.body)
   end
 
+  def test_puts_key_value_without_ref
+    body='{"foo":"bar"}'
+    @stubs.put("/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body, env.body
+      [ 201, response_headers, '' ]
+    end
+
+    response = @client.put_key({collection:@collection, key:@key, json:body})
+    assert_equal 201, response.status
+  end
+
   def test_puts_key_value_with_specific_ref
     body = '{"foo":"bar"}'
     ref = '123456'
