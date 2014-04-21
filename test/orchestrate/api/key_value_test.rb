@@ -112,4 +112,15 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal 204, response.status
   end
 
+  def test_gets_ref
+    ref = '123456'
+    @stubs.get("/#{@collection}/#{@key}/refs/#{ref}") do |env|
+      assert_authorization @basic_auth, env
+      [ 200, response_headers, '' ]
+    end
+
+    response = @client.get_by_ref({collection:@collection, key:@key, ref:ref})
+    assert_equal 200, response.status
+  end
+
 end
