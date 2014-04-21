@@ -52,6 +52,8 @@ module Orchestrate::API
             request['If-Match'] = ref
           end
           request.body = data
+        elsif method == :delete && ref != "*"
+          request['If-Match'] = ref
         end
         request.headers['Orchestrate-Client'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
