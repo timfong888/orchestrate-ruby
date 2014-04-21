@@ -44,6 +44,7 @@ module Orchestrate::API
           @event_type.blank? ? "" : "/events/#{@event_type}"
         end
 
+        # TODO: convert time objects to integers
         def timestamp_param_string
           return "" if @timestamp.blank?
           return "?timestamp=#{@timestamp}" if (@timestamp.is_a?(Integer) || @timestamp.is_a?(String))
