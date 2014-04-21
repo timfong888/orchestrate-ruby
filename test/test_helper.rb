@@ -62,7 +62,11 @@ end
 
 # Assertion Helpers
 
+def assert_header(header, expected, env)
+  assert_equal expected, env.request_headers[header]
+end
+
 def assert_authorization(expected, env)
-  assert_equal expected, env.request_headers['Authorization']
+  assert_header 'Authorization', expected, env
 end
 
