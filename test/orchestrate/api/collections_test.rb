@@ -43,4 +43,36 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert response.body['results']
   end
 
+  def test_search_with_simple_query
+    # note: de-URL-encoding this is done by the rack handler
+    query = "foo bar"
+
+    @stubs.get("/#{@collection}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal query, env.params['query']
+      assert_match(/query=foo\+bar/, env.url.query)
+      [ 200, response_headers, '{"count":3, "results":[]}' ]
+    end
+
+    response = @client.search({collection:@collection, query:query})
+    assert_equal 200, response.status
+    assert_equal 3, response.body['count']
+    assert response.body['results']
+  end
+
+  def test_search_with_extra_params
+    query = "foo bar&offset=3"
+    @stubs.get("/#{@collection}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal 'foo bar', env.params['query']
+      assert_equal '3', env.params['offset']
+      [ 200, response_headers, '{"count":3, "results":[]}' ]
+    end
+
+    response = @client.search({collection:@collection, query:query})
+    assert_equal 200, response.status
+    assert_equal 3, response.body['count']
+    assert response.body['results']
+  end
+
 end

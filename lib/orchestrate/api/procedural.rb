@@ -21,6 +21,8 @@ module Orchestrate::API
     #  * required: { collection, query }
     #
     def search(args)
+      # TODO
+      # don't clobber anything in existing path parameter
       send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
     end
 
