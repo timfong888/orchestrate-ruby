@@ -51,6 +51,15 @@ def chunked_encoding_header
   { 'transfer-encoding' => 'chunked' }
 end
 
+def response_not_found(items)
+{ "message" => "The requested items could not be found.",
+  "details" => {
+    "items" => [ items ]
+  },
+  "code" => "items_not_found"
+}.to_json
+end
+
 # Assertion Helpers
 
 def assert_authorization(expected, env)
