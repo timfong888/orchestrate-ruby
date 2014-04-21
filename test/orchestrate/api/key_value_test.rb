@@ -22,7 +22,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     response = @client.get_key({collection:@collection, key:@key})
     assert_equal 200, response.status
-    assert_equal body, response.body
+    assert_equal JSON.parse(body), response.body
 
     assert_equal ref, response.headers['ETag']
     assert_equal ref_url, response.headers['Content-Location']
@@ -37,7 +37,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     response = @client.get_key({collection:@collection, key:@key})
     assert_equal 404, response.status
-    assert_match(/items_not_found/, response.body)
+    assert_equal 'items_not_found', response.body['code']
   end
 
   def test_puts_key_value_without_ref

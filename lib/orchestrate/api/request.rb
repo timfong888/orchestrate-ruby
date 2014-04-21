@@ -1,6 +1,7 @@
 module Orchestrate::API
 
   require 'faraday'
+  require 'faraday_middleware'
   require 'net/http'
 
   class Request
@@ -40,6 +41,9 @@ module Orchestrate::API
         faraday.request :basic_auth, @user, ''
         # faraday seems to want you do specify these twice.
         faraday.basic_auth @user, ''
+
+        # parses JSON responses
+        faraday.response :json, :content_type => /\bjson$/
       end
       conn.send(method) do |request|
         request.url url
