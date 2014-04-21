@@ -69,4 +69,34 @@ class KeyValueTest < MiniTest::Unit::TestCase
     @client.put_key({ collection:@collection, key:@key, json:body, ref:'*' })
   end
 
+  def test_delete_key_value
+    @stubs.delete("/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      [ 204, response_headers, '' ]
+    end
+    response = @client.delete_key({collection:@collection, key:@key})
+    assert_equal 204, response.status
+  end
+
+  def test_delete_key_value_with_condition
+    ref='"12345"'
+    @stubs.delete("/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', ref, env
+      [ 204, response_headers, '' ]
+    end
+    response = @client.delete_key({collection:@collection, key:@key, ref:ref})
+    assert_equal 204, response.status
+  end
+
+  def test_delete_key_value_with_purge
+    @stubs.delete("/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal "true", env.params["purge"]
+      [ 204, response_headers, '' ]
+    end
+    response = @client.purge_key({collection:@collection, key:@key})
+    assert_equal 204, response.status
+  end
+
 end
