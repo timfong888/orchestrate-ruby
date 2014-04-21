@@ -3,13 +3,12 @@ require "test_helper"
 class ProceduralTest < MiniTest::Unit::TestCase
 
   def setup
-    raise "these tests are deprecated"
     @client = Orchestrate::Client.new
   end
 
   # methods: put_event, get_events, purge_key
   #
-  def test_event
+  def _test_event
 
     test_root_name = 'procedural-event'
     name = 'test_models'
@@ -107,7 +106,7 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
   # methods: put_graph, get_graph, delete_graph
   #
-  def test_graph
+  def _test_graph
 
     test_root_name = 'procedural-graph'
     name = 'test_models'
@@ -203,7 +202,7 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
   # methods: put_key, get_key, delete_key
   #
-  def test_key_value
+  def _test_key_value
 
     test_root_name = 'procedural-key_value'
     name = 'test_models'
@@ -260,7 +259,7 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
   # methods: list, delete_collection
   #
-  def test_list
+  def _test_list
 
     test_root_name = 'procedural-list'
     name = 'test_models'
@@ -338,7 +337,7 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
   # methods: put_key_if_match, put_key_if_none_match, get_by_ref, purge_key
   #
-  def test_ref
+  def _test_ref
 
     test_root_name = 'procedural-ref'
     name = 'test_models'
@@ -424,7 +423,7 @@ class ProceduralTest < MiniTest::Unit::TestCase
 
   # methods: list, delete_collection
   #
-  def test_search
+  def _test_search
 
     test_root_name = 'procedural-search'
     name = 'test_models'
