@@ -37,16 +37,18 @@ module Orchestrate::API
       conn = Faraday.new(Orchestrate.config.base_url) do |faraday|
         if adapter = Orchestrate.config.faraday_adapter
           faraday.adapter(*adapter)
+        else
+          faraday.adapter Faraday.default_adapter
         end
         faraday.request :basic_auth, @user, ''
         # faraday seems to want you do specify these twice.
         faraday.basic_auth @user, ''
 
         # parses JSON responses
-        faraday.response :json, :content_type => /\bjson$/
+        # faraday.response :json, :content_type => /\bjson$/
       end
       conn.send(method) do |request|
-        request.url url
+        request.url "/v0#{url}"
         if method == :put
           request.headers['Content-Type'] = 'application/json'
           # TODO abstract this out
@@ -58,6 +60,8 @@ module Orchestrate::API
           request.body = data
         elsif method == :delete && ref != "*"
           request['If-Match'] = ref
+        elsif method == :get
+          request['Accept'] = 'application/json'
         end
         request.headers['Orchestrate-Client'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
