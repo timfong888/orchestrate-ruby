@@ -45,9 +45,9 @@ module Orchestrate::API
         faraday.basic_auth @user, ''
 
         # parses JSON responses
-        faraday.response :json, :content_type => /\bjson$/
+        # faraday.response :json, :content_type => /\bjson$/
       end
-      conn.send(method) do |request|
+      response = conn.send(method) do |request|
         request.url url
         if method == :put
           request.headers['Content-Type'] = 'application/json'
@@ -65,6 +65,7 @@ module Orchestrate::API
         end
         request.headers['Orchestrate-Client'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
+      Response.new(response)
     end
 
     # TODO remove this

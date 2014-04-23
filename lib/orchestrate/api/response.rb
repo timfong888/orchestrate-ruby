@@ -11,8 +11,8 @@ module Orchestrate::API
     attr_reader :body
 
     def initialize(response)
-      @success = [200, 201, 204].include? response.code.to_i
-      @header  = Header.new(response.to_hash, response.code.to_i, response.message)
+      @success = [200, 201, 204].include? response.status
+      @header  = Header.new(response.headers, response.status)
       @body    = ResponseBody.new(response.body)
     end
 
@@ -32,9 +32,6 @@ module Orchestrate::API
       # HTTP response code.
       attr_reader :code
 
-      # HTTP response status.
-      attr_reader :status
-
       attr_reader :timestamp
 
       # ETag value, also known as the 'ref' value.
@@ -43,9 +40,9 @@ module Orchestrate::API
       # Link to the next url in a series of list requests.
       attr_reader :link
 
-      def initialize(headers, code, msg)
+      def initialize(headers, code)
         @content = headers
-        @code, @status = code, msg
+        @code = code
         @timestamp = headers['date']
         @etag = get_etag
         @link = headers['link'] if headers['link']
@@ -54,9 +51,9 @@ module Orchestrate::API
       private
         def get_etag
           if @code == 200 && @content['etag']
-            @content['etag'].first.sub(/\-gzip/, '')
+            @content['etag'].sub(/\-gzip/, '')
           elsif @code == 201 && @content['location'].present?
-            "\"#{@content['location'].first.split('/').last}\""
+            "\"#{@content['location'].split('/').last}\""
           end
         end
     end
@@ -95,6 +92,7 @@ module Orchestrate::API
     # Initialize instance variables, based on response body contents.
     def initialize(body)
       @content = body
+
       @to_hash = (body.nil? || body == '' || body == {}) ? {} : JSON.parse(body)
       to_hash.each { |k,v| instance_variable_set "@#{k}", v }
     end

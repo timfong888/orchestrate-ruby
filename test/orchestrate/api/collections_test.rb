@@ -10,12 +10,12 @@ class CollectionTest < MiniTest::Unit::TestCase
     @stubs.delete("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_equal "true", env.params["force"]
-      [204, response_headers, []]
+      [204, response_headers, '']
     end
 
     response = @client.delete_collection({collection: @collection})
-    assert_equal 204, response.status
-    assert response.body.empty?
+    assert_equal 204, response.header.code
+    assert response.body.content.empty?
   end
 
   def test_lists_collection_without_params
@@ -26,9 +26,9 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
 
     response = @client.list({collection:@collection})
-    assert_equal 200, response.status
-    assert_equal 3, response.body['count']
-    assert response.body['results']
+    assert_equal 200, response.header.code
+    assert_equal 3, response.body.count
+    assert response.body.results
   end
 
   def test_lists_collections_with_params_passes_them
@@ -40,9 +40,9 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
 
     response = @client.list({collection:@collection, path:"?limit=1"})
-    assert_equal 200, response.status
-    assert_equal 1, response.body['count']
-    assert response.body['results']
+    assert_equal 200, response.header.code
+    assert_equal 1, response.body.count
+    assert response.body.results
   end
 
   def test_search_with_simple_query
@@ -58,9 +58,9 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
 
     response = @client.search({collection:@collection, query:query})
-    assert_equal 200, response.status
-    assert_equal 3, response.body['count']
-    assert response.body['results']
+    assert_equal 200, response.header.code
+    assert_equal 3, response.body.count
+    assert response.body.results
   end
 
   def test_search_with_extra_params
@@ -74,9 +74,9 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
 
     response = @client.search({collection:@collection, query:query})
-    assert_equal 200, response.status
-    assert_equal 3, response.body['count']
-    assert response.body['results']
+    assert_equal 200, response.header.code
+    assert_equal 3, response.body.count
+    assert response.body.results
   end
 
 end

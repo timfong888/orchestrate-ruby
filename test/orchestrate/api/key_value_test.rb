@@ -16,18 +16,17 @@ class KeyValueTest < MiniTest::Unit::TestCase
       assert_accepts_json env
       headers = {
         'Content-Location' => ref_url,
-        'ETag' => ref,
+        'ETag' => "\"#{ref}\"",
       }.merge(chunked_encoding_header)
       [ 200, response_headers(headers), body]
     end
 
     response = @client.get_key({collection:@collection, key:@key})
-    assert_equal 200, response.status
-    assert_equal JSON.parse(body), response.body
+    assert_equal 200, response.header.code
+    assert_equal body, response.body.content
 
-    assert_equal ref, response.headers['ETag']
-    assert_equal ref_url, response.headers['Content-Location']
-    assert_equal 'chunked', response.headers['transfer-encoding']
+    assert_equal "\"#{ref}\"", response.header.etag
+    assert_equal ref_url, response.header.content['Content-Location']
   end
 
   def test_gets_key_value_is_404_when_does_not_exist
@@ -38,8 +37,8 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
 
     response = @client.get_key({collection:@collection, key:@key})
-    assert_equal 404, response.status
-    assert_equal 'items_not_found', response.body['code']
+    assert_equal 404, response.header.code
+    assert_equal 'items_not_found', response.body.code
   end
 
   def test_puts_key_value_without_ref
@@ -52,7 +51,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
 
     response = @client.put_key({collection:@collection, key:@key, json:body})
-    assert_equal 201, response.status
+    assert_equal 201, response.header.code
   end
 
   def test_puts_key_value_with_specific_ref
@@ -67,7 +66,8 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '' ]
     end
 
-    @client.put_key({ collection:@collection, key:@key, json: body, ref: ref })
+    response = @client.put_key({ collection:@collection, key:@key, json: body, ref: ref })
+    assert_equal 200, response.header.code
   end
 
   def test_puts_key_value_with_inspecific_ref
@@ -81,7 +81,8 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '' ]
     end
 
-    @client.put_key({ collection:@collection, key:@key, json:body, ref:'*' })
+    response = @client.put_key({ collection:@collection, key:@key, json:body, ref:'*' })
+    assert_equal 200, response.header.code
   end
 
   def test_delete_key_value
@@ -90,7 +91,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 204, response_headers, '' ]
     end
     response = @client.delete_key({collection:@collection, key:@key})
-    assert_equal 204, response.status
+    assert_equal 204, response.header.code
   end
 
   def test_delete_key_value_with_condition
@@ -101,7 +102,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 204, response_headers, '' ]
     end
     response = @client.delete_key({collection:@collection, key:@key, ref:ref})
-    assert_equal 204, response.status
+    assert_equal 204, response.header.code
   end
 
   def test_delete_key_value_with_purge
@@ -111,7 +112,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 204, response_headers, '' ]
     end
     response = @client.purge_key({collection:@collection, key:@key})
-    assert_equal 204, response.status
+    assert_equal 204, response.header.code
   end
 
   def test_gets_ref
@@ -123,7 +124,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
 
     response = @client.get_by_ref({collection:@collection, key:@key, ref:ref})
-    assert_equal 200, response.status
+    assert_equal 200, response.header.code
   end
 
 end
