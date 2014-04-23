@@ -1,7 +1,7 @@
 require "orchestrate/api"
 require "minitest/autorun"
 require "json"
-require "vcr"
+require "base64"
 require "faraday"
 require "securerandom"
 require "time"
