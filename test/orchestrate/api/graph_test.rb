@@ -11,7 +11,7 @@ class GraphTest < MiniTest::Unit::TestCase
   end
 
   def test_get_graph
-    @stubs.get("/#{@collection}/#{@key}/relations/#{@kind}") do |env|
+    @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}") do |env|
       assert_authorization @basic_auth, env
       [200, response_headers, '{"count":3, "results":[]}']
     end
@@ -22,7 +22,7 @@ class GraphTest < MiniTest::Unit::TestCase
   end
 
   def test_put_graph
-    @stubs.put("/#{@collection}/#{@key}/relation/#{@kind}/#{@target_collection}/#{@target_key}") do |env|
+    @stubs.put("/v0/#{@collection}/#{@key}/relation/#{@kind}/#{@target_collection}/#{@target_key}") do |env|
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
@@ -31,7 +31,7 @@ class GraphTest < MiniTest::Unit::TestCase
   end
 
   def test_delete_graph
-    @stubs.delete("/#{@collection}/#{@key}/relation/#{@kind}/#{@target_collection}/#{@target_key}") do |env|
+    @stubs.delete("/v0/#{@collection}/#{@key}/relation/#{@kind}/#{@target_collection}/#{@target_key}") do |env|
       assert_authorization @basic_auth, env
       assert_equal 'true', env.params['purge']
       [ 204, response_headers, '' ]

@@ -45,10 +45,10 @@ module Orchestrate::API
         faraday.basic_auth @user, ''
 
         # parses JSON responses
-        # faraday.response :json, :content_type => /\bjson$/
+        faraday.response :json, :content_type => /\bjson$/
       end
       conn.send(method) do |request|
-        request.url "/v0#{url}"
+        request.url url
         if method == :put
           request.headers['Content-Type'] = 'application/json'
           # TODO abstract this out

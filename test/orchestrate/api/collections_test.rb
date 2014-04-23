@@ -7,7 +7,7 @@ class CollectionTest < MiniTest::Unit::TestCase
   end
 
   def test_deletes_collection
-    @stubs.delete("/#{@collection}") do |env|
+    @stubs.delete("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_equal "true", env.params["force"]
       [204, response_headers, []]
@@ -19,7 +19,7 @@ class CollectionTest < MiniTest::Unit::TestCase
   end
 
   def test_lists_collection_without_params
-    @stubs.get("/#{@collection}") do |env|
+    @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       [200, response_headers, '{"count":3, "next":"blah", "results":[]}']
     end
@@ -31,7 +31,7 @@ class CollectionTest < MiniTest::Unit::TestCase
   end
 
   def test_lists_collections_with_params_passes_them
-    @stubs.get("/#{@collection}") do |env|
+    @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_equal "1", env.params['limit']
       [ 200, response_headers, '{"count":1, "next":"blah", "results":[]}' ]
@@ -47,7 +47,7 @@ class CollectionTest < MiniTest::Unit::TestCase
     # note: de-URL-encoding this is done by the rack handler
     query = "foo bar"
 
-    @stubs.get("/#{@collection}") do |env|
+    @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_equal query, env.params['query']
       assert_match(/query=foo\+bar/, env.url.query)
@@ -62,7 +62,7 @@ class CollectionTest < MiniTest::Unit::TestCase
 
   def test_search_with_extra_params
     query = "foo bar&offset=3"
-    @stubs.get("/#{@collection}") do |env|
+    @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_equal 'foo bar', env.params['query']
       assert_equal '3', env.params['offset']

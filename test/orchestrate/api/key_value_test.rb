@@ -11,7 +11,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     ref = SecureRandom.hex(16)
     ref_url = "/v0/#{@collection}/#{@key}/refs/#{ref}"
     body = '{"key":"value"}' 
-    @stubs.get("/#{@collection}/#{@key}") do |env|
+    @stubs.get("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       headers = {
         'Content-Location' => ref_url,
@@ -30,7 +30,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
   end
 
   def test_gets_key_value_is_404_when_does_not_exist
-    @stubs.get("/#{@collection}/#{@key}") do |env|
+    @stubs.get("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
@@ -42,7 +42,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
   def test_puts_key_value_without_ref
     body='{"foo":"bar"}'
-    @stubs.put("/#{@collection}/#{@key}") do |env|
+    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body, env.body
@@ -57,7 +57,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     body = '{"foo":"bar"}'
     ref = '123456'
 
-    @stubs.put("/#{@collection}/#{@key}") do |env|
+    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       assert_header 'If-Match', ref, env
       assert_header 'Content-Type', 'application/json', env
@@ -71,7 +71,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
   def test_puts_key_value_with_inspecific_ref
     body = '{"foo":"bar"}'
 
-    @stubs.put("/#{@collection}/#{@key}") do |env|
+    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       assert_header 'If-None-Match', '*', env
       assert_header 'Content-Type', 'application/json', env
@@ -83,7 +83,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
   end
 
   def test_delete_key_value
-    @stubs.delete("/#{@collection}/#{@key}") do |env|
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
@@ -93,7 +93,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
   def test_delete_key_value_with_condition
     ref='"12345"'
-    @stubs.delete("/#{@collection}/#{@key}") do |env|
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       assert_header 'If-Match', ref, env
       [ 204, response_headers, '' ]
@@ -103,7 +103,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
   end
 
   def test_delete_key_value_with_purge
-    @stubs.delete("/#{@collection}/#{@key}") do |env|
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
       assert_equal "true", env.params["purge"]
       [ 204, response_headers, '' ]
@@ -114,7 +114,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
   def test_gets_ref
     ref = '123456'
-    @stubs.get("/#{@collection}/#{@key}/refs/#{ref}") do |env|
+    @stubs.get("/v0/#{@collection}/#{@key}/refs/#{ref}") do |env|
       assert_authorization @basic_auth, env
       [ 200, response_headers, '' ]
     end
