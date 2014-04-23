@@ -68,30 +68,6 @@ module Orchestrate::API
       Response.new(response)
     end
 
-    # TODO remove this
-    # Creates the Net::HTTP request.
-    #
-    def request(uri)
-      case
-      when method == :get
-        request = Net::HTTP::Get.new(uri)
-      when method == :put
-        request = Net::HTTP::Put.new(uri)
-        request['Content-Type'] = 'application/json'
-        if ref
-          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
-          request[header] = ref
-        end
-        request.body = data
-      when method == :delete
-        request = Net::HTTP::Delete.new(uri)
-      end
-
-      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::VERSION}"
-      request.basic_auth @user, nil
-      request
-    end
-
   end
 end
 

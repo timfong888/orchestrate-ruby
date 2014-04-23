@@ -6,15 +6,6 @@ require "faraday"
 require "securerandom"
 require "time"
 
-# Configure VCR --------------------------------------------------------------
-
-VCR.configure do |c|
-  # c.allow_http_connections_when_no_cassette = true
-  c.hook_into :webmock
-  c.cassette_library_dir = File.join(File.dirname(__FILE__), "fixtures", "vcr_cassettes")
-  default_cassette_options = { :record => :all }
-end
-
 # Test Helpers ---------------------------------------------------------------
 
 def output_message(name, msg = nil)
