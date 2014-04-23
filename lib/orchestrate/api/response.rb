@@ -1,3 +1,4 @@
+require 'json'
 module Orchestrate::API
 
   # Transforms the Net::HTTP response into a structure that provides ready
