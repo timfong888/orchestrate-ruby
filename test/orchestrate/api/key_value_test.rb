@@ -13,6 +13,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     body = '{"key":"value"}' 
     @stubs.get("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       headers = {
         'Content-Location' => ref_url,
         'ETag' => ref,
@@ -32,6 +33,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
   def test_gets_key_value_is_404_when_does_not_exist
     @stubs.get("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
@@ -116,6 +118,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     ref = '123456'
     @stubs.get("/v0/#{@collection}/#{@key}/refs/#{ref}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       [ 200, response_headers, '' ]
     end
 

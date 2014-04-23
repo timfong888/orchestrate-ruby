@@ -13,6 +13,7 @@ class GraphTest < MiniTest::Unit::TestCase
   def test_get_graph
     @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       [200, response_headers, '{"count":3, "results":[]}']
     end
     response = @client.get_graph({collection:@collection, key:@key, kind:@kind})

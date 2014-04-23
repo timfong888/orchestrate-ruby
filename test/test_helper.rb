@@ -70,4 +70,8 @@ def assert_authorization(expected, env)
   assert_header 'Authorization', expected, env
 end
 
+def assert_accepts_json(env)
+  assert_match %r{application/json}, env.request_headers['Accept']
+end
+
 

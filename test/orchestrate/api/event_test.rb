@@ -12,6 +12,7 @@ class EventTest < MiniTest::Unit::TestCase
   def test_get_events_without_timestamp
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       [200, response_headers, '{}']
     end
 
@@ -24,6 +25,7 @@ class EventTest < MiniTest::Unit::TestCase
     start_time = end_time - (24 * 3600)
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       assert_equal start_time.to_i.to_s, env.params['start']
       assert_equal end_time.to_i.to_s, env.params['end']
       [200, response_headers, '{}']

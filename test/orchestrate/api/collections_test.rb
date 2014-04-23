@@ -21,6 +21,7 @@ class CollectionTest < MiniTest::Unit::TestCase
   def test_lists_collection_without_params
     @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       [200, response_headers, '{"count":3, "next":"blah", "results":[]}']
     end
 
@@ -33,6 +34,7 @@ class CollectionTest < MiniTest::Unit::TestCase
   def test_lists_collections_with_params_passes_them
     @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       assert_equal "1", env.params['limit']
       [ 200, response_headers, '{"count":1, "next":"blah", "results":[]}' ]
     end
@@ -49,6 +51,7 @@ class CollectionTest < MiniTest::Unit::TestCase
 
     @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       assert_equal query, env.params['query']
       assert_match(/query=foo\+bar/, env.url.query)
       [ 200, response_headers, '{"count":3, "results":[]}' ]
@@ -64,6 +67,7 @@ class CollectionTest < MiniTest::Unit::TestCase
     query = "foo bar&offset=3"
     @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
+      assert_accepts_json env
       assert_equal 'foo bar', env.params['query']
       assert_equal '3', env.params['offset']
       [ 200, response_headers, '{"count":3, "results":[]}' ]
