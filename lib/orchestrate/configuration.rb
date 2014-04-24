@@ -43,7 +43,7 @@ module Orchestrate
     #
     def initialize(options = {}) # :nodoc:
       @api_key = options[:api_key]
-      @base_url = options[:base_url] || "https://api.orchestrate.io/v0"
+      @base_url = options[:base_url] || "https://api.orchestrate.io"
       @logger = options[:logger] || Logger.new(STDOUT)
       @faraday_adapter = options[:faraday_adapter]
     end
