@@ -63,7 +63,7 @@ module Orchestrate::API
         elsif method == :get
           request['Accept'] = 'application/json'
         end
-        request.headers['Orchestrate-Client'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+        request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
       Response.new(response)
     end
