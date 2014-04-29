@@ -48,6 +48,7 @@ module Orchestrate::API
         # faraday.response :json, :content_type => /\bjson$/
       end
       response = conn.send(method) do |request|
+        Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url
         if method == :put
           request.headers['Content-Type'] = 'application/json'
