@@ -6,6 +6,26 @@ Ruby gem to provide an interface for the [Orchestrate.io](http://orchestrate.io)
 
 Find the [docs here](http://jimcar.github.io/orchestrate/Orchestrate/API.html).
 
+## Getting Started
+
+Provide your API key:
+
+``` ruby
+Orchestrate::Configuration.api_key = '8ce391a...'
+```
+
+Create a client:
+
+``` ruby
+client = Orchestrate::Client.new
+```
+
+and start making requests:
+
+``` ruby
+client.list_keys({collection:'collection_name'})
+```
+
 ## Swapping out the HTTP backend
 
 This gem uses [Faraday][] for its HTTP needs -- and Faraday allows you to change the underlying HTTP client used.  It defaults to `Net::HTTP` but if you wanted to use [Typhoeus][] or [EventMachine HTTP][em-http], doing so would be easy.
