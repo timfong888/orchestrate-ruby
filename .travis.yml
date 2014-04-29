@@ -3,6 +3,7 @@ rvm:
   - 2.1.1
   - 2.1.0
   - 2.0.0
+  - 1.9.3
 env:
   TEST_API_KEY=0384407c-95e1-4b27-aa6f-c5a7cb685015
 before_install: gem install bundler -v 1.6.2
