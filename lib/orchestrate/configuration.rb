@@ -36,7 +36,7 @@ module Orchestrate
 
     # for faraday, here temporarily
     #
-    attr_accessor :faraday_adapter
+    attr_accessor :faraday
 
     #
     # Initialize and return a new instance of Configuration.
@@ -45,7 +45,7 @@ module Orchestrate
       @api_key = options[:api_key]
       @base_url = options[:base_url] || "https://api.orchestrate.io"
       @logger = options[:logger] || Logger.new(STDOUT)
-      @faraday_adapter = options[:faraday_adapter]
+      @faraday = options[:faraday]
     end
 
   end

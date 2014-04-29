@@ -35,8 +35,8 @@ module Orchestrate::API
       # TODO store the Faraday 'connection' in the config, 
       # investigate if that's a good idea.
       conn = Faraday.new(Orchestrate.config.base_url) do |faraday|
-        if adapter = Orchestrate.config.faraday_adapter
-          faraday.adapter(*adapter)
+        if adapter = Orchestrate.config.faraday
+          adapter.call(faraday)
         else
           faraday.adapter Faraday.default_adapter
         end

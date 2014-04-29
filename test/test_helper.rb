@@ -21,7 +21,9 @@ def make_client_and_artifacts
   stubs = Faraday::Adapter::Test::Stubs.new
   # TODO: make it such that the client passes its optional config to the API::Request class
   Orchestrate.configure do |config|
-    config.faraday_adapter = [:test, stubs]
+    config.faraday = lambda do |faraday|
+      faraday.adapter :test, stubs
+    end
     config.api_key = api_key
     config.logger = Logger.new(File.join(File.dirname(__FILE__), "test.log"))
   end
