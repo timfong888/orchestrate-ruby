@@ -50,7 +50,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 201, response_headers, '' ]
     end
 
-    response = @client.put_key({collection:@collection, key:@key, json:body})
+    response = @client.put(@collection, @key, body)
     assert_equal 201, response.header.code
   end
 
@@ -66,7 +66,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '' ]
     end
 
-    response = @client.put_key({ collection:@collection, key:@key, json: body, ref: ref })
+    response = @client.put(@collection, @key, body, ref)
     assert_equal 200, response.header.code
   end
 
@@ -81,7 +81,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '' ]
     end
 
-    response = @client.put_key({ collection:@collection, key:@key, json:body, ref:'*' })
+    response = @client.put(@collection, @key, body, false)
     assert_equal 200, response.header.code
   end
 

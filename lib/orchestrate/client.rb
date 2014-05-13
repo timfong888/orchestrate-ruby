@@ -69,7 +69,7 @@ module Orchestrate
     #  * required: collection
     #
     def delete_collection(collection)
-      send_request :delete, [collection], {force:true}
+      send_request :delete, [collection], { query: {force:true} }
     end
 
     # -------------------------------------------------------------------------
@@ -82,10 +82,19 @@ module Orchestrate
       send_request :get, [collection, key]
     end
 
-    #  * required: { collection, key, json }
+    #  * required: collection, key, json
+    #  * optional: condition, where condition = ref="#{etag}" || true
+    #     if condition is a string, it will be sent as the 'If-Match' header
+    #     otherwise if condition is false, the header 'If-None-Match: *' will be sent
     #
-    def put_key(args)
-      send_request :put, args
+    def put(collection, key, body, condition=nil)
+      headers={}
+      if condition.is_a?(String)
+        headers['If-Match'] = condition
+      elsif condition == false
+        headers['If-None-Match'] = '*'
+      end
+      send_request :put, [collection, key], { body: body, headers: headers }
     end
 
     #  * required: { collection, key }
@@ -162,31 +171,31 @@ module Orchestrate
     #
     # Performs the HTTP request against the API and returns an API::Response.
     #
-    def send_request(method, url, query_string={}, headers={})
+    def send_request(method, url, opts={})
       if url.is_a?(Hash)
         ref = url[:ref]
         body = url[:json]
         url = build_url(method, url)
+        headers={}
       else
         url = "/v0/#{url.join('/')}"
+        query_string = opts.fetch(:query, {})
+        body = opts.fetch(:body, '')
+        headers = opts.fetch(:headers, {})
       end
       # TODO: move header manipulation into the API method
       response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
         if method == :put
-          request.headers['Content-Type'] = 'application/json'
-          if ref == "*"
-            request['If-None-Match'] = ref
-          elsif ref
-            request['If-Match'] = ref
-          end
+          headers['Content-Type'] = 'application/json'
           request.body = body
         elsif method == :delete && ref != "*"
-          request['If-Match'] = ref
+          headers['If-Match'] = ref
         elsif method == :get
-          request['Accept'] = 'application/json'
+          headers['Accept'] = 'application/json'
         end
+        headers.each {|header, value| request[header] = value }
         request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
       API::Response.new(response)
