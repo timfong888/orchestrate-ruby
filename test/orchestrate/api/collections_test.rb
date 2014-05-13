@@ -13,7 +13,7 @@ class CollectionTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
 
-    response = @client.delete_collection({collection: @collection})
+    response = @client.delete_collection(@collection)
     assert_equal 204, response.header.code
     assert response.body.content.empty?
   end

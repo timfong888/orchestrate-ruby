@@ -65,10 +65,11 @@ module Orchestrate
       send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
     end
 
-    #  * required: { collection }
+    #  Deletes a collection
+    #  * required: collection
     #
-    def delete_collection(args)
-      send_request :delete, args.merge(path: "?force=true")
+    def delete_collection(collection)
+      send_request :delete, [collection], {force:true}
     end
 
     # -------------------------------------------------------------------------
@@ -160,13 +161,18 @@ module Orchestrate
     #
     # Performs the HTTP request against the API and returns an API::Response.
     #
-    def send_request(method, args)
-      ref = args[:ref]
+    def send_request(method, url, query_string={}, headers={})
+      if url.is_a?(Hash)
+        ref = url[:ref]
+        body = url[:json]
+        url = build_url(method, url)
+      else
+        url = "/v0/#{url.join('/')}"
+      end
       # TODO: move header manipulation into the API method
-      url = build_url(method, args)
       response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
-        request.url url
+        request.url url, query_string
         if method == :put
           request.headers['Content-Type'] = 'application/json'
           if ref == "*"
@@ -174,7 +180,7 @@ module Orchestrate
           elsif ref
             request['If-Match'] = ref
           end
-          request.body = args[:json]
+          request.body = body
         elsif method == :delete && ref != "*"
           request['If-Match'] = ref
         elsif method == :get
