@@ -7,18 +7,18 @@ class EventTest < MiniTest::Unit::TestCase
     @key = 'instance'
     @client, @stubs, @basic_auth = make_client_and_artifacts
     @event_type = "commits"
+    @timestamp = (Time.now.to_f * 1000).to_i
+    @ordinal = 5
   end
 
   def test_get_event
-    timestamp = (Time.now.to_f * 1000).to_i
-    ordinal = 5
-    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{timestamp}/#{ordinal}") do |env|
+    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
       [200, response_headers, '{}']
     end
 
-    response = @client.get_event(@collection, @key, @event_type, timestamp, ordinal)
+    response = @client.get_event(@collection, @key, @event_type, @timestamp, @ordinal)
     assert_equal 200, response.header.code
   end
 
@@ -36,38 +36,37 @@ class EventTest < MiniTest::Unit::TestCase
 
   def test_post_event_with_timestamp
     event = {"msg" => "hello"}
-    timestamp = (Time.now.to_f * 1000).to_i
-    @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{timestamp}") do |env|
+    @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}") do |env|
       assert_authorization @basic_auth, env
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
 
-    response = @client.post_event(@collection, @key, @event_type, event.to_json, timestamp)
+    response = @client.post_event(@collection, @key, @event_type, event.to_json, @timestamp)
     assert_equal 204, response.header.code
   end
 
-  def test_put_event_without_timestamp
+  def test_put_event_without_ref
     event = {"msg" => "hello"}
-    @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
+    @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
       assert_authorization @basic_auth, env
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
-    response = @client.put_event({collection:@collection, key:@key, event_type:@event_type, json:event.to_json})
+    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json)
     assert_equal 204, response.header.code
   end
 
-  def test_put_event_with_timestamp
+  def test_put_event_with_ref
     event = {"msg" => "hello"}
-    timestamp = Time.now
-    @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
+    ref = "12345"
+    @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
       assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
       assert_equal event.to_json, env.body
-      assert_equal timestamp.to_i.to_s, env.params['timestamp']
       [204, response_headers, '']
     end
-    response = @client.put_event({collection:@collection, key:@key, event_type:@event_type, json:event.to_json, timestamp:timestamp.to_i})
+    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json, ref)
     assert_equal 204, response.header.code
   end
 

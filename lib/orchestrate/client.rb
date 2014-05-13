@@ -157,6 +157,20 @@ module Orchestrate
       send_request :post, path, { body: body }
     end
 
+    #  * required: collection, key, event_type, timestamp, ordinal, body
+    #  * optional: ref, for If-Match
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
+    #
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
+      path = [collection, key, 'events', event_type, timestamp, ordinal]
+      headers = {}
+      headers['If-Match'] = format_ref(ref) if ref
+      send_request :put, path, { body: body, headers: headers }
+    end
+
     #  * required: collection, key, event_type
     #  * optional: range { start, end, before, after }
     #     Range parameters formatted as ":timestamp/:ordinal"
@@ -168,13 +182,6 @@ module Orchestrate
     def list_events(collection, key, event_type, parameters={})
       Orchestrate::Helpers.range_keys!('event', parameters)
       send_request :get, [collection, key, 'events', event_type], { query: parameters }
-    end
-
-    #  * required: { collection, key, event_type, json }
-    #  * optional: { timestamp }, where timestamp is a scalar value
-    #
-    def put_event(args)
-      send_request :put, args
     end
 
     # -------------------------------------------------------------------------
