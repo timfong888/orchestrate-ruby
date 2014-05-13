@@ -145,6 +145,26 @@ module Orchestrate
       send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 
+    #  * required: collection, key, event_type, body
+    #  * optional: timestamp
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
+    #
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def post_event(collection, key, event_type, body, timestamp=nil)
+      path = [collection, key, 'events', event_type, timestamp].compact
+      send_request :post, path, { body: body }
+    end
+
+    #  * required: collection, key, event_type
+    #  * optional: range { start, end, before, after }
+    #     Range parameters formatted as ":timestamp/:ordinal"
+    #     * timstamps should be formatted as described in the API docs:
+    #       http://orchestrate.io/docs/api/?go#events/timestamps
+    #       A forthcoming version will auto-convert Ruby DateTime objects
+    #     * ordinal is optional
+    #
     def list_events(collection, key, event_type, parameters={})
       Orchestrate::Helpers.range_keys!('event', parameters)
       send_request :get, [collection, key, 'events', event_type], { query: parameters }
@@ -196,7 +216,7 @@ module Orchestrate
       response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
-        if method == :put
+        if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
           request.body = body
         elsif method == :get

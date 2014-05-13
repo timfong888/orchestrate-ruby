@@ -22,6 +22,31 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal 200, response.header.code
   end
 
+  def test_post_event_without_timestamp
+    event = {"msg" => "hello"}
+    @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal event.to_json, env.body
+      [204, response_headers, '']
+    end
+
+    response = @client.post_event(@collection, @key, @event_type, event.to_json)
+    assert_equal 204, response.header.code
+  end
+
+  def test_post_event_with_timestamp
+    event = {"msg" => "hello"}
+    timestamp = (Time.now.to_f * 1000).to_i
+    @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{timestamp}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal event.to_json, env.body
+      [204, response_headers, '']
+    end
+
+    response = @client.post_event(@collection, @key, @event_type, event.to_json, timestamp)
+    assert_equal 204, response.header.code
+  end
+
   def test_put_event_without_timestamp
     event = {"msg" => "hello"}
     @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
