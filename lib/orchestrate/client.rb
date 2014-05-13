@@ -77,9 +77,14 @@ module Orchestrate
 
     #  Retreives the latest value assigned to a key.
     #  * required: collection, key
+    #  * optional: ref
     #
-    def get(collection, key)
-      send_request :get, [collection, key]
+    def get(collection, key, ref=nil)
+      if ref
+        send_request :get, [collection, key, 'refs', ref]
+      else
+        send_request :get, [collection, key]
+      end
     end
 
     #  * required: collection, key, json
@@ -110,15 +115,6 @@ module Orchestrate
     #
     def purge(collection, key)
       send_request :delete, [collection, key], { query: { purge: true } }
-    end
-
-    # -------------------------------------------------------------------------
-    #  collection/key/ref
-
-    #   * required: { collection, key, ref }
-    #
-    def get_by_ref(args)
-      send_request :get, args
     end
 
     #  * required: { collection, key, json, ref }

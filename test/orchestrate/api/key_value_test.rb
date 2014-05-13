@@ -134,7 +134,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '' ]
     end
 
-    response = @client.get_by_ref({collection:@collection, key:@key, ref:ref})
+    response = @client.get(@collection, @key, ref)
     assert_equal 200, response.header.code
   end
 
