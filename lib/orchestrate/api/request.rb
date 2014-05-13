@@ -12,42 +12,27 @@ module Orchestrate::API
     # The url for the HTTP request.
     attr_accessor  :url
 
-    # The api key for HTTP Basic Authentication over SSL.
-    attr_accessor :user
-
     # The json document for creating or updating a key.
     attr_accessor  :data
 
     # The ref value associated with a key.
     attr_accessor  :ref
 
+    # the http client associated with the client
+    attr_accessor :http
+
     # Sets the universal attributes from the params; any additional
     # attributes are set from the block.
     #
-    def initialize(method, url, user)
-      @method, @url, @user = method, url, user
+    def initialize(http, method, url)
+      @http, @method, @url = http, method, url
       @data = ''
       yield self if block_given?
     end
 
     # Sends the HTTP request and returns a Response object.
     def perform
-      # TODO store the Faraday 'connection' in the config, 
-      # investigate if that's a good idea.
-      conn = Faraday.new(Orchestrate.config.base_url) do |faraday|
-        if adapter = Orchestrate.config.faraday
-          adapter.call(faraday)
-        else
-          faraday.adapter Faraday.default_adapter
-        end
-        faraday.request :basic_auth, @user, ''
-        # faraday seems to want you do specify these twice.
-        faraday.basic_auth @user, ''
-
-        # parses JSON responses
-        # faraday.response :json, :content_type => /\bjson$/
-      end
-      response = conn.send(method) do |request|
+      response = http.send(method) do |request|
         Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url
         if method == :put

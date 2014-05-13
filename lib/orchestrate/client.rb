@@ -21,6 +21,9 @@ module Orchestrate
     #
     attr_accessor :config
 
+    # The Faraday HTTP "connection" for the client.
+    attr_accessor :http
+
     #
     # Returns the wrapper configuration. If the wrapper does not have
     # explicitly provided configuration, this will return the global
@@ -35,8 +38,23 @@ module Orchestrate
     # options for the instance by passing a Configuration object. If no
     # custom configuration is provided, the configuration options from
     # Orchestrate.config will be used.
-    def initialize(config = nil)
+    def initialize(config = Orchestrate.config)
       @config = config
+
+      @http = Faraday.new(config.base_url) do |faraday|
+        if config.faraday.respond_to?(:call)
+          config.faraday.call(faraday)
+        else
+          faraday.adapter Faraday.default_adapter
+        end
+
+        # faraday seems to want you do specify these twice.
+        faraday.request :basic_auth, config.api_key, ''
+        faraday.basic_auth config.api_key, ''
+
+        # parses JSON responses
+        # faraday.response :json, :content_type => /\bjson$/
+      end
     end
 
     #
@@ -44,7 +62,7 @@ module Orchestrate
     # which generates and returns the Response object.
     #
     def send_request(method, args)
-      request = API::Request.new(method, build_url(method, args), config.api_key) do |r|
+      request = API::Request.new(http, method, build_url(method, args)) do |r|
         r.data = args[:json] if args[:json]
         r.ref = args[:ref] if args[:ref]
       end
