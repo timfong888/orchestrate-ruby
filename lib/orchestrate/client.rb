@@ -194,10 +194,10 @@ module Orchestrate
       send_request :get, path
     end
 
-    #  * required: { collection, key, kind, to_collection, to_key }
+    #  * required: collection, key, kind, to_collection, to_key
     #
-    def put_graph(args)
-      send_request :put, args
+    def put_graph(collection, key, kind, to_collection, to_key)
+      send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
     #  * required: { collection, key, kind, to_collection, to_key }

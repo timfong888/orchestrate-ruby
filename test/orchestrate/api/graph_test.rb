@@ -28,7 +28,7 @@ class GraphTest < MiniTest::Unit::TestCase
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
-    response = @client.put_graph({collection:@collection, key:@key, kind:@kind, to_collection:@target_collection, to_key:@target_key})
+    response = @client.put_graph(@collection, @key, @kind, @target_collection, @target_key)
     assert_equal 204, response.header.code
   end
 
