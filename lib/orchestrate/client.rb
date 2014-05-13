@@ -200,10 +200,11 @@ module Orchestrate
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
-    #  * required: { collection, key, kind, to_collection, to_key }
+    #  * required: collection, key, kind, to_collection, to_key
     #
-    def delete_graph(args)
-      send_request :delete, args.merge(path: "?purge=true")
+    def delete_graph(collection, key, kind, to_collection, to_key)
+      path = [collection, key, 'relation', kind, to_collection, to_key]
+      send_request :delete, path, { query: {purge: true} }
     end
 
     #
