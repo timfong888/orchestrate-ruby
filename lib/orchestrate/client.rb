@@ -27,15 +27,6 @@ module Orchestrate
     attr_accessor :http
 
     #
-    # Returns the wrapper configuration. If the wrapper does not have
-    # explicitly provided configuration, this will return the global
-    # configuration from Orchestrate.config.
-    #
-    def config # :nodoc:
-      @config ||= Orchestrate.config
-    end
-
-    #
     # Initialize and return a new Client instance. Optionally, configure
     # options for the instance by passing a Configuration object. If no
     # custom configuration is provided, the configuration options from
