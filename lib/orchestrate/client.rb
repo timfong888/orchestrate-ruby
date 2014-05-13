@@ -75,10 +75,11 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  collection/key
 
-    #  * required: { collection, key }
+    #  Retreives the latest value assigned to a key.
+    #  * required: collection, key
     #
-    def get_key(args)
-      send_request :get, args
+    def get(collection, key)
+      send_request :get, [collection, key]
     end
 
     #  * required: { collection, key, json }

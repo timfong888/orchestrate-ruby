@@ -21,7 +21,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 200, response_headers(headers), body]
     end
 
-    response = @client.get_key({collection:@collection, key:@key})
+    response = @client.get(@collection, @key)
     assert_equal 200, response.header.code
     assert_equal body, response.body.content
 
@@ -36,7 +36,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
-    response = @client.get_key({collection:@collection, key:@key})
+    response = @client.get(@collection, @key)
     assert_equal 404, response.header.code
     assert_equal 'items_not_found', response.body.code
   end
