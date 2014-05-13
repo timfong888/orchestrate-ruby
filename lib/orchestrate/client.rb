@@ -50,11 +50,26 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  collection
 
-    #  * required: { collection }
-    #  * optional: { path }, which should have been called <em>params</em>
+    #  * required: collection
+    #  * optional: { options } which may contain one or more of:
+    #           :limit      : integer, number of results to return
+    #           :start_key  : string, start of range, including value
+    #           :after_key  : string, start of range, excluding value
+    #           :before_key : string, end of range, excluding value
+    #           :end_key    : string, end of range, including value
     #
-    def list(args)
-      send_request :get, args
+    #   Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
+    #
+    def list(collection, options={})
+      # TODO extract to perhaps "camelcase_keys"
+      [:start_key, :after_key, :before_key, :end_key].each do |key|
+        if options[key]
+          new_key = key.to_s.gsub(/_\w/) {|s| s.gsub(/_/,'').upcase }
+          options[new_key] = options[key]
+          options.delete(key)
+        end
+      end
+      send_request :get, [collection], { query: options }
     end
 
     #  * required: { collection, query }

@@ -25,7 +25,7 @@ class CollectionTest < MiniTest::Unit::TestCase
       [200, response_headers, '{"count":3, "next":"blah", "results":[]}']
     end
 
-    response = @client.list({collection:@collection})
+    response = @client.list(@collection)
     assert_equal 200, response.header.code
     assert_equal 3, response.body.count
     assert response.body.results
@@ -36,10 +36,12 @@ class CollectionTest < MiniTest::Unit::TestCase
       assert_authorization @basic_auth, env
       assert_accepts_json env
       assert_equal "1", env.params['limit']
+      assert_equal "foo", env.params['startKey']
+      assert_equal ['limit', 'startKey'], env.params.keys
       [ 200, response_headers, '{"count":1, "next":"blah", "results":[]}' ]
     end
 
-    response = @client.list({collection:@collection, path:"?limit=1"})
+    response = @client.list(@collection, {limit:1, start_key: 'foo'})
     assert_equal 200, response.header.code
     assert_equal 1, response.body.count
     assert response.body.results
