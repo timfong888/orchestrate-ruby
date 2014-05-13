@@ -57,7 +57,7 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal 200, response.header.code
   end
 
-  def test_get_events_with_timestamp
+  def test_list_events_with_timestamp
     end_time = Time.now
     start_time = end_time - (24 * 3600)
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
