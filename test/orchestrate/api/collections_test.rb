@@ -59,23 +59,24 @@ class CollectionTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '{"count":3, "results":[]}' ]
     end
 
-    response = @client.search({collection:@collection, query:query})
+    response = @client.search(@collection, query)
     assert_equal 200, response.header.code
     assert_equal 3, response.body.count
     assert response.body.results
   end
 
   def test_search_with_extra_params
-    query = "foo bar&offset=3"
+    query = 'text:"The Right Way" and go'
     @stubs.get("/v0/#{@collection}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      assert_equal 'foo bar', env.params['query']
+      assert_equal query, env.params['query']
       assert_equal '3', env.params['offset']
+      assert_equal '10', env.params['limit']
       [ 200, response_headers, '{"count":3, "results":[]}' ]
     end
 
-    response = @client.search({collection:@collection, query:query})
+    response = @client.search(@collection, query, {offset: 3, limit: 10})
     assert_equal 200, response.header.code
     assert_equal 3, response.body.count
     assert response.body.results

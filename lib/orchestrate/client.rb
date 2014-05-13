@@ -72,12 +72,11 @@ module Orchestrate
       send_request :get, [collection], { query: options }
     end
 
-    #  * required: { collection, query }
+    #  * required: collection, query
+    #  * optional: { limit, offset }
     #
-    def search(args)
-      # TODO
-      # don't clobber anything in existing path parameter
-      send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
+    def search(collection, query, options={})
+      send_request :get, [collection], { query: options.merge({query: query})}
     end
 
     #  Deletes a collection
