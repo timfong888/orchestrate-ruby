@@ -9,6 +9,19 @@ class EventTest < MiniTest::Unit::TestCase
     @event_type = "commits"
   end
 
+  def test_get_event
+    timestamp = (Time.now.to_f * 1000).to_i
+    ordinal = 5
+    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{timestamp}/#{ordinal}") do |env|
+      assert_authorization @basic_auth, env
+      assert_accepts_json env
+      [200, response_headers, '{}']
+    end
+
+    response = @client.get_event(@collection, @key, @event_type, timestamp, ordinal)
+    assert_equal 200, response.header.code
+  end
+
   def test_get_events_without_timestamp
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
@@ -16,7 +29,7 @@ class EventTest < MiniTest::Unit::TestCase
       [200, response_headers, '{}']
     end
 
-    response = @client.get_events({collection: @collection, key: @key, event_type: @event_type})
+    response = @client.list_events({collection: @collection, key: @key, event_type: @event_type})
     assert_equal 200, response.header.code
   end
 
@@ -30,7 +43,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal end_time.to_i.to_s, env.params['end']
       [200, response_headers, '{}']
     end
-    response = @client.get_events({
+    response = @client.list_events({
       collection: @collection, key: @key, event_type: @event_type,
       timestamp: { start: start_time.to_i, end: end_time.to_i }
     })

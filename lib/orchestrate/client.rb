@@ -139,12 +139,19 @@ module Orchestrate
     end
 
     # -------------------------------------------------------------------------
-    #  collection/key/events
+    #  Events
 
-    #  * required: { collection, key, event_type }
-    #  * optional: { timestamp }, where timestamp = { :start => start, :end => end }
+    #  * required: collection, key, event_type, timestamp, ordinal
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
     #
-    def get_events(args)
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def get_event(collection, key, event_type, timestamp, ordinal)
+      send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
+    end
+
+    def list_events(args)
       send_request :get, args
     end
 
