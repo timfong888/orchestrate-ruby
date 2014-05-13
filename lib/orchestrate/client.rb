@@ -97,10 +97,13 @@ module Orchestrate
       send_request :put, [collection, key], { body: body, headers: headers }
     end
 
-    #  * required: { collection, key }
+    #  * required: collection, key
+    #  * optional: ref.  If truthy, will be sent as 'If-Match' header
     #
-    def delete_key(args)
-      send_request :delete, args
+    def delete(collection, key, ref=nil)
+      headers = {}
+      headers['If-Match'] = ref if ref
+      send_request :delete, [collection, key], { headers: headers }
     end
 
     #  * required: { collection, key }
@@ -190,8 +193,6 @@ module Orchestrate
         if method == :put
           headers['Content-Type'] = 'application/json'
           request.body = body
-        elsif method == :delete && ref != "*"
-          headers['If-Match'] = ref
         elsif method == :get
           headers['Accept'] = 'application/json'
         end

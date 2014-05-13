@@ -90,7 +90,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
-    response = @client.delete_key({collection:@collection, key:@key})
+    response = @client.delete(@collection, @key)
     assert_equal 204, response.header.code
   end
 
@@ -101,7 +101,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       assert_header 'If-Match', ref, env
       [ 204, response_headers, '' ]
     end
-    response = @client.delete_key({collection:@collection, key:@key, ref:ref})
+    response = @client.delete(@collection, @key, ref)
     assert_equal 204, response.header.code
   end
 
