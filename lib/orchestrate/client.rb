@@ -102,6 +102,12 @@ module Orchestrate
       send_request :put, [collection, key], { body: body, headers: headers }
     end
 
+    #  * required: colleciton, key, json
+    #
+    def put_if_absent(collection, key, body)
+      put collection, key, body, false
+    end
+
     #  * required: collection, key
     #  * optional: ref.  If truthy, will be sent as 'If-Match' header
     #
@@ -121,12 +127,6 @@ module Orchestrate
     #
     def put_key_if_match(args)
       send_request :put, args
-    end
-
-    # * required: { collection, key, json }
-    #
-    def put_key_if_none_match(args)
-      send_request :put, args.merge(ref: '"*"')
     end
 
     # -------------------------------------------------------------------------

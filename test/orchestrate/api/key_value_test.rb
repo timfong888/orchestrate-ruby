@@ -85,6 +85,20 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal 200, response.header.code
   end
 
+  def test_puts_key_value_if_absent
+    body = '{"foo":"bar"}'
+    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-None-Match', '*', env
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body, env.body
+      [ 200, response_headers, '' ]
+    end
+
+    response = @client.put_if_absent(@collection, @key, body)
+    assert_equal 200, response.header.code
+  end
+
   def test_delete_key_value
     @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
