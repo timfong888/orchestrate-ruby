@@ -211,28 +211,21 @@ module Orchestrate
     # Performs the HTTP request against the API and returns an API::Response.
     #
     def send_request(method, url, opts={})
-      if url.is_a?(Hash)
-        body = url[:json]
-        url = build_url(method, url)
-        headers={}
-      else
-        url = "/v0/#{url.join('/')}"
-        query_string = opts.fetch(:query, {})
-        body = opts.fetch(:body, '')
-        headers = opts.fetch(:headers, {})
-      end
-      # TODO: move header manipulation into the API method
+      url = "/v0/#{url.join('/')}"
+      query_string = opts.fetch(:query, {})
+      body = opts.fetch(:body, '')
+      headers = opts.fetch(:headers, {})
+      headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+      headers['Accept'] = 'application/json' if method == :get
+
       response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
           request.body = body
-        elsif method == :get
-          headers['Accept'] = 'application/json'
         end
         headers.each {|header, value| request[header] = value }
-        request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
       API::Response.new(response)
     end
@@ -241,14 +234,6 @@ module Orchestrate
 
     private
 
-      #
-      # Builds the URL for each HTTP request to the orchestrate.io api.
-      #
-      def build_url(method, args)
-        API::URL.new(method, config.base_url, args).path
-      end
-
-      #
       # Formats the provided 'ref' to be quoted per API specification.  If
       # already quoted, does not add additional quotes.
       def format_ref(ref)
