@@ -72,8 +72,8 @@ module Orchestrate
       send_request :delete, [collection], { query: {force:true} }
     end
 
-    # -------------------------------------------------------------------------
-    #  collection/key
+    #  -------------------------------------------------------------------------
+    #  Key/Value
 
     #  Retreives the latest value assigned to a key.
     #  * required: collection, key
@@ -101,6 +101,7 @@ module Orchestrate
       end
       send_request :put, [collection, key], { body: body, headers: headers }
     end
+    alias :put_if_unmodified :put
 
     #  * required: colleciton, key, json
     #
@@ -121,12 +122,6 @@ module Orchestrate
     #
     def purge(collection, key)
       send_request :delete, [collection, key], { query: { purge: true } }
-    end
-
-    #  * required: { collection, key, json, ref }
-    #
-    def put_key_if_match(args)
-      send_request :put, args
     end
 
     # -------------------------------------------------------------------------

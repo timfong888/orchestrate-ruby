@@ -70,6 +70,22 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal 200, response.header.code
   end
 
+  def test_puts_key_value_if_unmodified
+    body = '{"foo":"bar"}'
+    ref = '123456'
+
+    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body, env.body
+      [ 200, response_headers, '' ]
+    end
+
+    response = @client.put_if_unmodified(@collection, @key, body, ref)
+    assert_equal 200, response.header.code
+  end
+
   def test_puts_key_value_with_inspecific_ref
     body = '{"foo":"bar"}'
 
