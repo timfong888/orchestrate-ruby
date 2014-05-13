@@ -41,7 +41,7 @@ class CollectionTest < MiniTest::Unit::TestCase
       [ 200, response_headers, '{"count":1, "next":"blah", "results":[]}' ]
     end
 
-    response = @client.list(@collection, {limit:1, start_key: 'foo'})
+    response = @client.list(@collection, {limit:1, start: 'foo'})
     assert_equal 200, response.header.code
     assert_equal 1, response.body.count
     assert response.body.results

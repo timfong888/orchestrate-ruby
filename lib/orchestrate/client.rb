@@ -52,23 +52,17 @@ module Orchestrate
 
     #  * required: collection
     #  * optional: { options } which may contain one or more of:
-    #           :limit      : integer, number of results to return
-    #           :start_key  : string, start of range, including value
-    #           :after_key  : string, start of range, excluding value
-    #           :before_key : string, end of range, excluding value
-    #           :end_key    : string, end of range, including value
+    #           :limit  : integer, number of results to return
+    #           :start  : string, start of range, including value
+    #           :after  : string, start of range, excluding value
+    #           :before : string, end of range, excluding value
+    #           :end    : string, end of range, including value
     #
     #   Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
     #
     def list(collection, options={})
       # TODO extract to perhaps "camelcase_keys"
-      [:start_key, :after_key, :before_key, :end_key].each do |key|
-        if options[key]
-          new_key = key.to_s.gsub(/_\w/) {|s| s.gsub(/_/,'').upcase }
-          options[new_key] = options[key]
-          options.delete(key)
-        end
-      end
+      Orchestrate::Helpers.range_keys!('key', options)
       send_request :get, [collection], { query: options }
     end
 
