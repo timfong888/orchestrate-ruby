@@ -122,7 +122,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       assert_equal "true", env.params["purge"]
       [ 204, response_headers, '' ]
     end
-    response = @client.purge_key({collection:@collection, key:@key})
+    response = @client.purge(@collection, @key)
     assert_equal 204, response.header.code
   end
 

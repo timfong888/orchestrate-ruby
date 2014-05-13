@@ -108,8 +108,8 @@ module Orchestrate
 
     #  * required: { collection, key }
     #
-    def purge_key(args)
-      send_request :delete, args.merge(path: "?purge=true")
+    def purge(collection, key)
+      send_request :delete, [collection, key], { query: { purge: true } }
     end
 
     # -------------------------------------------------------------------------
@@ -176,7 +176,6 @@ module Orchestrate
     #
     def send_request(method, url, opts={})
       if url.is_a?(Hash)
-        ref = url[:ref]
         body = url[:json]
         url = build_url(method, url)
         headers={}
