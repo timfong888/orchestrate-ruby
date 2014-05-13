@@ -151,8 +151,9 @@ module Orchestrate
       send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 
-    def list_events(args)
-      send_request :get, args
+    def list_events(collection, key, event_type, parameters={})
+      Orchestrate::Helpers.range_keys!('event', parameters)
+      send_request :get, [collection, key, 'events', event_type], { query: parameters }
     end
 
     #  * required: { collection, key, event_type, json }
