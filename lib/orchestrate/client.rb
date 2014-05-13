@@ -185,12 +185,13 @@ module Orchestrate
     end
 
     # -------------------------------------------------------------------------
-    #  collection/key/graph
+    #  Graph
 
-    #  * required: { collection, key, kind }
+    #  * required: collection, key, kinds...
     #
-    def get_graph(args)
-      send_request :get, args
+    def get_graph(collection, key, *kinds)
+      path = [collection, key, 'relations'].concat(kinds)
+      send_request :get, path
     end
 
     #  * required: { collection, key, kind, to_collection, to_key }
