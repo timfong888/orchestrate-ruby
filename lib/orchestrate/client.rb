@@ -1,4 +1,6 @@
 require "orchestrate/api/procedural"
+require 'faraday'
+require 'faraday_middleware'
 
 module Orchestrate
 
@@ -58,15 +60,31 @@ module Orchestrate
     end
 
     #
-    # Creates the Request object and sends it via the perform method,
-    # which generates and returns the Response object.
+    # Performs the HTTP request against the API and returns an API::Response.
     #
     def send_request(method, args)
-      request = API::Request.new(http, method, build_url(method, args)) do |r|
-        r.data = args[:json] if args[:json]
-        r.ref = args[:ref] if args[:ref]
+      ref = args[:ref]
+      # TODO: move header manipulation into the API method
+      url = build_url(method, args)
+      response = http.send(method) do |request|
+        config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
+        request.url url
+        if method == :put
+          request.headers['Content-Type'] = 'application/json'
+          if ref == "*"
+            request['If-None-Match'] = ref
+          elsif ref
+            request['If-Match'] = ref
+          end
+          request.body = args[:json]
+        elsif method == :delete && ref != "*"
+          request['If-Match'] = ref
+        elsif method == :get
+          request['Accept'] = 'application/json'
+        end
+        request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       end
-      request.perform
+      API::Response.new(response)
     end
 
     # ------------------------------------------------------------------------
