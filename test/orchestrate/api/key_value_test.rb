@@ -60,7 +60,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
-      assert_header 'If-Match', ref, env
+      assert_header 'If-Match', "\"#{ref}\"", env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body, env.body
       [ 200, response_headers, '' ]
@@ -95,6 +95,17 @@ class KeyValueTest < MiniTest::Unit::TestCase
   end
 
   def test_delete_key_value_with_condition
+    ref="12345"
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      [ 204, response_headers, '' ]
+    end
+    response = @client.delete(@collection, @key, ref)
+    assert_equal 204, response.header.code
+  end
+
+  def test_delete_key_value_with_quoted_condition
     ref='"12345"'
     @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env

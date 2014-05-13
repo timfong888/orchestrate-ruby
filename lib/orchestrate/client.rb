@@ -90,7 +90,7 @@ module Orchestrate
     def put(collection, key, body, condition=nil)
       headers={}
       if condition.is_a?(String)
-        headers['If-Match'] = condition
+        headers['If-Match'] = format_ref(condition)
       elsif condition == false
         headers['If-None-Match'] = '*'
       end
@@ -102,7 +102,7 @@ module Orchestrate
     #
     def delete(collection, key, ref=nil)
       headers = {}
-      headers['If-Match'] = ref if ref
+      headers['If-Match'] = format_ref(ref) if ref
       send_request :delete, [collection, key], { headers: headers }
     end
 
@@ -211,6 +211,13 @@ module Orchestrate
       #
       def build_url(method, args)
         API::URL.new(method, config.base_url, args).path
+      end
+
+      #
+      # Formats the provided 'ref' to be quoted per API specification.  If
+      # already quoted, does not add additional quotes.
+      def format_ref(ref)
+        "\"#{ref.gsub(/"/,'')}\""
       end
 
   end
