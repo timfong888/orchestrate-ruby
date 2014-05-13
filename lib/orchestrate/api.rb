@@ -1,5 +1,4 @@
 require "orchestrate"
-require "orchestrate/api/procedural"
 require "orchestrate/api/response"
 require "orchestrate/api/url"
 require "orchestrate/api/extensions"
