@@ -11,14 +11,16 @@ class GraphTest < MiniTest::Unit::TestCase
   end
 
   def test_get_graph
+    body = { "count" => 0, "results" => [] }
     @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}/#{@kind}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, '']
+      [200, response_headers, body.to_json]
     end
 
     response = @client.get_graph(@collection, @key, @kind, @kind)
     assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
   def test_put_graph

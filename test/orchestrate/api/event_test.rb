@@ -12,14 +12,16 @@ class EventTest < MiniTest::Unit::TestCase
   end
 
   def test_get_event
+    body = { "path" => {}, "value" => {"msg" => "hello"}, "timestamp" => @timestamp, "ordinal" => @ordinal }
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, '{}']
+      [200, response_headers, body.to_json]
     end
 
     response = @client.get_event(@collection, @key, @event_type, @timestamp, @ordinal)
     assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
   def test_post_event_without_timestamp
@@ -71,31 +73,36 @@ class EventTest < MiniTest::Unit::TestCase
   end
 
   def test_list_events_without_timestamp
+    body = { "results" => [], "count" => 0, "next" => "" }
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, '{}']
+      [200, response_headers, body.to_json]
     end
 
     response = @client.list_events(@collection, @key, @event_type)
     assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
   def test_list_events_with_timestamp
     end_time = Time.now
     start_time = end_time - (24 * 3600)
+    body = { "results" => [], "count" => 0, "next" => "" }
+
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
       assert_equal start_time.to_i.to_s, env.params['startEvent']
       assert_equal end_time.to_i.to_s, env.params['endEvent']
       assert_equal ['startEvent', 'endEvent'].sort, env.params.keys.sort
-      [200, response_headers, '{}']
+      [200, response_headers, body.to_json]
     end
     response = @client.list_events(@collection, @key, @event_type,
       { start: start_time.to_i, end: end_time.to_i }
     )
     assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
 end

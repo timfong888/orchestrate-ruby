@@ -23,7 +23,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     response = @client.get(@collection, @key)
     assert_equal 200, response.status
-    # assert_equal body, response.body
+    assert_equal body, response.body
 
     assert_equal "\"#{ref}\"", response.headers['Etag']
     assert_equal ref_url, response.headers['Content-Location']
@@ -38,7 +38,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     response = @client.get(@collection, @key)
     assert_equal 404, response.status
-    # assert_equal 'items_not_found', response.body['code']
+    assert_equal 'items_not_found', response.body['code']
   end
 
   def test_puts_key_value_without_ref
@@ -157,15 +157,17 @@ class KeyValueTest < MiniTest::Unit::TestCase
   end
 
   def test_gets_ref
+    body = {"key" => "value"}
     ref = '123456'
     @stubs.get("/v0/#{@collection}/#{@key}/refs/#{ref}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [ 200, response_headers, '' ]
+      [ 200, response_headers, body.to_json ]
     end
 
     response = @client.get(@collection, @key, ref)
     assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
 end

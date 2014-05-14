@@ -43,7 +43,7 @@ module Orchestrate
         faraday.basic_auth config.api_key, ''
 
         # parses JSON responses
-        # faraday.response :json, :content_type => /\bjson$/
+        faraday.response :json, :content_type => /\bjson$/
       end
     end
 
