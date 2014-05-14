@@ -50,137 +50,182 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  collection
 
-    #  * required: { collection }
-    #  * optional: { path }, which should have been called <em>params</em>
+    #  * required: collection
+    #  * optional: { options } which may contain one or more of:
+    #           :limit  : integer, number of results to return
+    #           :start  : string, start of range, including value
+    #           :after  : string, start of range, excluding value
+    #           :before : string, end of range, excluding value
+    #           :end    : string, end of range, including value
     #
-    def list(args)
-      send_request :get, args
+    #   Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
+    #
+    def list(collection, options={})
+      # TODO extract to perhaps "camelcase_keys"
+      Orchestrate::Helpers.range_keys!('key', options)
+      send_request :get, [collection], { query: options }
     end
 
-    #  * required: { collection, query }
+    #  * required: collection, query
+    #  * optional: { limit, offset }
     #
-    def search(args)
-      # TODO
-      # don't clobber anything in existing path parameter
-      send_request :get, args.merge(path: "?query=#{args[:query].gsub(/\s/, '%20')}")
+    def search(collection, query, options={})
+      send_request :get, [collection], { query: options.merge({query: query})}
     end
 
-    #  * required: { collection }
+    #  Deletes a collection
+    #  * required: collection
     #
-    def delete_collection(args)
-      send_request :delete, args.merge(path: "?force=true")
+    def delete_collection(collection)
+      send_request :delete, [collection], { query: {force:true} }
     end
 
-    # -------------------------------------------------------------------------
-    #  collection/key
+    #  -------------------------------------------------------------------------
+    #  Key/Value
+
+    #  Retreives the latest value assigned to a key.
+    #  * required: collection, key
+    #  * optional: ref
+    #
+    def get(collection, key, ref=nil)
+      if ref
+        send_request :get, [collection, key, 'refs', ref]
+      else
+        send_request :get, [collection, key]
+      end
+    end
+
+    #  * required: collection, key, json
+    #  * optional: condition, where condition = ref="#{etag}" || true
+    #     if condition is a string, it will be sent as the 'If-Match' header
+    #     otherwise if condition is false, the header 'If-None-Match: *' will be sent
+    #
+    def put(collection, key, body, condition=nil)
+      headers={}
+      if condition.is_a?(String)
+        headers['If-Match'] = format_ref(condition)
+      elsif condition == false
+        headers['If-None-Match'] = '*'
+      end
+      send_request :put, [collection, key], { body: body, headers: headers }
+    end
+    alias :put_if_unmodified :put
+
+    #  * required: colleciton, key, json
+    #
+    def put_if_absent(collection, key, body)
+      put collection, key, body, false
+    end
+
+    #  * required: collection, key
+    #  * optional: ref.  If truthy, will be sent as 'If-Match' header
+    #
+    def delete(collection, key, ref=nil)
+      headers = {}
+      headers['If-Match'] = format_ref(ref) if ref
+      send_request :delete, [collection, key], { headers: headers }
+    end
 
     #  * required: { collection, key }
     #
-    def get_key(args)
-      send_request :get, args
-    end
-
-    #  * required: { collection, key, json }
-    #
-    def put_key(args)
-      send_request :put, args
-    end
-
-    #  * required: { collection, key }
-    #
-    def delete_key(args)
-      send_request :delete, args
-    end
-
-    #  * required: { collection, key }
-    #
-    def purge_key(args)
-      send_request :delete, args.merge(path: "?purge=true")
+    def purge(collection, key)
+      send_request :delete, [collection, key], { query: { purge: true } }
     end
 
     # -------------------------------------------------------------------------
-    #  collection/key/ref
+    #  Events
 
-    #   * required: { collection, key, ref }
+    #  * required: collection, key, event_type, timestamp, ordinal
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
     #
-    def get_by_ref(args)
-      send_request :get, args
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def get_event(collection, key, event_type, timestamp, ordinal)
+      send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 
-    #  * required: { collection, key, json, ref }
+    #  * required: collection, key, event_type, body
+    #  * optional: timestamp
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
     #
-    def put_key_if_match(args)
-      send_request :put, args
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def post_event(collection, key, event_type, body, timestamp=nil)
+      path = [collection, key, 'events', event_type, timestamp].compact
+      send_request :post, path, { body: body }
     end
 
-    # * required: { collection, key, json }
+    #  * required: collection, key, event_type, timestamp, ordinal, body
+    #  * optional: ref, for If-Match
+    #    The timestamp should be formatted as decribed in the API docs:
+    #    http://orchestrate.io/docs/api/?go#events/timestamps
     #
-    def put_key_if_none_match(args)
-      send_request :put, args.merge(ref: '"*"')
+    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    #
+    def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
+      path = [collection, key, 'events', event_type, timestamp, ordinal]
+      headers = {}
+      headers['If-Match'] = format_ref(ref) if ref
+      send_request :put, path, { body: body, headers: headers }
+    end
+
+    #  * required: collection, key, event_type
+    #  * optional: range { start, end, before, after }
+    #     Range parameters formatted as ":timestamp/:ordinal"
+    #     * timstamps should be formatted as described in the API docs:
+    #       http://orchestrate.io/docs/api/?go#events/timestamps
+    #       A forthcoming version will auto-convert Ruby DateTime objects
+    #     * ordinal is optional
+    #
+    def list_events(collection, key, event_type, parameters={})
+      Orchestrate::Helpers.range_keys!('event', parameters)
+      send_request :get, [collection, key, 'events', event_type], { query: parameters }
     end
 
     # -------------------------------------------------------------------------
-    #  collection/key/events
+    #  Graph
 
-    #  * required: { collection, key, event_type }
-    #  * optional: { timestamp }, where timestamp = { :start => start, :end => end }
+    #  * required: collection, key, kinds...
     #
-    def get_events(args)
-      send_request :get, args
+    def get_graph(collection, key, *kinds)
+      path = [collection, key, 'relations'].concat(kinds)
+      send_request :get, path
     end
 
-    #  * required: { collection, key, event_type, json }
-    #  * optional: { timestamp }, where timestamp is a scalar value
+    #  * required: collection, key, kind, to_collection, to_key
     #
-    def put_event(args)
-      send_request :put, args
+    def put_graph(collection, key, kind, to_collection, to_key)
+      send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
-    # -------------------------------------------------------------------------
-    #  collection/key/graph
-
-    #  * required: { collection, key, kind }
+    #  * required: collection, key, kind, to_collection, to_key
     #
-    def get_graph(args)
-      send_request :get, args
-    end
-
-    #  * required: { collection, key, kind, to_collection, to_key }
-    #
-    def put_graph(args)
-      send_request :put, args
-    end
-
-    #  * required: { collection, key, kind, to_collection, to_key }
-    #
-    def delete_graph(args)
-      send_request :delete, args.merge(path: "?purge=true")
+    def delete_graph(collection, key, kind, to_collection, to_key)
+      path = [collection, key, 'relation', kind, to_collection, to_key]
+      send_request :delete, path, { query: {purge: true} }
     end
 
     #
     # Performs the HTTP request against the API and returns an API::Response.
     #
-    def send_request(method, args)
-      ref = args[:ref]
-      # TODO: move header manipulation into the API method
-      url = build_url(method, args)
+    def send_request(method, url, opts={})
+      url = "/v0/#{url.join('/')}"
+      query_string = opts.fetch(:query, {})
+      body = opts.fetch(:body, '')
+      headers = opts.fetch(:headers, {})
+      headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+      headers['Accept'] = 'application/json' if method == :get
+
       response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
-        request.url url
-        if method == :put
-          request.headers['Content-Type'] = 'application/json'
-          if ref == "*"
-            request['If-None-Match'] = ref
-          elsif ref
-            request['If-Match'] = ref
-          end
-          request.body = args[:json]
-        elsif method == :delete && ref != "*"
-          request['If-Match'] = ref
-        elsif method == :get
-          request['Accept'] = 'application/json'
+        request.url url, query_string
+        if [:put, :post].include?(method)
+          headers['Content-Type'] = 'application/json'
+          request.body = body
         end
-        request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+        headers.each {|header, value| request[header] = value }
       end
       API::Response.new(response)
     end
@@ -189,11 +234,10 @@ module Orchestrate
 
     private
 
-      #
-      # Builds the URL for each HTTP request to the orchestrate.io api.
-      #
-      def build_url(method, args)
-        API::URL.new(method, config.base_url, args).path
+      # Formats the provided 'ref' to be quoted per API specification.  If
+      # already quoted, does not add additional quotes.
+      def format_ref(ref)
+        "\"#{ref.gsub(/"/,'')}\""
       end
 
   end

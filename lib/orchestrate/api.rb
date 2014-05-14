@@ -1,6 +1,5 @@
 require "orchestrate"
 require "orchestrate/api/response"
-require "orchestrate/api/url"
 require "orchestrate/api/extensions"
 
 module Orchestrate
