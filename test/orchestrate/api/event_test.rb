@@ -19,7 +19,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
 
     response = @client.get_event(@collection, @key, @event_type, @timestamp, @ordinal)
-    assert_equal 200, response.header.code
+    assert_equal 200, response.status
   end
 
   def test_post_event_without_timestamp
@@ -31,7 +31,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
 
     response = @client.post_event(@collection, @key, @event_type, event.to_json)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 
   def test_post_event_with_timestamp
@@ -43,7 +43,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
 
     response = @client.post_event(@collection, @key, @event_type, event.to_json, @timestamp)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 
   def test_put_event_without_ref
@@ -54,7 +54,7 @@ class EventTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
     response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 
   def test_put_event_with_ref
@@ -67,7 +67,7 @@ class EventTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
     response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json, ref)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 
   def test_list_events_without_timestamp
@@ -78,7 +78,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
 
     response = @client.list_events(@collection, @key, @event_type)
-    assert_equal 200, response.header.code
+    assert_equal 200, response.status
   end
 
   def test_list_events_with_timestamp
@@ -95,7 +95,7 @@ class EventTest < MiniTest::Unit::TestCase
     response = @client.list_events(@collection, @key, @event_type,
       { start: start_time.to_i, end: end_time.to_i }
     )
-    assert_equal 200, response.header.code
+    assert_equal 200, response.status
   end
 
 end

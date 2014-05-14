@@ -14,13 +14,11 @@ class GraphTest < MiniTest::Unit::TestCase
     @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}/#{@kind}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, '{"count":3, "results":[]}']
+      [200, response_headers, '']
     end
 
     response = @client.get_graph(@collection, @key, @kind, @kind)
-    assert_equal 200, response.header.code
-    assert_equal 3, response.body.count
-    assert response.body.results
+    assert_equal 200, response.status
   end
 
   def test_put_graph
@@ -29,7 +27,7 @@ class GraphTest < MiniTest::Unit::TestCase
       [ 204, response_headers, '' ]
     end
     response = @client.put_graph(@collection, @key, @kind, @target_collection, @target_key)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 
   def test_delete_graph
@@ -39,6 +37,6 @@ class GraphTest < MiniTest::Unit::TestCase
       [ 204, response_headers, '' ]
     end
     response = @client.delete_graph(@collection, @key, @kind, @target_collection, @target_key)
-    assert_equal 204, response.header.code
+    assert_equal 204, response.status
   end
 end

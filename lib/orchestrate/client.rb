@@ -208,7 +208,7 @@ module Orchestrate
     end
 
     #
-    # Performs the HTTP request against the API and returns an API::Response.
+    # Performs the HTTP request against the API and returns a Faraday::Response
     #
     def send_request(method, url, opts={})
       url = "/v0/#{url.join('/')}"
@@ -218,7 +218,7 @@ module Orchestrate
       headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       headers['Accept'] = 'application/json' if method == :get
 
-      response = http.send(method) do |request|
+      http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
         if [:put, :post].include?(method)
@@ -227,7 +227,6 @@ module Orchestrate
         end
         headers.each {|header, value| request[header] = value }
       end
-      API::Response.new(response)
     end
 
     # ------------------------------------------------------------------------
