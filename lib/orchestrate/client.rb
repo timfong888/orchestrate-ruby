@@ -223,7 +223,7 @@ module Orchestrate
         request.url url, query_string
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
-          request.body = body
+          request.body = body.to_json
         end
         headers.each {|header, value| request[header] = value }
       end

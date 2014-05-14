@@ -32,7 +32,7 @@ class EventTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
 
-    response = @client.post_event(@collection, @key, @event_type, event.to_json)
+    response = @client.post_event(@collection, @key, @event_type, event)
     assert_equal 204, response.status
   end
 
@@ -44,7 +44,7 @@ class EventTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
 
-    response = @client.post_event(@collection, @key, @event_type, event.to_json, @timestamp)
+    response = @client.post_event(@collection, @key, @event_type, event, @timestamp)
     assert_equal 204, response.status
   end
 
@@ -55,7 +55,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
-    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json)
+    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event)
     assert_equal 204, response.status
   end
 
@@ -68,7 +68,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
-    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event.to_json, ref)
+    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event, ref)
     assert_equal 204, response.status
   end
 
