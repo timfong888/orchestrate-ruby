@@ -1,5 +1,7 @@
 module Orchestrate::API
 
+  require 'faraday'
+  require 'faraday_middleware'
   require 'net/http'
 
   class Request
@@ -30,36 +32,41 @@ module Orchestrate::API
 
     # Sends the HTTP request and returns a Response object.
     def perform
-      uri = URI(url)
-      response = Net::HTTP.start(uri.hostname, uri.port,
-        :use_ssl => uri.scheme == 'https' ) { |http|
-        Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
-        http.request(request(uri))
-      }
-      Response.new(response)
-    end
-
-    # Creates the Net::HTTP request.
-    #
-    def request(uri)
-      case
-      when method == :get
-        request = Net::HTTP::Get.new(uri)
-      when method == :put
-        request = Net::HTTP::Put.new(uri)
-        request['Content-Type'] = 'application/json'
-        if ref
-          header = ref == '"*"' ? 'If-None-Match' : 'If-Match'
-          request[header] = ref
+      # TODO store the Faraday 'connection' in the config, 
+      # investigate if that's a good idea.
+      conn = Faraday.new(Orchestrate.config.base_url) do |faraday|
+        if adapter = Orchestrate.config.faraday
+          adapter.call(faraday)
+        else
+          faraday.adapter Faraday.default_adapter
         end
-        request.body = data
-      when method == :delete
-        request = Net::HTTP::Delete.new(uri)
-      end
+        faraday.request :basic_auth, @user, ''
+        # faraday seems to want you do specify these twice.
+        faraday.basic_auth @user, ''
 
-      request['Orchestrate-Client'] = "ruby/orchestrate-api/#{Orchestrate::VERSION}"
-      request.basic_auth @user, nil
-      request
+        # parses JSON responses
+        # faraday.response :json, :content_type => /\bjson$/
+      end
+      response = conn.send(method) do |request|
+        Orchestrate.config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
+        request.url url
+        if method == :put
+          request.headers['Content-Type'] = 'application/json'
+          # TODO abstract this out
+          if ref == "*"
+            request['If-None-Match'] = ref
+          elsif ref
+            request['If-Match'] = ref
+          end
+          request.body = data
+        elsif method == :delete && ref != "*"
+          request['If-Match'] = ref
+        elsif method == :get
+          request['Accept'] = 'application/json'
+        end
+        request.headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
+      end
+      Response.new(response)
     end
 
   end

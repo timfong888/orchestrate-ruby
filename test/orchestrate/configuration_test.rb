@@ -38,8 +38,8 @@ describe Orchestrate::Configuration do
 
   describe "#base_url" do
 
-    it "should default to 'https://api.orchestrate.io/v0'" do
-      @config.base_url.must_equal "https://api.orchestrate.io/v0"
+    it "should default to 'https://api.orchestrate.io'" do
+      @config.base_url.must_equal "https://api.orchestrate.io"
     end
 
     it "should be settable and gettable" do

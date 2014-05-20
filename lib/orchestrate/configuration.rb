@@ -34,13 +34,18 @@ module Orchestrate
     #
     attr_accessor :logger
 
+    # for faraday, here temporarily
+    #
+    attr_accessor :faraday
+
     #
     # Initialize and return a new instance of Configuration.
     #
     def initialize(options = {}) # :nodoc:
       @api_key = options[:api_key]
-      @base_url = options[:base_url] || "https://api.orchestrate.io/v0"
+      @base_url = options[:base_url] || "https://api.orchestrate.io"
       @logger = options[:logger] || Logger.new(STDOUT)
+      @faraday = options[:faraday]
     end
 
   end

@@ -8,7 +8,7 @@ module Orchestrate::API
       # Support args[:path] for backward compatibility (until 1.0.0)
       args[:params] = args[:path] if args[:params].blank?
 
-      @path = "#{base_url}/#{args[:collection]}"
+      @path = "/v0/#{args[:collection]}"
       @path << Key.new(args[:key]).path
       @path << Ref.new(method, args[:ref]).path
       @path << Event.new(method, args[:event_type], args[:timestamp]).path
@@ -44,6 +44,7 @@ module Orchestrate::API
           @event_type.blank? ? "" : "/events/#{@event_type}"
         end
 
+        # TODO: convert time objects to integers
         def timestamp_param_string
           return "" if @timestamp.blank?
           return "?timestamp=#{@timestamp}" if (@timestamp.is_a?(Integer) || @timestamp.is_a?(String))
