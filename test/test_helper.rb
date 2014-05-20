@@ -31,6 +31,16 @@ def make_client_and_artifacts
   [client, stubs, basic_auth]
 end
 
+def capture_warnings
+  old, $stderr = $stderr, StringIO.new
+  begin
+    yield
+    $stderr.string
+  ensure
+    $stderr = old
+  end
+end
+
 def response_headers(specified={})
   {
     'Content-Type' => 'application/json',
