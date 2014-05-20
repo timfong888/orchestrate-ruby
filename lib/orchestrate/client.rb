@@ -76,7 +76,7 @@ module Orchestrate
     # - +offset+: - ingeger, the starting position of the results.  Defaults to 0.
     #
     def search(collection, query, parameters={})
-      send_request :get, [collection], { query: options.merge({query: query})}
+      send_request :get, [collection], { query: parameters.merge({query: query})}
     end
 
     # call-seq:
