@@ -24,5 +24,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency "typhoeus"
   s.add_development_dependency "em-http-request"
   s.add_development_dependency "em-synchrony"
-  s.add_development_dependency "hanna"
 end
