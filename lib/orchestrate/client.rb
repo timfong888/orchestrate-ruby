@@ -207,6 +207,13 @@ module Orchestrate
       send_request :delete, path, { query: {purge: true} }
     end
 
+    def in_parallel(&block)
+      accumulator = {}
+      http.in_parallel do
+        block.call(accumulator)
+      end
+      accumulator
+    end
     #
     # Performs the HTTP request against the API and returns a Faraday::Response
     #
