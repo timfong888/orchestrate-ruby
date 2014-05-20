@@ -11,15 +11,16 @@ class GraphTest < MiniTest::Unit::TestCase
   end
 
   def test_get_graph
-    @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}") do |env|
+    body = { "count" => 0, "results" => [] }
+    @stubs.get("/v0/#{@collection}/#{@key}/relations/#{@kind}/#{@kind}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, '{"count":3, "results":[]}']
+      [200, response_headers, body.to_json]
     end
-    response = @client.get_graph({collection:@collection, key:@key, kind:@kind})
-    assert_equal 200, response.header.code
-    assert_equal 3, response.body.count
-    assert response.body.results
+
+    response = @client.get_graph(@collection, @key, @kind, @kind)
+    assert_equal 200, response.status
+    assert_equal body, response.body
   end
 
   def test_put_graph
@@ -27,8 +28,8 @@ class GraphTest < MiniTest::Unit::TestCase
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
-    response = @client.put_graph({collection:@collection, key:@key, kind:@kind, to_collection:@target_collection, to_key:@target_key})
-    assert_equal 204, response.header.code
+    response = @client.put_graph(@collection, @key, @kind, @target_collection, @target_key)
+    assert_equal 204, response.status
   end
 
   def test_delete_graph
@@ -37,7 +38,7 @@ class GraphTest < MiniTest::Unit::TestCase
       assert_equal 'true', env.params['purge']
       [ 204, response_headers, '' ]
     end
-    response = @client.delete_graph({collection:@collection, key:@key, kind:@kind, to_collection:@target_collection, to_key:@target_key})
-    assert_equal 204, response.header.code
+    response = @client.delete_graph(@collection, @key, @kind, @target_collection, @target_key)
+    assert_equal 204, response.status
   end
 end

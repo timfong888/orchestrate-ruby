@@ -5,6 +5,8 @@ describe Orchestrate::Client do
   it "should initialize" do
     client = Orchestrate::Client.new
     client.must_be_kind_of Orchestrate::Client
+
+    client.config.must_equal Orchestrate.config
   end
 
   it "should initialize with config" do
