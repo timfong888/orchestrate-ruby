@@ -21,4 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency "faraday_middleware", "~> 0.9", ">= 0.9.1"
   s.add_development_dependency "bundler", "~> 1.6"
   s.add_development_dependency "rake"
+  s.add_development_dependency "typhoeus"
+  s.add_development_dependency "em-http-request"
+  s.add_development_dependency "em-synchrony"
 end
