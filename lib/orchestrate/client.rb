@@ -8,22 +8,15 @@ module Orchestrate
   # The primary entry point is the #send_request method, which generates a
   # Request, and returns the Response to the caller.
   #
-  # {Usage examples for each HTTP request}[Procedural.html] are documented in
-  # the Procedural interface module.
-  #
   class Client
 
-    #
-    # Configuration for the wrapper instance. If configuration is not
-    # explicitly provided during initialization, this will default to
-    # Orchestrate.config.
-    #
+    # Orchestrate::Configuration instance for the client.  If not explicitly
+    # provided during initialization, will default to Orchestrate.config
     attr_accessor :config
 
     # The Faraday HTTP "connection" for the client.
     attr_accessor :http
 
-    #
     # Initialize and return a new Client instance. Optionally, configure
     # options for the instance by passing a Configuration object. If no
     # custom configuration is provided, the configuration options from
@@ -50,31 +43,48 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  collection
 
-    #  * required: collection
-    #  * optional: { options } which may contain one or more of:
-    #           :limit  : integer, number of results to return
-    #           :start  : string, start of range, including value
-    #           :after  : string, start of range, excluding value
-    #           :before : string, end of range, excluding value
-    #           :end    : string, end of range, including value
+    # call-seq:
+    #   client.list(collection_name, parameters = {})   -> response
     #
-    #   Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
+    # Performes a List query against the given collection.  Results are sorted
+    # lexicographically by key name.
+    #
+    # +collection_name+:: A String or Symbol representing the name of the collection.
+    # +parameters+:: a Hash object containing query parameters:
+    # - +:limit+   - integer, number of results to return.  Defaults to 10, Max 100.
+    # - +:start+   - string, start key of query range, including value.
+    # - +:after+   - string, start key of query range, excluding value.
+    # - +:before+  - string, end key of query range, excluding value.
+    # - +:end+     - string, end key of query range, including value.
+    #
+    # Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
     #
     def list(collection, options={})
-      # TODO extract to perhaps "camelcase_keys"
       Orchestrate::Helpers.range_keys!('key', options)
       send_request :get, [collection], { query: options }
     end
 
-    #  * required: collection, query
-    #  * optional: { limit, offset }
+    #  call-seq:
+    #     client.list(collection_name, query, parameters = {})  -> response
     #
-    def search(collection, query, options={})
+    # Performs a Search query against the given collection.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +query+:: a String containing a Lucene query
+    # +parameters+:: a Hash object containing additional parameters:
+    # - +limit+:  - integer, number of results to return.  Defaults to 10, Max 100.
+    # - +offset+: - ingeger, the starting position of the results.  Defaults to 0.
+    #
+    def search(collection, query, parameters={})
       send_request :get, [collection], { query: options.merge({query: query})}
     end
 
-    #  Deletes a collection
-    #  * required: collection
+    # call-seq:
+    #   client.delete_collection(collection_name) -> response
+    #
+    # Deletes the given collection.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
     #
     def delete_collection(collection)
       send_request :delete, [collection], { query: {force:true} }
@@ -83,9 +93,15 @@ module Orchestrate
     #  -------------------------------------------------------------------------
     #  Key/Value
 
-    #  Retreives the latest value assigned to a key.
-    #  * required: collection, key
-    #  * optional: ref
+    # call-seq:
+    #   client.get(collection_name, key)              -> response
+    #   client.get(collection_name, key, ref)         -> response
+    #
+    # Retreieves a value assigned to a key.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +ref+:: if given, returns the value for the key at the specified ref.  If omitted, returns the latest value for the key.
     #
     def get(collection, key, ref=nil)
       if ref
@@ -95,10 +111,19 @@ module Orchestrate
       end
     end
 
-    #  * required: collection, key, json
-    #  * optional: condition, where condition = ref="#{etag}" || true
-    #     if condition is a string, it will be sent as the 'If-Match' header
-    #     otherwise if condition is false, the header 'If-None-Match: *' will be sent
+    # call-seq:
+    #   client.put(collection_name, key, body)            -> response
+    #   client.put(collection_name, key, body, condition) -> response
+    #
+    # Creates or Updates the value at the specified key.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +body+:: a Hash object representing the value for the key.
+    # +condition+::
+    # - +nil+ - the value for the specified key will be updated regardless.
+    # - String - used as 'If-Match'.  The value will only be updated if the Key's current Value's Ref matches the given condition.
+    # - false - used as 'If-None-Match'.  The value will only be created for the key if the key currently has no value.
     #
     def put(collection, key, body, condition=nil)
       headers={}
@@ -111,14 +136,24 @@ module Orchestrate
     end
     alias :put_if_unmodified :put
 
-    #  * required: colleciton, key, json
+    #  call-seq:
+    #     client.put_if_absent(collection_name, key, body)    -> response
+    #
+    # Will create the value at the specified key only if there is no existing value for the specified key.
     #
     def put_if_absent(collection, key, body)
       put collection, key, body, false
     end
 
-    #  * required: collection, key
-    #  * optional: ref.  If truthy, will be sent as 'If-Match' header
+    # call-seq:
+    #   client.delete(collection_name, key)      -> response
+    #   client.delete(collection_name, key, ref) -> response
+    #
+    # Deletes the value of the specified key.  Historical values for given refs are still available.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +ref+:: if provided, used as 'If-Match', will only delete the key if the current value is the provided ref.
     #
     def delete(collection, key, ref=nil)
       headers = {}
@@ -126,7 +161,13 @@ module Orchestrate
       send_request :delete, [collection, key], { headers: headers }
     end
 
-    #  * required: { collection, key }
+    # call-seq:
+    #   client.purge(collection_name, key) -> response
+    #
+    # Deletes the value for the specified key as well as all historical values.  Cannot be undone.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
     #
     def purge(collection, key)
       send_request :delete, [collection, key], { query: { purge: true } }
@@ -135,34 +176,63 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  Events
 
-    #  * required: collection, key, event_type, timestamp, ordinal
-    #    The timestamp should be formatted as decribed in the API docs:
-    #    http://orchestrate.io/docs/api/?go#events/timestamps
+    # call-seq:
+    #   client.get_event(collection_name, key, event_type, timestamp, ordinal) -> response
     #
-    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    # Gets the event for the specified arguments.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +event_type+:: a String or Symbol representing the category for the event.
+    # +timestamp+:: an Integer or String representing a time.
+    # - Integers are Milliseconds since Unix Epoch.
+    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
+    # - A future version will support ruby Time objects.
+    # +ordinal+:: an Integer representing the order of the event for this timestamp.
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
       send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 
-    #  * required: collection, key, event_type, body
-    #  * optional: timestamp
-    #    The timestamp should be formatted as decribed in the API docs:
-    #    http://orchestrate.io/docs/api/?go#events/timestamps
+    # call-seq:
+    #   client.post_event(collection_name, key, event_type) -> response
+    #   client.post_event(collection_name, key, event_type, timestamp) -> response
     #
-    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    # Creates an event.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +event_type+:: a String or Symbol representing the category for the event.
+    # +body+:: a Hash object representing the value for the event.
+    # +timestamp+:: an Integer or String representing a time.
+    # - nil - Timestamp value will be created by Orchestrate.
+    # - Integers are Milliseconds since Unix Epoch.
+    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
+    # - A future version will support ruby Time objects.
     #
     def post_event(collection, key, event_type, body, timestamp=nil)
       path = [collection, key, 'events', event_type, timestamp].compact
       send_request :post, path, { body: body }
     end
 
-    #  * required: collection, key, event_type, timestamp, ordinal, body
-    #  * optional: ref, for If-Match
-    #    The timestamp should be formatted as decribed in the API docs:
-    #    http://orchestrate.io/docs/api/?go#events/timestamps
+    # call-seq:
+    #   client.put_event(collection_name, key, event_type, timestamp, ordinal, body) -> response
+    #   client.put_event(collection_name, key, event_type, timestamp, ordinal, body, ref) -> response
     #
-    #    A forthcoming version will auto-convert Ruby DateTime objects.
+    # Puts the event for the specified arguments.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +event_type+:: a String or Symbol representing the category for the event.
+    # +timestamp+:: an Integer or String representing a time.
+    # - Integers are Milliseconds since Unix Epoch.
+    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
+    # - A future version will support ruby Time objects.
+    # +ordinal+:: an Integer representing the order of the event for this timestamp.
+    # +body+:: a Hash object representing the value for the event.
+    # +ref+::
+    # - +nil+ - The event will update regardless.
+    # - String - used as 'If-Match'.  The event will only update if the event's current value matches this ref.
     #
     def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
@@ -171,13 +241,28 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers }
     end
 
-    #  * required: collection, key, event_type
-    #  * optional: range { start, end, before, after }
-    #     Range parameters formatted as ":timestamp/:ordinal"
-    #     * timstamps should be formatted as described in the API docs:
-    #       http://orchestrate.io/docs/api/?go#events/timestamps
-    #       A forthcoming version will auto-convert Ruby DateTime objects
-    #     * ordinal is optional
+    # call-seq:
+    #   client.list_events(collection_name, key, event_type) -> response
+    #   client.get_event(collection_name, key, event_type, parameters = {}) -> response
+    #
+    # Puts the event for the specified arguments.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +event_type+:: a String or Symbol representing the category for the event.
+    # +parameters+::
+    # - +:limit+   - integer, number of results to return.  Defaults to 10, Max 100.
+    # - +:start+   - Integer/String representing the inclusive start to a range.
+    # - +:after+   - Integer/String representing the exclusive start to a range.
+    # - +:before+  - Integer/String representing the exclusive end to a range.
+    # - +:end+     - Integer/String representing the inclusive end to a range.
+    #
+    # Range parameters are formatted as ":timestamp/:ordinal":
+    # +timestamp+:: an Integer or String representing a time.
+    # - Integers are Milliseconds since Unix Epoch.
+    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
+    # - A future version will support ruby Time objects.
+    # +ordinal+:: is optional.
     #
     def list_events(collection, key, event_type, parameters={})
       Orchestrate::Helpers.range_keys!('event', parameters)
@@ -187,26 +272,65 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  Graph
 
-    #  * required: collection, key, kinds...
+    # call-seq:
+    #   client.get_graph(collection_name, key, *kinds) -> response
+    #
+    # Returns the relation's collection, key and ref values.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +kinds+:: one or more String or Symbol values representing the relations and depth to walk.
     #
     def get_graph(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
       send_request :get, path
     end
 
-    #  * required: collection, key, kind, to_collection, to_key
+    # call-seq:
+    #   client.put_graph(collection_name, key, kind, to_collection_name, to_key) -> response
+    #
+    # Stores a relationship between two Key/Value items.  They do not need to be in the same collection.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +kind+:: a String or Symbol value representing the relation type.
+    # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
+    # +to_key+:: a String or Symbol representing the key for the related item.
     #
     def put_graph(collection, key, kind, to_collection, to_key)
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
-    #  * required: collection, key, kind, to_collection, to_key
+    # call-seq:
+    #   client.delete_graph(collection_name, key, kind, to_collection, to_key) -> response
+    #
+    # Deletes a relationship between two Key/Value items.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +kind+:: a String or Symbol value representing the relation type.
+    # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
+    # +to_key+:: a String or Symbol representing the key for the related item.
     #
     def delete_graph(collection, key, kind, to_collection, to_key)
       path = [collection, key, 'relation', kind, to_collection, to_key]
       send_request :delete, path, { query: {purge: true} }
     end
 
+    # call-seq:
+    #   client.in_parallel {|responses| block } -> Hash
+    #
+    # Performs any requests generated inside the block in parallel.  If the
+    # client isn't using a Faraday adapter that supports parallelization, will
+    # output a warning to STDERR.
+    #
+    # Example:
+    #   responses = client.in_parallel do |r|
+    #     r[:some_items] = client.list(:site_globals)
+    #     r[:user] = client.get(:users, current_user_key)
+    #     r[:user_feed] = client.list_events(:users, current_user_key, :notices)
+    #   end
+    #
     def in_parallel(&block)
       accumulator = {}
       http.in_parallel do
@@ -214,8 +338,18 @@ module Orchestrate
       end
       accumulator
     end
+
+    # call-seq:
+    #   client.send_request(method, url, opts={}) -> response
     #
     # Performs the HTTP request against the API and returns a Faraday::Response
+    #
+    # +method+ - the HTTP method, one of [ :get, :post, :put, :delete ]
+    # +url+ - an Array of segments to be joined with '/'
+    # +opts+
+    # - +:query+ - a Hash for the request query string
+    # - +:body+ - a Hash for the :put or :post request body
+    # - +:headers+ - a Hash the request headers
     #
     def send_request(method, url, opts={})
       url = "/v0/#{url.join('/')}"

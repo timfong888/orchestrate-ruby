@@ -23,7 +23,7 @@ client = Orchestrate::Client.new
 and start making requests:
 
 ``` ruby
-client.list_keys({collection:'collection_name'})
+client.list(:my_collection)
 ```
 
 ## Swapping out the HTTP backend
