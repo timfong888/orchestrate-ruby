@@ -241,9 +241,11 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers }
     end
 
-    def purge_event(collection, key, event_type, timestamp, ordinal)
+    def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
-      send_request :delete, path, { query: { purge: true } }
+      headers = {}
+      headers['If-Match'] = format_ref(ref) if ref
+      send_request :delete, path, { query: { purge: true }, headers: headers }
     end
 
     # call-seq:

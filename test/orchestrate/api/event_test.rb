@@ -84,6 +84,19 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal 204, response.status
   end
 
+  def test_purge_event_with_ref
+    path = ['v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
+    ref = "12345"
+    @stubs.delete(path.join("/")) do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      assert_equal 'true', env.params['purge']
+      [204, response_headers, '']
+    end
+    response = @client.purge_event(@collection, @key, @event_type, @timestamp, @ordinal, ref)
+    assert_equal 204, response.status
+  end
+
   def test_list_events_without_timestamp
     body = { "results" => [], "count" => 0, "next" => "" }
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
