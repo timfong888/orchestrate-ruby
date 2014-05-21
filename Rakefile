@@ -17,3 +17,9 @@ Rake::RDocTask.new(rdoc: "doc", clobber_rdoc: "doc:clean", rerdoc: "doc:force") 
   rdoc.rdoc_files.include("README.md", "lib/**/*.rb")
   rdoc.rdoc_dir = "doc"
 end
+
+namespace :gem do
+  task :build do
+    sh "gem build orchestrate.gemspec"
+  end
+end
