@@ -18,7 +18,7 @@ class GraphTest < MiniTest::Unit::TestCase
       [200, response_headers, body.to_json]
     end
 
-    response = @client.get_graph(@collection, @key, @kind, @kind)
+    response = @client.get_relations(@collection, @key, @kind, @kind)
     assert_equal 200, response.status
     assert_equal body, response.body
   end
@@ -28,7 +28,7 @@ class GraphTest < MiniTest::Unit::TestCase
       assert_authorization @basic_auth, env
       [ 204, response_headers, '' ]
     end
-    response = @client.put_graph(@collection, @key, @kind, @target_collection, @target_key)
+    response = @client.put_relation(@collection, @key, @kind, @target_collection, @target_key)
     assert_equal 204, response.status
   end
 
@@ -38,7 +38,7 @@ class GraphTest < MiniTest::Unit::TestCase
       assert_equal 'true', env.params['purge']
       [ 204, response_headers, '' ]
     end
-    response = @client.delete_graph(@collection, @key, @kind, @target_collection, @target_key)
+    response = @client.delete_relation(@collection, @key, @kind, @target_collection, @target_key)
     assert_equal 204, response.status
   end
 end

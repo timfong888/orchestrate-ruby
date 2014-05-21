@@ -298,7 +298,7 @@ module Orchestrate
     #  Graph
 
     # call-seq:
-    #   client.get_graph(collection_name, key, *kinds) -> response
+    #   client.get_relations(collection_name, key, *kinds) -> response
     #
     # Returns the relation's collection, key and ref values.
     #
@@ -306,13 +306,13 @@ module Orchestrate
     # +key+:: a String or Symbol representing the key for the value.
     # +kinds+:: one or more String or Symbol values representing the relations and depth to walk.
     #
-    def get_graph(collection, key, *kinds)
+    def get_relations(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
       send_request :get, path
     end
 
     # call-seq:
-    #   client.put_graph(collection_name, key, kind, to_collection_name, to_key) -> response
+    #   client.put_relation(collection_name, key, kind, to_collection_name, to_key) -> response
     #
     # Stores a relationship between two Key/Value items.  They do not need to be in the same collection.
     #
@@ -322,12 +322,12 @@ module Orchestrate
     # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
     # +to_key+:: a String or Symbol representing the key for the related item.
     #
-    def put_graph(collection, key, kind, to_collection, to_key)
+    def put_relation(collection, key, kind, to_collection, to_key)
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
     # call-seq:
-    #   client.delete_graph(collection_name, key, kind, to_collection, to_key) -> response
+    #   client.delete_relation(collection_name, key, kind, to_collection, to_key) -> response
     #
     # Deletes a relationship between two Key/Value items.
     #
@@ -337,7 +337,7 @@ module Orchestrate
     # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
     # +to_key+:: a String or Symbol representing the key for the related item.
     #
-    def delete_graph(collection, key, kind, to_collection, to_key)
+    def delete_relation(collection, key, kind, to_collection, to_key)
       path = [collection, key, 'relation', kind, to_collection, to_key]
       send_request :delete, path, { query: {purge: true} }
     end
