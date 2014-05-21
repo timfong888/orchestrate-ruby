@@ -62,13 +62,38 @@ class EventTest < MiniTest::Unit::TestCase
   def test_put_event_with_ref
     event = {"msg" => "hello"}
     ref = "12345"
-    @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
+    path = ['v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
+    @stubs.put(path.join("/")) do |env|
       assert_authorization @basic_auth, env
       assert_header 'If-Match', "\"#{ref}\"", env
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
     response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event, ref)
+    assert_equal 204, response.status
+  end
+
+  def test_purge_event_without_ref
+    path = ['v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
+    @stubs.delete(path.join("/")) do |env|
+      assert_authorization @basic_auth, env
+      assert_equal 'true', env.params['purge']
+      [204, response_headers, '']
+    end
+    response = @client.purge_event(@collection, @key, @event_type, @timestamp, @ordinal)
+    assert_equal 204, response.status
+  end
+
+  def test_purge_event_with_ref
+    path = ['v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
+    ref = "12345"
+    @stubs.delete(path.join("/")) do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      assert_equal 'true', env.params['purge']
+      [204, response_headers, '']
+    end
+    response = @client.purge_event(@collection, @key, @event_type, @timestamp, @ordinal, ref)
     assert_equal 204, response.status
   end
 
