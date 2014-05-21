@@ -241,6 +241,11 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers }
     end
 
+    def purge_event(collection, key, event_type, timestamp, ordinal)
+      path = [collection, key, 'events', event_type, timestamp, ordinal]
+      send_request :delete, path, { query: { purge: true } }
+    end
+
     # call-seq:
     #   client.list_events(collection_name, key, event_type) -> response
     #   client.get_event(collection_name, key, event_type, parameters = {}) -> response
