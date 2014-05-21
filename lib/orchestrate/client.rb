@@ -64,8 +64,8 @@ module Orchestrate
       send_request :get, [collection], { query: options }
     end
 
-    #  call-seq:
-    #     client.list(collection_name, query, parameters = {})  -> response
+    # call-seq:
+    #   client.list(collection_name, query, parameters = {})  -> response
     #
     # Performs a Search query against the given collection.
     #
