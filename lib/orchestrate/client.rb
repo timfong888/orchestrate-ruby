@@ -241,6 +241,24 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers }
     end
 
+    # call-seq:
+    #   client.purge_event(collection, key, event_type, timestamp, ordinal) -> response
+    #   client.purge_event(collection, key, event_type, timestamp, ordinal, ref) -> response
+    #
+    # Deletes the event for the specified arguments.
+    #
+    # +collection_name+:: a String or Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +event_type+:: a String or Symbol representing the category for the event.
+    # +timestamp+:: an Integer or String representing a time.
+    # - Integers are Milliseconds since Unix Epoch.
+    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
+    # - A future version will support ruby Time objects.
+    # +ordinal+:: an Integer representing the order of the event for this timestamp.
+    # +ref+::
+    # - +nil+ - The event will be deleted regardless.
+    # - String - used as 'If-Match'.  The event will only be deleted if the event's current value matches this ref.
+    #
     def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
