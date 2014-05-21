@@ -36,9 +36,9 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
-    response = @client.get(@collection, @key)
-    assert_equal 404, response.status
-    assert_equal 'items_not_found', response.body['code']
+    assert_raises Orchestrate::Errors::NotFound do
+      @client.get(@collection, @key)
+    end
   end
 
   def test_puts_key_value_without_ref

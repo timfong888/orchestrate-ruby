@@ -79,6 +79,10 @@ module Orchestrate
       send_request :get, [collection], { query: parameters.merge({query: query})}
     end
 
+    # Notes:
+    # will return 204 No Content regardless of if collection exists or not,
+    # provided all other conditions are met.
+
     # call-seq:
     #   client.delete_collection(collection_name) -> response
     #
@@ -384,7 +388,7 @@ module Orchestrate
       headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       headers['Accept'] = 'application/json' if method == :get
 
-      http.send(method) do |request|
+      response = http.send(method) do |request|
         config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
         if [:put, :post].include?(method)
@@ -393,6 +397,9 @@ module Orchestrate
         end
         headers.each {|header, value| request[header] = value }
       end
+
+      Errors.handle_response(response) if (!response.success?)
+      response
     end
 
     # ------------------------------------------------------------------------
