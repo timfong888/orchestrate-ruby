@@ -13,8 +13,112 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         "code" => "security_unauthorized"
       }.to_json ]
     end
-    assert_raises Orchestrate::Errors::Unauthorized do
+    assert_raises Orchestrate::Error::Unauthorized do
       @client.list(:foo)
+    end
+  end
+
+  def test_raises_on_bad_request
+    message = "Invalid value for header 'If-Match'."
+    @stubs.put("/v0/foo/bar") do |env|
+      [400, response_headers, {
+        message: message,
+        code: "api_bad_request"
+      }.to_json ]
+    end
+    err = assert_raises Orchestrate::Error::BadRequest do
+      @client.put(:foo, "bar", {}, "'foo'")
+    end
+    assert_equal message, err.message
+  end
+
+  def test_raises_on_malformed_search_query
+    @stubs.get("/v0/foo") do |env|
+      [ 400, response_headers, {
+        message: "The search query provided is invalid.",
+        code: "search_query_malformed"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::MalformedSearch do
+      @client.search(:foo, "foo=\"no")
+    end
+  end
+
+  def test_raises_on_invalid_search_param
+    @stubs.get("/v0/foo") do |env|
+      [ 400, response_headers, {
+        message: "A provided search query param is invalid.",
+        details: { query: "Query is empty." },
+        code: "search_param_invalid"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::InvalidSearchParam do
+      @client.search(:foo, '')
+    end
+  end
+
+  def test_raises_on_malformed_ref
+    @stubs.put("/v0/foo/bar") do |env|
+      [ 400, response_headers, {
+        message: "The provided Item Ref is malformed.",
+        details: { ref: "blerg" },
+        code: "item_ref_malformed"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::MalformedRef do
+      @client.put(:foo, "bar", {:blerg => 'blerg'}, "blerg")
+    end
+  end
+
+  def test_raises_on_indexing_conflict
+    @stubs.put("/v0/foo/bar") do |env|
+      [ 409, response_headers, {
+        message: "The item has been stored but conflicts were detected when indexing. Conflicting fields have not been indexed.",
+        details: {
+          conflicts: { name: { type: "string", expected: "long" } },
+          conflicts_uri: "/v0/test/one/refs/f8a86a25029a907b/conflicts"
+        },
+        code: "indexing_conflict"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::IndexingConflict do
+      @client.put(:foo, 'bar', {count: "foo"})
+    end
+  end
+
+  def test_raises_on_version_mismatch
+    @stubs.put("/v0/foo/bar") do |env|
+      [ 412, response_headers, {
+        message: "The version of the item does not match.",
+        code: "item_version_mismatch"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::VersionMismatch do
+      @client.put(:foo, 'bar', {foo:'bar'}, "7ae8635207acbb2f")
+    end
+  end
+
+  def test_raises_on_item_already_present
+    @stubs.put("/v0/foo/bar") do |env|
+      [ 412, response_headers, {
+        message: "The item is already present.",
+        code: "item_already_present"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::AlreadyPresent do
+      @client.put_if_absent(:foo, 'bar', {foo:'bar'})
+    end
+  end
+
+  def test_raises_on_unexpected_response_error
+    @stubs.get("/v0/teapot/spout") do |env|
+      [ 418, response_headers, {
+        message: "I'm a little teapot",
+        code: "teapot"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::RequestError do
+      @client.get(:teapot, "spout")
     end
   end
 end

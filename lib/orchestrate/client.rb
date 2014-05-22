@@ -398,7 +398,7 @@ module Orchestrate
         headers.each {|header, value| request[header] = value }
       end
 
-      Errors.handle_response(response) if (!response.success?)
+      Error.handle_response(response) if (!response.success?)
       response
     end
 
