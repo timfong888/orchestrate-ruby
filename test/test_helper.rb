@@ -9,7 +9,7 @@ require "time"
 # Test Helpers ---------------------------------------------------------------
 
 def output_message(name, msg = nil)
-  msg = "START TEST" if msg.blank?
+  msg ||= "START TEST"
   Orchestrate.config.logger.debug "\n======= #{msg}: #{name} ======="
 end
 
