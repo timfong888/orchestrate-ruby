@@ -184,10 +184,11 @@ module Orchestrate
     # +collection_name+:: a String or Symbol representing the name of the collection.
     # +key+:: a String or Symbol representing the key for the value.
     # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: an Integer or String representing a time.
+    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
+    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
+    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
     # - Integers are Milliseconds since Unix Epoch.
     # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # - A future version will support ruby Time objects.
     # +ordinal+:: an Integer representing the order of the event for this timestamp.
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
@@ -205,13 +206,15 @@ module Orchestrate
     # +key+:: a String or Symbol representing the key for the value.
     # +event_type+:: a String or Symbol representing the category for the event.
     # +body+:: a Hash object representing the value for the event.
-    # +timestamp+:: an Integer or String representing a time.
+    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
     # - nil - Timestamp value will be created by Orchestrate.
+    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
+    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
     # - Integers are Milliseconds since Unix Epoch.
     # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # - A future version will support ruby Time objects.
     #
     def post_event(collection, key, event_type, body, timestamp=nil)
+      timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp].compact
       send_request :post, path, { body: body }
     end
@@ -225,10 +228,11 @@ module Orchestrate
     # +collection_name+:: a String or Symbol representing the name of the collection.
     # +key+:: a String or Symbol representing the key for the value.
     # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: an Integer or String representing a time.
+    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
+    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
+    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
     # - Integers are Milliseconds since Unix Epoch.
     # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # - A future version will support ruby Time objects.
     # +ordinal+:: an Integer representing the order of the event for this timestamp.
     # +body+:: a Hash object representing the value for the event.
     # +ref+::
@@ -236,6 +240,7 @@ module Orchestrate
     # - String - used as 'If-Match'.  The event will only update if the event's current value matches this ref.
     #
     def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
+      timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
@@ -251,16 +256,18 @@ module Orchestrate
     # +collection_name+:: a String or Symbol representing the name of the collection.
     # +key+:: a String or Symbol representing the key for the value.
     # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: an Integer or String representing a time.
+    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
+    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
+    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
     # - Integers are Milliseconds since Unix Epoch.
     # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # - A future version will support ruby Time objects.
     # +ordinal+:: an Integer representing the order of the event for this timestamp.
     # +ref+::
     # - +nil+ - The event will be deleted regardless.
     # - String - used as 'If-Match'.  The event will only be deleted if the event's current value matches this ref.
     #
     def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
+      timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
@@ -291,6 +298,9 @@ module Orchestrate
     # +ordinal+:: is optional.
     #
     def list_events(collection, key, event_type, parameters={})
+      (parameters.keys & [:start, :after, :before, :end]).each do |param|
+        parameters[param] = Helpers.timestamp(parameters[param])
+      end
       Orchestrate::Helpers.range_keys!('event', parameters)
       send_request :get, [collection, key, 'events', event_type], { query: parameters }
     end
