@@ -192,6 +192,7 @@ module Orchestrate
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
       timestamp = (timestamp.getutc.to_f * 1000).to_i if timestamp.kind_of?(Time)
+      timestamp = (timestamp.to_time.getutc.to_f * 1000).to_i if timestamp.kind_of?(Date)
       send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 

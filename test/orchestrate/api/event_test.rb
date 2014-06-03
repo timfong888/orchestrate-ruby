@@ -37,6 +37,18 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal 200, response.status
   end
 
+  def test_get_event_with_datetime
+    time = DateTime.now
+    ts = (time.to_time.getutc.to_f * 1000).to_i
+    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{ts}/#{@ordinal}") do |env|
+      assert_authorization @basic_auth, env
+      assert_accepts_json env
+      [ 200, response_headers, {}.to_json ]
+    end
+    response = @client.get_event(@collection, @key, @event_type, time, @ordinal)
+    assert_equal 200, response.status
+  end
+
   def test_post_event_without_timestamp
     event = {"msg" => "hello"}
     @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
