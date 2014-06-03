@@ -191,6 +191,7 @@ module Orchestrate
     # +ordinal+:: an Integer representing the order of the event for this timestamp.
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
+      timestamp = (timestamp.getutc.to_f * 1000).to_i if timestamp.kind_of?(Time)
       send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
     end
 
