@@ -24,8 +24,8 @@ module Orchestrate
     # Returns the Milliseconds since Unix Epoch if given a Time or Date object.  
     # Otherwise, returns value called with.
     def timestamp(time)
+      time = time.to_time if time.kind_of?(Date)
       time = (time.getutc.to_f * 1000).to_i if time.kind_of?(Time)
-      time = (time.to_time.getutc.to_f * 1000).to_i if time.kind_of?(Date)
       time
     end
 
