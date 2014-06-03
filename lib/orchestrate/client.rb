@@ -290,12 +290,15 @@ module Orchestrate
     # - +:before+  - Integer/String representing the exclusive end to a range.
     # - +:end+     - Integer/String representing the inclusive end to a range.
     #
-    # Range parameters are formatted as ":timestamp/:ordinal":
-    # +timestamp+:: an Integer or String representing a time.
+    # Range parameters are formatted as ":timestamp/:ordinal", where "/ordinal" is optional.
+    #
+    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
+    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
+    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
     # - Integers are Milliseconds since Unix Epoch.
     # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # - A future version will support ruby Time objects.
-    # +ordinal+:: is optional.
+    #
+    # +ordinal+:: optional; an Integer representing the order of the event for this timestamp.
     #
     def list_events(collection, key, event_type, parameters={})
       (parameters.keys & [:start, :after, :before, :end]).each do |param|
