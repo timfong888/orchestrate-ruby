@@ -112,6 +112,23 @@ module Orchestrate
     end
 
     # call-seq:
+    #   client.get(collection_name, key)              -> response
+    #   client.get(collection_name, key, parameters)  -> response
+    #
+    # Retrieves a list of refs for the specified key and collection.
+    #
+    # +collection_name+:: a String of Symbol representing the name of the collection.
+    # +key+:: a String or Symbol representing the key for the value.
+    # +parameters+:: a Hash object containing additional parameters:
+    # - +limit+:: integer, number of results to return.  Defaults to 10, Max 100.
+    # - +offset+:: integer, starting position of the results.  Defaults to 0.
+    # - +values+:: boolean, whether to return the values for each ref.
+    #
+    def list_refs(collection, key, parameters={})
+      send_request :get, [collection, key, :refs], { query: parameters }
+    end
+
+    # call-seq:
     #   client.put(collection_name, key, body)            -> response
     #   client.put(collection_name, key, body, condition) -> response
     #
