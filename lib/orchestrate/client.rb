@@ -40,6 +40,10 @@ module Orchestrate
       end
     end
 
+    def ping
+      send_request :get, []
+    end
+
     # -------------------------------------------------------------------------
     #  collection
 
@@ -377,7 +381,7 @@ module Orchestrate
     # - +:headers+ - a Hash the request headers
     #
     def send_request(method, url, opts={})
-      url = "/v0/#{url.join('/')}"
+      url = ['/v0'].concat(url).join('/')
       query_string = opts.fetch(:query, {})
       body = opts.fetch(:body, '')
       headers = opts.fetch(:headers, {})
