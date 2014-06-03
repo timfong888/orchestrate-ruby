@@ -385,7 +385,6 @@ module Orchestrate
       headers['Accept'] = 'application/json' if method == :get
 
       http.send(method) do |request|
-        config.logger.debug "Performing #{method.to_s.upcase} request to \"#{url}\""
         request.url url, query_string
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
