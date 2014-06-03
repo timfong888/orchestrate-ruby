@@ -7,6 +7,8 @@ module Orchestrate::Error
     end
     if err_type
       raise err_type.new(response)
+    elsif response.status >= 500
+      raise ServiceError.new(response)
     elsif response.status >= 400
       raise RequestError.new(response)
     end
@@ -25,7 +27,11 @@ module Orchestrate::Error
 
     def initialize(response)
       @resposne = response
-      super(response.body['message'])
+      if response.headers['Content-Type'] == 'application/json'
+        super(response.body['message'])
+      else
+        super(response.body)
+      end
     end
   end
 

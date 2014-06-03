@@ -157,5 +157,16 @@ class ExceptionsTest < MiniTest::Unit::TestCase
       @client.get(:test, '123')
     end
   end
+
+  def test_raises_on_generic_500_error
+    body = "The bees, they're in my eyes"
+    @stubs.get("/v0/test/123") do |env|
+      [ 500, {}, body ]
+    end
+    err = assert_raises Orchestrate::Error::ServiceError do
+      @client.get(:test, '123')
+    end
+    assert_equal body, err.message
+  end
 end
 
