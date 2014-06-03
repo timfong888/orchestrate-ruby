@@ -96,25 +96,28 @@ module Orchestrate::Error
     @code   = 'item_already_present'
   end
 
+  # indicates a 500-class response, the problem is on Orchestrate's end
+  class ServiceError < Base; end
+
+  class SecurityAuthentication < ServiceError
+    @status = 500
+    @code = 'security_authentication'
+  end
+
+  class SearchIndexNotFound < ServiceError
+    @status = 500
+    @code = 'search_index_not_found'
+  end
+
+  class InternalError < ServiceError
+    @status = 500
+    @code = 'internal_error'
+  end
+
   ERRORS=[ BadRequest, MalformedSearch, MalformedRef, InvalidSearchParam,
            Unauthorized, NotFound, IndexingConflict,
-           VersionMismatch, AlreadyPresent
+           VersionMismatch, AlreadyPresent,
+           SecurityAuthentication, SearchIndexNotFound, InternalError
           ]
 
-  def self.errors
-    @@errors ||= [
-      { :status => 500,
-        :code   => :security_authentication,
-        :desc   => 'An error occurred while trying to authenticate.'
-      },
-      { :status => 500,
-        :code   => :search_index_not_found,
-        :desc   => 'Index could not be queried for this application.'
-      },
-      { :status => 500,
-        :code   => :internal_error,
-        :desc   => 'Internal Error.'
-      }
-  ]
-  end
 end

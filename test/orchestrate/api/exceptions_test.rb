@@ -121,5 +121,41 @@ class ExceptionsTest < MiniTest::Unit::TestCase
       @client.get(:teapot, "spout")
     end
   end
+
+  def test_raises_on_security_authentication
+    @stubs.get("/v0/test/123") do |env|
+      [ 500, response_headers, {
+        message: "An error occurred while trying to authenticate.",
+        code: "security_authentication"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::SecurityAuthentication do
+      @client.get(:test, '123')
+    end
+  end
+
+  def test_raises_on_search_index_not_found
+    @stubs.get("/v0/test") do |env|
+      [ 500, response_headers, {
+        message: "Index could not be queried for this application.",
+        code: "search_index_not_found"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::SearchIndexNotFound do
+      @client.search(:test, '123')
+    end
+  end
+
+  def test_raises_on_internal_error
+    @stubs.get("/v0/test/123") do |env|
+      [ 500, response_headers, {
+        message: "Internal Error.",
+        code: "internal_error"
+      }.to_json ]
+    end
+    assert_raises Orchestrate::Error::InternalError do
+      @client.get(:test, '123')
+    end
+  end
 end
 
