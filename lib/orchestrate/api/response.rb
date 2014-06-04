@@ -1,0 +1,34 @@
+require 'forwardable'
+
+module Orchestrate::API
+  class Response
+
+    attr_reader :response
+    extend Forwardable
+    def_delegators :@response, :status, :body, :headers, :success?, :finished?, :on_complete
+
+    attr_reader :request_id
+    attr_reader :request_time
+
+    def initialize(faraday_response)
+      @response = faraday_response
+      @request_id = headers['X-Orchestrate-Req-Id']
+      @request_time = Time.parse(headers['Date'])
+    end
+
+  end
+
+  class ItemResponse < Response
+
+    attr_reader :location
+    attr_reader :ref
+    attr_reader :result
+
+    def initialize(faraday_response)
+      super(faraday_response)
+      @location = headers['Content-Location']
+      @ref = headers.fetch('Etag','').gsub('"','')
+      @result = body
+    end
+  end
+end

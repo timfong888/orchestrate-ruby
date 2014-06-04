@@ -112,10 +112,10 @@ module Orchestrate
     # +ref+:: if given, returns the value for the key at the specified ref.  If omitted, returns the latest value for the key.
     #
     def get(collection, key, ref=nil)
-      if ref
-        send_request :get, [collection, key, 'refs', ref]
-      else
-        send_request :get, [collection, key]
+      path = [collection, key]
+      path.concat(['refs', ref]) if ref
+      API::ItemResponse.new(send_request(:get, path)) do
+        @location = headers['Content-Location']
       end
     end
 

@@ -12,3 +12,5 @@ module Orchestrate
   end
 
 end
+
+require_relative 'api/response'

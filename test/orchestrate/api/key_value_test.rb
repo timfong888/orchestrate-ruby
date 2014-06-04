@@ -27,6 +27,12 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     assert_equal "\"#{ref}\"", response.headers['Etag']
     assert_equal ref_url, response.headers['Content-Location']
+
+    assert_equal ref_url, response.location
+    assert_equal ref, response.ref
+    assert_equal body, response.result
+    assert_equal Time.parse(response.headers['Date']), response.request_time
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_gets_key_value_is_404_when_does_not_exist
@@ -159,15 +165,26 @@ class KeyValueTest < MiniTest::Unit::TestCase
   def test_gets_ref
     body = {"key" => "value"}
     ref = '123456'
-    @stubs.get("/v0/#{@collection}/#{@key}/refs/#{ref}") do |env|
+    ref_url = "/v0/#{@collection}/#{@key}/refs/#{ref}"
+    @stubs.get(ref_url) do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [ 200, response_headers, body.to_json ]
+      headers = {
+        'Content-Location' => ref_url,
+        'Etag' => "\"#{ref}\""
+      }
+      [ 200, response_headers(headers), body.to_json ]
     end
 
     response = @client.get(@collection, @key, ref)
     assert_equal 200, response.status
     assert_equal body, response.body
+
+    assert_equal ref_url, response.location
+    assert_equal ref, response.ref
+    assert_equal body, response.result
+    assert_equal Time.parse(response.headers['Date']), response.request_time
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_list_refs
