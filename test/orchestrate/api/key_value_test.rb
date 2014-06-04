@@ -36,9 +36,9 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
-    response = @client.get(@collection, @key)
-    assert_equal 404, response.status
-    assert_equal 'items_not_found', response.body['code']
+    assert_raises Orchestrate::Error::NotFound do
+      @client.get(@collection, @key)
+    end
   end
 
   def test_puts_key_value_without_ref
@@ -168,6 +168,23 @@ class KeyValueTest < MiniTest::Unit::TestCase
     response = @client.get(@collection, @key, ref)
     assert_equal 200, response.status
     assert_equal body, response.body
+  end
+
+  def test_list_refs
+    reflist = (1..3).map do |i|
+      { path:{collection:@collection, key:@key, ref:SecureRandom.hex(16)},
+        reftime: Time.now.to_i - (-2 * i * 3600 * 1000) }
+    end
+    @stubs.get("/v0/#{@collection}/#{@key}/refs") do |env|
+      assert_authorization @basic_auth, env
+      assert_accepts_json env
+      assert_equal "10", env.params['offset']
+      [ 200, response_headers, {result:reflist, count: 3}.to_json ]
+    end
+
+    response = @client.list_refs(@collection, @key, {offset: 10})
+    assert_equal 200, response.status
+    assert_equal JSON.parse(reflist.to_json), response.body['result']
   end
 
 end

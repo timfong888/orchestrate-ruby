@@ -7,7 +7,8 @@ class EventTest < MiniTest::Unit::TestCase
     @key = 'instance'
     @client, @stubs, @basic_auth = make_client_and_artifacts
     @event_type = "commits"
-    @timestamp = (Time.now.to_f * 1000).to_i
+    @time = Time.now
+    @timestamp = (@time.to_f * 1000).to_i
     @ordinal = 5
   end
 
@@ -22,6 +23,31 @@ class EventTest < MiniTest::Unit::TestCase
     response = @client.get_event(@collection, @key, @event_type, @timestamp, @ordinal)
     assert_equal 200, response.status
     assert_equal body, response.body
+  end
+
+  def test_get_event_with_time
+    time = Time.now
+    ts = (time.getutc.to_f * 1000).to_i
+    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{ts}/#{@ordinal}") do |env|
+      assert_authorization @basic_auth, env
+      assert_accepts_json env
+      [ 200, response_headers, {}.to_json ]
+    end
+
+    response = @client.get_event(@collection, @key, @event_type, time, @ordinal)
+    assert_equal 200, response.status
+  end
+
+  def test_get_event_with_datetime
+    time = DateTime.now
+    ts = (time.to_time.getutc.to_f * 1000).to_i
+    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{ts}/#{@ordinal}") do |env|
+      assert_authorization @basic_auth, env
+      assert_accepts_json env
+      [ 200, response_headers, {}.to_json ]
+    end
+    response = @client.get_event(@collection, @key, @event_type, time, @ordinal)
+    assert_equal 200, response.status
   end
 
   def test_post_event_without_timestamp
@@ -44,7 +70,7 @@ class EventTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
 
-    response = @client.post_event(@collection, @key, @event_type, event, @timestamp)
+    response = @client.post_event(@collection, @key, @event_type, event, @time)
     assert_equal 204, response.status
   end
 
@@ -55,7 +81,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
-    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event)
+    response = @client.put_event(@collection, @key, @event_type, @time, @ordinal, event)
     assert_equal 204, response.status
   end
 
@@ -69,7 +95,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal event.to_json, env.body
       [204, response_headers, '']
     end
-    response = @client.put_event(@collection, @key, @event_type, @timestamp, @ordinal, event, ref)
+    response = @client.put_event(@collection, @key, @event_type, @time, @ordinal, event, ref)
     assert_equal 204, response.status
   end
 
@@ -80,7 +106,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal 'true', env.params['purge']
       [204, response_headers, '']
     end
-    response = @client.purge_event(@collection, @key, @event_type, @timestamp, @ordinal)
+    response = @client.purge_event(@collection, @key, @event_type, @time, @ordinal)
     assert_equal 204, response.status
   end
 
@@ -93,7 +119,7 @@ class EventTest < MiniTest::Unit::TestCase
       assert_equal 'true', env.params['purge']
       [204, response_headers, '']
     end
-    response = @client.purge_event(@collection, @key, @event_type, @timestamp, @ordinal, ref)
+    response = @client.purge_event(@collection, @key, @event_type, @time, @ordinal, ref)
     assert_equal 204, response.status
   end
 
@@ -118,14 +144,13 @@ class EventTest < MiniTest::Unit::TestCase
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      assert_equal start_time.to_i.to_s, env.params['startEvent']
-      assert_equal end_time.to_i.to_s, env.params['endEvent']
+      assert_equal (start_time.to_f * 1000).to_i.to_s, env.params['startEvent']
+      assert_equal (end_time.to_f * 1000).to_i.to_s, env.params['endEvent']
       assert_equal ['startEvent', 'endEvent'].sort, env.params.keys.sort
       [200, response_headers, body.to_json]
     end
     response = @client.list_events(@collection, @key, @event_type,
-      { start: start_time.to_i, end: end_time.to_i }
-    )
+                { start: start_time, end: end_time })
     assert_equal 200, response.status
     assert_equal body, response.body
   end
