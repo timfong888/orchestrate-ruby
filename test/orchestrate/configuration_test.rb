@@ -12,15 +12,12 @@ describe Orchestrate::Configuration do
   end
 
   it "should initialize with arguments" do
-    logger = Logger.new(STDOUT)
     config = Orchestrate::Configuration.new \
       api_key: "test-key",
-      base_url: "test-url",
-      logger: logger
+      base_url: "test-url"
     config.must_be_kind_of Orchestrate::Configuration
     config.api_key.must_equal "test-key"
     config.base_url.must_equal "test-url"
-    config.logger.must_equal logger
   end
 
   describe "#api_key" do
@@ -45,21 +42,6 @@ describe Orchestrate::Configuration do
     it "should be settable and gettable" do
       @config.base_url = "test-url"
       @config.base_url.must_equal "test-url"
-    end
-
-  end
-
-  describe "#logger" do
-
-    it "should default to a Logger instance that outputs to STDOUT" do
-      @config.logger.must_be_kind_of Logger
-      @config.logger.instance_variable_get("@logdev").dev.must_equal STDOUT
-    end
-
-    it "should be settable and gettable" do
-      logger = Logger.new("/tmp/orchestrate-configuration-logger-test-#{rand}.log")
-      @config.logger = logger
-      @config.logger.must_equal logger
     end
 
   end

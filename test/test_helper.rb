@@ -10,7 +10,6 @@ require "time"
 
 def output_message(name, msg = nil)
   msg ||= "START TEST"
-  Orchestrate.config.logger.debug "\n======= #{msg}: #{name} ======="
 end
 
 # TODO this is a bit messy for now at least but there's a bunch of
@@ -23,9 +22,9 @@ def make_client_and_artifacts
   Orchestrate.configure do |config|
     config.faraday = lambda do |faraday|
       faraday.adapter :test, stubs
+      faraday.response :logger, Logger.new(File.join(File.dirname(__FILE__), "test.log"))
     end
     config.api_key = api_key
-    config.logger = Logger.new(File.join(File.dirname(__FILE__), "test.log"))
   end
   client = Orchestrate::Client.new
   [client, stubs, basic_auth]
