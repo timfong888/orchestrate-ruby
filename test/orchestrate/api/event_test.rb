@@ -62,51 +62,70 @@ class EventTest < MiniTest::Unit::TestCase
 
   def test_post_event_without_timestamp
     event = {"msg" => "hello"}
+    ref = "12345"
+    location = ["/v0",@collection,@key,'events',@event_type,@timestamp,@ordinal].join('/')
     @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
       assert_equal event.to_json, env.body
-      [204, response_headers, '']
+      headers = { "Etag" => "\"#{ref}\"", "Location" => location }
+      [204, response_headers(headers), '']
     end
 
     response = @client.post_event(@collection, @key, @event_type, event)
     assert_equal 204, response.status
+    assert_equal location, response.location
+    assert_equal ref, response.ref
   end
 
   def test_post_event_with_timestamp
     event = {"msg" => "hello"}
+    ref = "12345"
+    location = ["/v0",@collection,@key,'events',@event_type,@timestamp,@ordinal].join('/')
     @stubs.post("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}") do |env|
       assert_authorization @basic_auth, env
       assert_equal event.to_json, env.body
-      [204, response_headers, '']
+      headers = { "Etag" => "\"#{ref}\"", "Location" => location }
+      [204, response_headers(headers), '']
     end
 
     response = @client.post_event(@collection, @key, @event_type, event, @time)
     assert_equal 204, response.status
+    assert_equal location, response.location
+    assert_equal ref, response.ref
   end
 
   def test_put_event_without_ref
     event = {"msg" => "hello"}
+    ref = "12345"
+    location = ["/v0",@collection,@key,'events',@event_type,@timestamp,@ordinal].join('/')
     @stubs.put("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
       assert_authorization @basic_auth, env
       assert_equal event.to_json, env.body
-      [204, response_headers, '']
+      headers = { "Etag" => "\"#{ref}\"", "Location" => location }
+      [204, response_headers(headers), '']
     end
     response = @client.put_event(@collection, @key, @event_type, @time, @ordinal, event)
     assert_equal 204, response.status
+    assert_equal location, response.location
+    assert_equal ref, response.ref
   end
 
   def test_put_event_with_ref
     event = {"msg" => "hello"}
     ref = "12345"
-    path = ['v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
+    new_ref = "abcde"
+    path = ['/v0', @collection, @key, 'events', @event_type, @timestamp, @ordinal]
     @stubs.put(path.join("/")) do |env|
       assert_authorization @basic_auth, env
       assert_header 'If-Match', "\"#{ref}\"", env
       assert_equal event.to_json, env.body
-      [204, response_headers, '']
+      headers = { "Etag" => "\"#{new_ref}\"", "Location" => path.join('/') }
+      [204, response_headers(headers), '']
     end
     response = @client.put_event(@collection, @key, @event_type, @time, @ordinal, event, ref)
     assert_equal 204, response.status
+    assert_equal new_ref, response.ref
+    assert_equal path.join('/'), response.location
   end
 
   def test_purge_event_without_ref

@@ -21,7 +21,7 @@ module Orchestrate
     # call-seq:
     #   Orchestrate::Helpers.timestamp(time) -> Integer
     #
-    # Returns the Milliseconds since Unix Epoch if given a Time or Date object.  
+    # Returns the Milliseconds since Unix Epoch if given a Time, or Date object.
     # Otherwise, returns value called with.
     def timestamp(time)
       time = time.to_time if time.kind_of?(Date)

@@ -244,7 +244,8 @@ module Orchestrate
     def post_event(collection, key, event_type, body, timestamp=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp].compact
-      send_request :post, path, { body: body }
+      resp = send_request :post, path, { body: body }
+      API::ItemResponse.new(resp)
     end
 
     # call-seq:
@@ -272,7 +273,8 @@ module Orchestrate
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      send_request :put, path, { body: body, headers: headers }
+      resp = send_request :put, path, { body: body, headers: headers }
+      API::ItemResponse.new(resp)
     end
 
     # call-seq:
