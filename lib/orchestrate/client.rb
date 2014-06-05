@@ -134,7 +134,8 @@ module Orchestrate
     # - +values+:: boolean, whether to return the values for each ref.
     #
     def list_refs(collection, key, parameters={})
-      send_request :get, [collection, key, :refs], { query: parameters }
+      resp = send_request :get, [collection, key, :refs], { query: parameters }
+      API::CollectionResponse.new(resp)
     end
 
     # call-seq:

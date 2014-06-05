@@ -195,19 +195,24 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
   def test_list_refs
     reflist = (1..3).map do |i|
-      { path:{collection:@collection, key:@key, ref:SecureRandom.hex(16)},
-        reftime: Time.now.to_i - (-2 * i * 3600 * 1000) }
+      { "path" => {}, "reftime" => Time.now.to_i - (-2 * i * 3600 * 1000) }
     end
+    body = { "results" => reflist, "count" => 3, "prev" => "__PREV__" }
+
     @stubs.get("/v0/#{@collection}/#{@key}/refs") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
       assert_equal "10", env.params['offset']
-      [ 200, response_headers, {result:reflist, count: 3}.to_json ]
+      [ 200, response_headers, body.to_json ]
     end
 
     response = @client.list_refs(@collection, @key, {offset: 10})
     assert_equal 200, response.status
-    assert_equal JSON.parse(reflist.to_json), response.body['result']
+    assert_equal body, response.body
+    assert_equal body['count'], response.count
+    assert_equal body['results'], response.results
+    assert_equal body['prev'], response.prev_link
+    assert_nil response.next_link
   end
 
 end
