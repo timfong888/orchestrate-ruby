@@ -155,7 +155,8 @@ class EventTest < MiniTest::Unit::TestCase
   end
 
   def test_list_events_without_timestamp
-    body = { "results" => [], "count" => 0, "next" => "" }
+    body = { "results" => [{"path"=>{}, "value"=>{}, "timestamp"=>"", "ordinal"=>0}],
+             "count" => 0, "next" => "__NEXT__" }
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
@@ -165,12 +166,16 @@ class EventTest < MiniTest::Unit::TestCase
     response = @client.list_events(@collection, @key, @event_type)
     assert_equal 200, response.status
     assert_equal body, response.body
+    assert_equal body['count'], response.count
+    assert_equal body['results'], response.results
+    assert_equal body['next'], response.next_link
   end
 
   def test_list_events_with_timestamp
     end_time = Time.now
     start_time = end_time - (24 * 3600)
-    body = { "results" => [], "count" => 0, "next" => "" }
+    body = { "results" => [{"path"=>{}, "value"=>{}, "timestamp"=>"", "ordinal"=>0}],
+             "count" => 1, "next" => "__NEXT__" }
 
     @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}") do |env|
       assert_authorization @basic_auth, env
@@ -184,6 +189,10 @@ class EventTest < MiniTest::Unit::TestCase
                 { start: start_time, end: end_time })
     assert_equal 200, response.status
     assert_equal body, response.body
+    assert_equal body['results'], response.results
+    assert_equal body['count'], response.count
+    assert_equal body['next'], response.next_link
+    assert_nil response.prev_link
   end
 
 end

@@ -339,7 +339,8 @@ module Orchestrate
         parameters[param] = Helpers.timestamp(parameters[param])
       end
       Orchestrate::Helpers.range_keys!('event', parameters)
-      send_request :get, [collection, key, 'events', event_type], { query: parameters }
+      resp = send_request :get, [collection, key, 'events', event_type], { query: parameters }
+      API::CollectionResponse.new(resp)
     end
 
     # -------------------------------------------------------------------------
