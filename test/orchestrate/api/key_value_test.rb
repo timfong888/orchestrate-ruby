@@ -30,7 +30,6 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     assert_equal ref_url, response.location
     assert_equal ref, response.ref
-    assert_equal body, response.result
     assert_equal Time.parse(response.headers['Date']), response.request_time
     assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
@@ -190,7 +189,6 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     assert_equal ref_url, response.location
     assert_equal ref, response.ref
-    assert_equal body, response.result
     assert_equal Time.parse(response.headers['Date']), response.request_time
     assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end

@@ -220,7 +220,8 @@ module Orchestrate
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
       timestamp = Helpers.timestamp(timestamp)
-      send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
+      resp = send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
+      API::ItemResponse.new(resp)
     end
 
     # call-seq:

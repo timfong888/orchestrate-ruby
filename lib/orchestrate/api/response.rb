@@ -21,13 +21,11 @@ module Orchestrate::API
 
     attr_reader :location
     attr_reader :ref
-    attr_reader :result
 
     def initialize(faraday_response)
       super(faraday_response)
       @location = headers['Content-Location'] || headers['Location']
       @ref = headers.fetch('Etag','').gsub('"','')
-      @result = body
     end
   end
 end

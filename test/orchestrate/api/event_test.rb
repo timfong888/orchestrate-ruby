@@ -13,16 +13,26 @@ class EventTest < MiniTest::Unit::TestCase
   end
 
   def test_get_event
-    body = { "path" => {}, "value" => {"msg" => "hello"}, "timestamp" => @timestamp, "ordinal" => @ordinal }
-    @stubs.get("/v0/#{@collection}/#{@key}/events/#{@event_type}/#{@timestamp}/#{@ordinal}") do |env|
+    ref = "12345"
+    value = {"msg" => "hello"}
+    path = { "collection" => @collection, "key" => @key, "type" => @event_type,
+             "ref" => "\"#{ref}\"", "timestamp" => @timestamp, "ordinal" => @ordinal }
+    body = { "path" => path, "value" => value, "timestamp" => @timestamp, "ordinal" => @ordinal }
+    location = ["/v0", @collection, @key, "events", @event_type, @timestamp, @ordinal].join('/')
+    @stubs.get(location) do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [200, response_headers, body.to_json]
+      headers = { "Etag" => "\"#{ref}\"" }
+      [200, response_headers(headers), body.to_json]
     end
 
     response = @client.get_event(@collection, @key, @event_type, @timestamp, @ordinal)
     assert_equal 200, response.status
     assert_equal body, response.body
+    assert_equal ref, response.ref
+    # assert_equal location, response.location
+    assert_equal Time.parse(response.headers['Date']), response.request_time
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_get_event_with_time
