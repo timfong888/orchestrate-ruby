@@ -65,7 +65,8 @@ module Orchestrate
     #
     def list(collection, options={})
       Orchestrate::Helpers.range_keys!('key', options)
-      send_request :get, [collection], { query: options }
+      resp = send_request :get, [collection], { query: options }
+      API::CollectionResponse.new(resp)
     end
 
     # call-seq:
@@ -80,7 +81,8 @@ module Orchestrate
     # - +offset+: - ingeger, the starting position of the results.  Defaults to 0.
     #
     def search(collection, query, parameters={})
-      send_request :get, [collection], { query: parameters.merge({query: query})}
+      resp = send_request :get, [collection], { query: parameters.merge({query: query})}
+      API::CollectionResponse.new(resp)
     end
 
     # Notes:
