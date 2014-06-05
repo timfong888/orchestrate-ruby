@@ -108,6 +108,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
     response = @client.purge_event(@collection, @key, @event_type, @time, @ordinal)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_purge_event_with_ref
@@ -121,6 +122,7 @@ class EventTest < MiniTest::Unit::TestCase
     end
     response = @client.purge_event(@collection, @key, @event_type, @time, @ordinal, ref)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_list_events_without_timestamp

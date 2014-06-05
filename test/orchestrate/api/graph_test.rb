@@ -30,6 +30,7 @@ class GraphTest < MiniTest::Unit::TestCase
     end
     response = @client.put_relation(@collection, @key, @kind, @target_collection, @target_key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_delete_graph
@@ -40,5 +41,6 @@ class GraphTest < MiniTest::Unit::TestCase
     end
     response = @client.delete_relation(@collection, @key, @kind, @target_collection, @target_key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 end

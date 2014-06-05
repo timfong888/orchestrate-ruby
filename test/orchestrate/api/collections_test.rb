@@ -18,6 +18,7 @@ class CollectionTest < MiniTest::Unit::TestCase
     response = @client.delete_collection(@collection)
     assert_equal 204, response.status
     assert_equal '', response.body
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_lists_collection_without_params

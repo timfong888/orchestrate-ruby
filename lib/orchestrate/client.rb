@@ -95,7 +95,8 @@ module Orchestrate
     # +collection_name+:: a String or Symbol representing the name of the collection.
     #
     def delete_collection(collection)
-      send_request :delete, [collection], { query: {force:true} }
+      resp = send_request :delete, [collection], { query: {force:true} }
+      API::Response.new(resp)
     end
 
     #  -------------------------------------------------------------------------
@@ -297,7 +298,8 @@ module Orchestrate
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      send_request :delete, path, { query: { purge: true }, headers: headers }
+      resp = send_request :delete, path, { query: { purge: true }, headers: headers }
+      API::Response.new(resp)
     end
 
     # call-seq:
@@ -363,7 +365,8 @@ module Orchestrate
     # +to_key+:: a String or Symbol representing the key for the related item.
     #
     def put_relation(collection, key, kind, to_collection, to_key)
-      send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
+      resp = send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
+      API::Response.new(resp)
     end
 
     # call-seq:
@@ -379,7 +382,8 @@ module Orchestrate
     #
     def delete_relation(collection, key, kind, to_collection, to_key)
       path = [collection, key, 'relation', kind, to_collection, to_key]
-      send_request :delete, path, { query: {purge: true} }
+      resp = send_request :delete, path, { query: {purge: true} }
+      API::Response.new(resp)
     end
 
     # call-seq:
