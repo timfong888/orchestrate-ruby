@@ -49,15 +49,21 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
   def test_puts_key_value_without_ref
     body={"foo" => "bar"}
-    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
+    ref = "12345"
+    base_location = "/v0/#{@collection}/#{@key}"
+    @stubs.put(base_location) do |env|
       assert_authorization @basic_auth, env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body.to_json, env.body
-      [ 201, response_headers, '' ]
+      headers = { "Location" => "#{base_location}/refs/#{ref}", 
+                  "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
     end
 
     response = @client.put(@collection, @key, body)
     assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "#{base_location}/refs/#{ref}", response.location
   end
 
   def test_puts_key_value_with_specific_ref
@@ -128,6 +134,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
     response = @client.delete(@collection, @key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_delete_key_value_with_condition
@@ -160,6 +167,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
     response = @client.purge(@collection, @key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_gets_ref

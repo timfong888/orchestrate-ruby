@@ -114,9 +114,7 @@ module Orchestrate
     def get(collection, key, ref=nil)
       path = [collection, key]
       path.concat(['refs', ref]) if ref
-      API::ItemResponse.new(send_request(:get, path)) do
-        @location = headers['Content-Location']
-      end
+      API::ItemResponse.new(send_request(:get, path))
     end
 
     # call-seq:
@@ -157,7 +155,8 @@ module Orchestrate
       elsif condition == false
         headers['If-None-Match'] = '*'
       end
-      send_request :put, [collection, key], { body: body, headers: headers }
+      resp = send_request :put, [collection, key], { body: body, headers: headers }
+      API::ItemResponse.new(resp)
     end
     alias :put_if_unmodified :put
 
@@ -183,7 +182,8 @@ module Orchestrate
     def delete(collection, key, ref=nil)
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      send_request :delete, [collection, key], { headers: headers }
+      resp = send_request :delete, [collection, key], { headers: headers }
+      API::Response.new(resp)
     end
 
     # call-seq:
@@ -195,7 +195,8 @@ module Orchestrate
     # +key+:: a String or Symbol representing the key for the value.
     #
     def purge(collection, key)
-      send_request :delete, [collection, key], { query: { purge: true } }
+      resp = send_request :delete, [collection, key], { query: { purge: true } }
+      API::Response.new(resp)
     end
 
     # -------------------------------------------------------------------------

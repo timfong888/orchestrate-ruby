@@ -3,7 +3,6 @@ require 'forwardable'
 module Orchestrate::API
   class Response
 
-    attr_reader :response
     extend Forwardable
     def_delegators :@response, :status, :body, :headers, :success?, :finished?, :on_complete
 
@@ -26,7 +25,7 @@ module Orchestrate::API
 
     def initialize(faraday_response)
       super(faraday_response)
-      @location = headers['Content-Location']
+      @location = headers['Content-Location'] || headers['Location']
       @ref = headers.fetch('Etag','').gsub('"','')
       @result = body
     end
