@@ -357,7 +357,8 @@ module Orchestrate
     #
     def get_relations(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
-      send_request :get, path
+      resp = send_request :get, path
+      API::CollectionResponse.new(resp)
     end
 
     # call-seq:

@@ -21,6 +21,8 @@ class GraphTest < MiniTest::Unit::TestCase
     response = @client.get_relations(@collection, @key, @kind, @kind)
     assert_equal 200, response.status
     assert_equal body, response.body
+    assert_equal body['count'], response.count
+    assert_equal body['results'], response.results
   end
 
   def test_put_graph
