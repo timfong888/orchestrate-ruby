@@ -48,8 +48,17 @@ module Orchestrate::API
     end
 
     def next_results
-      return nil unless next_link
-      uri = URI(next_link)
+      fire_request(next_link)
+    end
+
+    def previous_results
+      fire_request(prev_link)
+    end
+
+    private
+    def fire_request(link)
+      return nil unless link
+      uri = URI(link)
       params = WEBrick::HTTPUtils.parse_query(uri.query)
       path = uri.path.split("/")[2..-1]
       @client.send_request(:get, path, { query: params, response: self.class })
