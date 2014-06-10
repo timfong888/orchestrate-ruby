@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'webrick'
 
 module Orchestrate::API
   class Response
@@ -44,6 +45,14 @@ module Orchestrate::API
       @results = body['results']
       @next_link = body['next']
       @prev_link = body['prev']
+    end
+
+    def next_results
+      return nil unless next_link
+      uri = URI(next_link)
+      params = WEBrick::HTTPUtils.parse_query(uri.query)
+      path = uri.path.split("/")[2..-1]
+      @client.send_request(:get, path, { query: params, response: self.class })
     end
   end
 end
