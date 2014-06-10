@@ -65,8 +65,7 @@ module Orchestrate
     #
     def list(collection, options={})
       Orchestrate::Helpers.range_keys!('key', options)
-      resp = send_request :get, [collection], { query: options }
-      API::CollectionResponse.new(resp)
+      send_request :get, [collection], { query: options, response: API::CollectionResponse }
     end
 
     # call-seq:
@@ -81,8 +80,8 @@ module Orchestrate
     # - +offset+: - ingeger, the starting position of the results.  Defaults to 0.
     #
     def search(collection, query, parameters={})
-      resp = send_request :get, [collection], { query: parameters.merge({query: query})}
-      API::CollectionResponse.new(resp)
+      send_request :get, [collection], { query: parameters.merge({query: query}),
+                                         response: API::CollectionResponse }
     end
 
     # Notes:
@@ -97,8 +96,7 @@ module Orchestrate
     # +collection_name+:: a String or Symbol representing the name of the collection.
     #
     def delete_collection(collection)
-      resp = send_request :delete, [collection], { query: {force:true} }
-      API::Response.new(resp)
+      send_request :delete, [collection], { query: {force:true} }
     end
 
     #  -------------------------------------------------------------------------
@@ -117,7 +115,7 @@ module Orchestrate
     def get(collection, key, ref=nil)
       path = [collection, key]
       path.concat(['refs', ref]) if ref
-      API::ItemResponse.new(send_request(:get, path))
+      send_request :get, path, { response: API::ItemResponse }
     end
 
     # call-seq:
@@ -134,8 +132,7 @@ module Orchestrate
     # - +values+:: boolean, whether to return the values for each ref.
     #
     def list_refs(collection, key, parameters={})
-      resp = send_request :get, [collection, key, :refs], { query: parameters }
-      API::CollectionResponse.new(resp)
+      send_request :get, [collection, key, :refs], { query: parameters, response: API::CollectionResponse }
     end
 
     # call-seq:
@@ -159,8 +156,7 @@ module Orchestrate
       elsif condition == false
         headers['If-None-Match'] = '*'
       end
-      resp = send_request :put, [collection, key], { body: body, headers: headers }
-      API::ItemResponse.new(resp)
+      send_request :put, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
     end
     alias :put_if_unmodified :put
 
@@ -187,7 +183,6 @@ module Orchestrate
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
       resp = send_request :delete, [collection, key], { headers: headers }
-      API::Response.new(resp)
     end
 
     # call-seq:
@@ -199,8 +194,7 @@ module Orchestrate
     # +key+:: a String or Symbol representing the key for the value.
     #
     def purge(collection, key)
-      resp = send_request :delete, [collection, key], { query: { purge: true } }
-      API::Response.new(resp)
+      send_request :delete, [collection, key], { query: { purge: true } }
     end
 
     # -------------------------------------------------------------------------
@@ -223,8 +217,8 @@ module Orchestrate
     #
     def get_event(collection, key, event_type, timestamp, ordinal)
       timestamp = Helpers.timestamp(timestamp)
-      resp = send_request :get, [collection, key, 'events', event_type, timestamp, ordinal]
-      API::ItemResponse.new(resp)
+      path = [collection, key, 'events', event_type, timestamp, ordinal]
+      send_request :get, path, { response: API::ItemResponse }
     end
 
     # call-seq:
@@ -247,8 +241,7 @@ module Orchestrate
     def post_event(collection, key, event_type, body, timestamp=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp].compact
-      resp = send_request :post, path, { body: body }
-      API::ItemResponse.new(resp)
+      send_request :post, path, { body: body, response: API::ItemResponse }
     end
 
     # call-seq:
@@ -276,8 +269,7 @@ module Orchestrate
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      resp = send_request :put, path, { body: body, headers: headers }
-      API::ItemResponse.new(resp)
+      send_request :put, path, { body: body, headers: headers, response: API::ItemResponse }
     end
 
     # call-seq:
@@ -304,8 +296,7 @@ module Orchestrate
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      resp = send_request :delete, path, { query: { purge: true }, headers: headers }
-      API::Response.new(resp)
+      send_request :delete, path, { query: { purge: true }, headers: headers }
     end
 
     # call-seq:
@@ -339,8 +330,8 @@ module Orchestrate
         parameters[param] = Helpers.timestamp(parameters[param])
       end
       Orchestrate::Helpers.range_keys!('event', parameters)
-      resp = send_request :get, [collection, key, 'events', event_type], { query: parameters }
-      API::CollectionResponse.new(resp)
+      path = [collection, key, 'events', event_type]
+      send_request :get, path, { query: parameters, response: API::CollectionResponse }
     end
 
     # -------------------------------------------------------------------------
@@ -357,8 +348,7 @@ module Orchestrate
     #
     def get_relations(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
-      resp = send_request :get, path
-      API::CollectionResponse.new(resp)
+      send_request :get, path, {response: API::CollectionResponse}
     end
 
     # call-seq:
@@ -373,8 +363,7 @@ module Orchestrate
     # +to_key+:: a String or Symbol representing the key for the related item.
     #
     def put_relation(collection, key, kind, to_collection, to_key)
-      resp = send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
-      API::Response.new(resp)
+      send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
     # call-seq:
@@ -390,8 +379,7 @@ module Orchestrate
     #
     def delete_relation(collection, key, kind, to_collection, to_key)
       path = [collection, key, 'relation', kind, to_collection, to_key]
-      resp = send_request :delete, path, { query: {purge: true} }
-      API::Response.new(resp)
+      send_request :delete, path, { query: {purge: true} }
     end
 
     # call-seq:
@@ -419,7 +407,7 @@ module Orchestrate
     # call-seq:
     #   client.send_request(method, url, opts={}) -> response
     #
-    # Performs the HTTP request against the API and returns a Faraday::Response
+    # Performs the HTTP request against the API and returns an API::Response
     #
     # +method+ - the HTTP method, one of [ :get, :post, :put, :delete ]
     # +url+ - an Array of segments to be joined with '/'
@@ -427,6 +415,7 @@ module Orchestrate
     # - +:query+ - a Hash for the request query string
     # - +:body+ - a Hash for the :put or :post request body
     # - +:headers+ - a Hash the request headers
+    # - +:response+ - a subclass of API::Response to instantiate
     #
     def send_request(method, url, opts={})
       url = ['/v0'].concat(url).join('/')
@@ -446,7 +435,8 @@ module Orchestrate
       end
 
       Error.handle_response(response) if (!response.success?)
-      response
+      response_class = opts.fetch(:response, API::Response)
+      response_class.new(response, self)
     end
 
     # ------------------------------------------------------------------------
