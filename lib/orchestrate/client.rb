@@ -91,37 +91,37 @@ module Orchestrate
     #  -------------------------------------------------------------------------
     #  Key/Value
 
-    # call-seq:
-    #   client.get(collection_name, key)              -> response
-    #   client.get(collection_name, key, ref)         -> response
-    #
-    # Retreieves a value assigned to a key.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +ref+:: if given, returns the value for the key at the specified ref.  If omitted, returns the latest value for the key.
-    #
+    # Returns a value assigned to a key.  If the `ref` is omitted, returns the latest value.
+    # When a ref is provided, performs a [Refs Get query](http://orchestrate.io/docs/api/#refs/get14).
+    # When the ref is omitted, performs a [Key/Value Get query](http://orchestrate.io/docs/api/#key/value/get).
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param ref [#to_s] The opaque version identifier of the ref to return.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::Error::NotFound If the key or ref doesn't exist.
+    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
     def get(collection, key, ref=nil)
       path = [collection, key]
       path.concat(['refs', ref]) if ref
       send_request :get, path, { response: API::ItemResponse }
     end
 
-    # call-seq:
-    #   client.get(collection_name, key)              -> response
-    #   client.get(collection_name, key, parameters)  -> response
-    #
-    # Retrieves a list of refs for the specified key and collection.
-    #
-    # +collection_name+:: a String of Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +parameters+:: a Hash object containing additional parameters:
-    # - +limit+:: integer, number of results to return.  Defaults to 10, Max 100.
-    # - +offset+:: integer, starting position of the results.  Defaults to 0.
-    # - +values+:: boolean, whether to return the values for each ref.
-    #
-    def list_refs(collection, key, parameters={})
-      send_request :get, [collection, key, :refs], { query: parameters, response: API::CollectionResponse }
+    # Performs a [Refs List query](http://orchestrate.io/docs/api/#refs/list15).
+    # Returns a paginated, time-ordered, newest-to-oldest list of refs
+    # ("versions") of the object for the specified key in the collection.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param options [Hash] Parameters for the query.
+    # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
+    # @option options [Integer] :offset (0) The starting position of the results.
+    # @option options [true, false] :values (false) Whether to return the value
+    #   for each ref.  Refs with no content (for example, deleted with `#delete`) will not have
+    #   a value, but marked with a `'tombstone' => true` key.
+    # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::Error::NotFound If there are no values for the provided key/collection.
+    # @raise Orchestrate::API::InvalidSearchParam The :limit/:offset values are not valid.
+    def list_refs(collection, key, options={})
+      send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
 
     # call-seq:
@@ -137,7 +137,24 @@ module Orchestrate
     # - +nil+ - the value for the specified key will be updated regardless.
     # - String - used as 'If-Match'.  The value will only be updated if the Key's current Value's Ref matches the given condition.
     # - false - used as 'If-None-Match'.  The value will only be created for the key if the key currently has no value.
-    #
+
+    # Performs a [Key/Value Put](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
+    # Creates or updates the value at the provided collection/key.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param body [#to_json] The value for the key.
+    # @param condition [String, false, nil] Conditions for setting the value. 
+    #   If `String`, value used as `If-Match`, value will only be updated if key's current value's ref matches.
+    #   If `false`, uses `If-None-Match` the value will only be set if there is no existent value for the key.
+    #   If `nil` (default), value is set regardless.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::Error::BadRequest the body is not valid JSON.
+    # @raise Orchestrate::Error::IndexingConflict One of the value's keys
+    #   contains a value of a different type than the schema that exists for
+    #   the collection.
+    # @see Orchestrate::Error::IndexingConflict
+    # @raise Orchestrate::Error::VersionMismatch A ref was provided, but it does not match the ref for the current value.
+    # @raise Orchestrate::Error::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
     def put(collection, key, body, condition=nil)
       headers={}
       if condition.is_a?(String)
@@ -147,41 +164,34 @@ module Orchestrate
       end
       send_request :put, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
     end
+    # @!method put_if_unmodified(collection, key, body, condition)
+    #   Performs a [Key/Value Put If-Match](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
+    #   (see #put)
     alias :put_if_unmodified :put
 
-    #  call-seq:
-    #     client.put_if_absent(collection_name, key, body)    -> response
-    #
-    # Will create the value at the specified key only if there is no existing value for the specified key.
-    #
+    # Performs a [Key/Value Put If-None-Match](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
+    # (see #put)
     def put_if_absent(collection, key, body)
       put collection, key, body, false
     end
 
-    # call-seq:
-    #   client.delete(collection_name, key)      -> response
-    #   client.delete(collection_name, key, ref) -> response
-    #
-    # Deletes the value of the specified key.  Historical values for given refs are still available.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +ref+:: if provided, used as 'If-Match', will only delete the key if the current value is the provided ref.
-    #
+    # Performs a [Key/Value delete](http://orchestrate.io/docs/api/#key/value/delete11) request.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param ref [#to_s] The If-Match ref to delete.
+    # @return Orchestrate::API::Response
+    # @raise Orchestrate::Error::VersionMismatch if the provided ref is not the ref for the current value.
+    # @note previous versions of the values at this key are still available via #list_refs and #get.
     def delete(collection, key, ref=nil)
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
       send_request :delete, [collection, key], { headers: headers }
     end
 
-    # call-seq:
-    #   client.purge(collection_name, key) -> response
-    #
-    # Deletes the value for the specified key as well as all historical values.  Cannot be undone.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    #
+    # Performs a [Key/Value purge](http://orchestrate.io/docs/api/#key/value/delete11) request.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @return Orchestrate::API::Response
     def purge(collection, key)
       send_request :delete, [collection, key], { query: { purge: true } }
     end
