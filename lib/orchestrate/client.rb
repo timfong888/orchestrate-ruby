@@ -337,20 +337,14 @@ module Orchestrate
       send_request :delete, path, { query: {purge: true} }
     end
 
-    # call-seq:
-    #   client.in_parallel {|responses| block } -> Hash
-    #
-    # Performs any requests generated inside the block in parallel.  If the
-    # client isn't using a Faraday adapter that supports parallelization, will
-    # output a warning to STDERR.
-    #
-    # Example:
+    # Performs requests in parallel.  Requires using a Faraday adapter that supports parallel requests.
+    # @yieldparam accumulator [Hash] A place to store the results of the parallel responses.
+    # @example Performing three requests at once
     #   responses = client.in_parallel do |r|
     #     r[:some_items] = client.list(:site_globals)
     #     r[:user] = client.get(:users, current_user_key)
     #     r[:user_feed] = client.list_events(:users, current_user_key, :notices)
     #   end
-    #
     def in_parallel(&block)
       accumulator = {}
       http.in_parallel do
@@ -359,24 +353,21 @@ module Orchestrate
       accumulator
     end
 
-    # call-seq:
-    #   client.send_request(method, url, opts={}) -> response
-    #
-    # Performs the HTTP request against the API and returns an API::Response
-    #
-    # +method+ - the HTTP method, one of [ :get, :post, :put, :delete ]
-    # +url+ - an Array of segments to be joined with '/'
-    # +opts+
-    # - +:query+ - a Hash for the request query string
-    # - +:body+ - a Hash for the :put or :post request body
-    # - +:headers+ - a Hash the request headers
-    # - +:response+ - a subclass of API::Response to instantiate
-    #
-    def send_request(method, url, opts={})
+    # Performs an HTTP request against the Orchestrate API
+    # @param method [Symbol] The HTTP method - :get, :post, :put, :delete
+    # @param url [Array<string>] Path segments for the request's URI.  Prepended by 'v0'.
+    # @param options [Hash] extra parameters
+    # @option options [Hash] :query ({}) Query String parameters.
+    # @option options [#to_json] :body ('') The request body.
+    # @option options [Hash] :headers ({}) Extra request headers.
+    # @option options [Class] :response (Orchestrate::API::Response) A subclass of Orchestrate::API::Response to instantiate and return
+    # @return API::Response
+    # @see Orchestrate::Error The full list of exceptions that may be raised by accessing the API
+    def send_request(method, url, options={})
       url = ['/v0'].concat(url).join('/')
-      query_string = opts.fetch(:query, {})
-      body = opts.fetch(:body, '')
-      headers = opts.fetch(:headers, {})
+      query_string = options.fetch(:query, {})
+      body = options.fetch(:body, '')
+      headers = options.fetch(:headers, {})
       headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       headers['Accept'] = 'application/json' if method == :get
 
@@ -390,7 +381,7 @@ module Orchestrate
       end
 
       Error.handle_response(response) if (!response.success?)
-      response_class = opts.fetch(:response, API::Response)
+      response_class = options.fetch(:response, API::Response)
       response_class.new(response, self)
     end
 
