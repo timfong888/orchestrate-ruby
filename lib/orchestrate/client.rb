@@ -5,16 +5,13 @@ module Orchestrate
 
   class Client
 
-    # @!attribute [r] api_key
-    #   @return [String] The API key provided
+    # @return [String] The API key provided
     attr_reader :api_key
 
-    # @!attribute [r] http
-    #   @return [Faraday::Connection] The Faraday HTTP connection.
+    # @return [Faraday::Connection] The Faraday HTTP connection.
     attr_reader :http
 
-    # @!attribute [r] faraday_configuration
-    #   @reutrn [Proc] The block used to configure faraday.
+    # @return [Proc] The block used to configure faraday.
     attr_reader :faraday_configuration
 
     # Instantiate a new Client for an Orchestrate application.
