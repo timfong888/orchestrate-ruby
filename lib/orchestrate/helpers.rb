@@ -3,16 +3,21 @@ module Orchestrate
 
     extend self
 
-    #  * required: type, params={}
-    #
-    #  Given a params object such as { start: ..., end: ... } and a type such as 'event',
-    #  will return a hash with those parameters formatted for the Orchestrate API, f.e.:
-    #  { 'startEvent' => ..., 'endEvent' => ... }
-    def range_keys!(type, params)
-      type = type.capitalize
+    # will suffix a params hash for range bounds with the given type
+    # @param suffix [String] the suffix for the range keys
+    # @param params [Hash{Symbol=>Value}]
+    # @option params :start The inclusive start of the range
+    # @option params :after The exclusive start of the range
+    # @option params :before The exclusive end of the range
+    # @option params :end The inclusive end of the range
+    # @return [Hash{Symbol=>Value}]
+    # @example Transforming an Event Range
+    #   Orchestrate::Helpers.range_keys!('event', { start: Value }) #=> { startEvent: Value }
+    def range_keys!(suffix, params)
+      suffix = suffix.capitalize
       [:start, :end, :before, :after].each do |key|
         if params[key]
-          params["#{key}#{type}"] = params[key]
+          params["#{key}#{suffix}"] = params[key]
           params.delete(key)
         end
       end
