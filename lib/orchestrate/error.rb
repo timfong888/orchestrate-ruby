@@ -1,6 +1,11 @@
 module Orchestrate::Error
   # given a response and a possible JSON response body, raises the
   # appropriate Exception
+
+  # Will raise the appropriate exception for an Error response from the Orchestrate API:
+  # http://orchestrate.io/docs/api/#errors
+  # @param response Faraday::Response The response from the Orchestrate Service
+  # @raise [Orchestrate::Error::RequestError, Orchestrate::Error::ServiceError] if Orchestrate responds with a 4xx- or 5xx- class error.
   def self.handle_response(response)
     err_type = ERRORS.find do |err|
       err.status == response.status && err.code == response.body['code']
@@ -22,7 +27,8 @@ module Orchestrate::Error
     # class-level attr-reader for the error's code.
     def self.code; @code; end
 
-    # The response that triggered the error.
+    # The response that caused the error
+    # @!attribute r response
     attr_reader :response
 
     def initialize(response)
@@ -81,7 +87,7 @@ module Orchestrate::Error
   # unexpected types will not be indexed.  Since search is an implicit feature
   # of the service, this is an error and worth raising an exception over.
   #
-  # Example:
+  # @example This is the example provided to me by the Orchestrate team:
   #   client.put(:test, :first, { "count" => 0 }) # establishes 'count' as a Long
   #   client.put(:test, :second, { "count" => "none" }) # 'count' is not a Long
   #
