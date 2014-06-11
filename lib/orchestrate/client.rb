@@ -35,37 +35,18 @@ module Orchestrate
       end
     end
 
-    # Sends a 'Ping' request to the API to test authentication:
-    # http://orchestrate.io/docs/api/#authentication/ping
+    # Tests authentication with Orchestrate.
     # @return Orchestrate::API::Response
     # @raise Orchestrate::Error::Unauthorized if the client could not authenticate.
     def ping
       send_request :get, []
     end
 
-    # -------------------------------------------------------------------------
-    #  collection
+    # @!group Collections
 
-    # Performs a [Key/Value List query](http://orchestrate.io/docs/api/#key/value/list) against the collection.
-    # Orchestrate sorts results lexicographically by key name.
-    # @param collection [#to_s] The name of the collection
-    # @param options [Hash] Parameters for the query
-    # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
-    # @option options [String] :start The inclusive start key of the query range.
-    # @option options [String] :after The exclusive start key of the query range.
-    # @option options [String] :before The exclusive end key of the query range.
-    # @option options [String] :end The inclusive end key of the query range.
-    # @note The Orchestrate API may return an error if you include both the
-    #   :start/:after or :before/:end keys.  The client will not stop you from doing this.
-    # @note To include all keys in a collection, do not include any :start/:after/:before/:end parameters.
-    # @return Orchestrate::API::CollectionResponse
-    # @raise Orchestrate::API::InvalidSearchParam The :limit value is not valid.
-    def list(collection, options={})
-      Orchestrate::Helpers.range_keys!('key', options)
-      send_request :get, [collection], { query: options, response: API::CollectionResponse }
-    end
-
-    # Performs a [Search query](http://orchestrate.io/docs/api/#search) against the collection.
+    # [Search the items in
+    # a collection](http://orchestrate.io/docs/api/#search) using a Lucene
+    # Query Syntax.
     # @param collection [#to_s] The name of the collection
     # @param query [String] The [Lucene Query String][lucene] to query the collection with.
     #   [lucene]: http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview
@@ -80,7 +61,7 @@ module Orchestrate
                                          response: API::CollectionResponse }
     end
 
-    # Performs a [Delete Collection request](http://orchestrate.io/docs/api/#collections/delete).
+    # [Deletes an entire collection](http://orchestrate.io/docs/api/#collections/delete)
     # @param collection [#to_s] The name of the collection
     # @return Orchestrate::API::Response
     # @note The Orchestrate API will return succesfully regardless of if the collection exists or not.
@@ -88,15 +69,15 @@ module Orchestrate
       send_request :delete, [collection], { query: {force:true} }
     end
 
-    #  -------------------------------------------------------------------------
-    #  Key/Value
+    # @!endgroup
+    # @!group Key/Value
 
-    # Returns a value assigned to a key.  If the `ref` is omitted, returns the latest value.
-    # When a ref is provided, performs a [Refs Get query](http://orchestrate.io/docs/api/#refs/get14).
-    # When the ref is omitted, performs a [Key/Value Get query](http://orchestrate.io/docs/api/#key/value/get).
+    # [Retrieves the value assigned to a key](http://orchestrate.io/docs/api/#key/value/get).
+    # If a `ref` parameter is provided, [retrieves a historical value for the
+    # key](http://orchestrate.io/docs/api/#refs/get14)
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
-    # @param ref [#to_s] The opaque version identifier of the ref to return.
+    # @param ref [#to_s] The opaque version identifier of the ref to return, if a historical value is desired.
     # @return Orchestrate::API::ItemResponse
     # @raise Orchestrate::Error::NotFound If the key or ref doesn't exist.
     # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
@@ -106,9 +87,8 @@ module Orchestrate
       send_request :get, path, { response: API::ItemResponse }
     end
 
-    # Performs a [Refs List query](http://orchestrate.io/docs/api/#refs/list15).
-    # Returns a paginated, time-ordered, newest-to-oldest list of refs
-    # ("versions") of the object for the specified key in the collection.
+    # [List historical refs for values of a key](http://orchestrate.io/docs/api/#refs/list15).
+    # Results are time-ordered newest-to-oldest and paginated.
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param options [Hash] Parameters for the query.
@@ -125,8 +105,9 @@ module Orchestrate
       send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
 
-    # Performs a [Key/Value Put](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
-    # Creates or updates the value at the provided collection/key.
+    # [Updates the value associated with
+    # a key](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
+    # If the key does not currently have a value, will create the value.
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param body [#to_json] The value for the key.
@@ -151,21 +132,20 @@ module Orchestrate
       end
       send_request :put, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
     end
-    # @!method put_if_unmodified(collection, key, body, condition)
-    #   Performs a [Key/Value Put If-Match](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
-    #   (see #put)
     alias :put_if_unmodified :put
 
-    # Performs a [Key/Value Put If-None-Match](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
-    # (see #put)
+    # [Creates the value for a key if none
+    # exists](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
+    # @see #put
     def put_if_absent(collection, key, body)
       put collection, key, body, false
     end
 
-    # Performs a [Key/Value delete](http://orchestrate.io/docs/api/#key/value/delete11) request.
+    # [Sets the current value of a key to a null
+    # object](http://orchestrate.io/docs/api/#key/value/delete11).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
-    # @param ref [#to_s] The If-Match ref to delete.
+    # @param ref [#to_s] If specified, deletes the ref only if the current value's ref matches.
     # @return Orchestrate::API::Response
     # @raise Orchestrate::Error::VersionMismatch if the provided ref is not the ref for the current value.
     # @note previous versions of the values at this key are still available via #list_refs and #get.
@@ -175,19 +155,39 @@ module Orchestrate
       send_request :delete, [collection, key], { headers: headers }
     end
 
-    # Performs a [Key/Value purge](http://orchestrate.io/docs/api/#key/value/delete11) request.
+    # [Purges the current value and ref history associated with the
+    # key](http://orchestrate.io/docs/api/#key/value/delete11).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @return Orchestrate::API::Response
+    # @todo take an optional ref for If-Match
     def purge(collection, key)
       send_request :delete, [collection, key], { query: { purge: true } }
     end
 
-    # -------------------------------------------------------------------------
-    #  Events
+    # [List the KeyValue items in a collection](http://orchestrate.io/docs/api/#key/value/list).
+    # Results are sorted results lexicographically by key name and paginated.
+    # @param collection [#to_s] The name of the collection
+    # @param options [Hash] Parameters for the query
+    # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
+    # @option options [String] :start The inclusive start key of the query range.
+    # @option options [String] :after The exclusive start key of the query range.
+    # @option options [String] :before The exclusive end key of the query range.
+    # @option options [String] :end The inclusive end key of the query range.
+    # @note The Orchestrate API may return an error if you include both the
+    #   :start/:after or :before/:end keys.  The client will not stop you from doing this.
+    # @note To include all keys in a collection, do not include any :start/:after/:before/:end parameters.
+    # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::API::InvalidSearchParam The :limit value is not valid.
+    def list(collection, options={})
+      Orchestrate::Helpers.range_keys!('key', options)
+      send_request :get, [collection], { query: options, response: API::CollectionResponse }
+    end
 
-    # Performs a [Events Get](http://orchestrate.io/docs/api/#events/get19) request.
-    # Retrieves an individual event.
+    # @!endgroup
+    # @!group Events
+
+    # [Retrieves an individual event](http://orchestrate.io/docs/api/#events/get19).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param event_type [#to_s] The category for the event.
@@ -203,8 +203,7 @@ module Orchestrate
       send_request :get, path, { response: API::ItemResponse }
     end
 
-    # Performs a [Events Post](http://orchestrate.io/docs/api/#events/post-\(create\)) request.
-    # Creates an event.
+    # [Creates an event](http://orchestrate.io/docs/api/#events/post-\(create\)).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param event_type [#to_s] The category for the event.
@@ -220,8 +219,7 @@ module Orchestrate
       send_request :post, path, { body: body, response: API::ItemResponse }
     end
 
-    # Performs a [Events Put](http://orchestrate.io/docs/api/#events/put-\(update\)) request.
-    # Updates an existing event.
+    # [Updates an existing event](http://orchestrate.io/docs/api/#events/put-\(update\)).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param event_type [#to_s] The category for the event.
@@ -246,8 +244,7 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers, response: API::ItemResponse }
     end
 
-    # Performs a [Events Delete](http://orchestrate.io/docs/api/#events/delete22) request.
-    # Deletes an existing event.
+    # [Deletes an existing event](http://orchestrate.io/docs/api/#events/delete22).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param event_type [#to_s] The category for the event.
@@ -269,8 +266,8 @@ module Orchestrate
       send_request :delete, path, { query: { purge: true }, headers: headers }
     end
 
-    # Performs a [Events List](http://orchestrate.io/docs/api/#events/list23) request.
-    # Retrieves a list of events for the provided collection/key/event_type.
+    # [Lists events associated with a key](http://orchestrate.io/docs/api/#events/list23).
+    # Results are time-ordered in reverse-chronological order, and paginated.
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param event_type [#to_s] The category for the event.
@@ -291,11 +288,10 @@ module Orchestrate
       send_request :get, path, { query: options, response: API::CollectionResponse }
     end
 
-    # -------------------------------------------------------------------------
-    #  Graph
+    # @!endgroup
+    # @!group Graphs / Relations
 
-    # Performs a [Graph Get](http://orchestrate.io/docs/api/#graph/get26) request.
-    # Retrieves a relation's collection, key, ref and values.
+    # [Retrieves a relation's associated objects](http://orchestrate.io/docs/api/#graph/get26).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param kinds [#to_s] The relationship kinds and depth to query.
@@ -311,8 +307,8 @@ module Orchestrate
       send_request :get, path, {response: API::CollectionResponse}
     end
 
-    # Performs a [Graph Put](http://orchestrate.io/docs/api/#graph/put) request.
-    # Creates a relationship between two Key/Value objects.  Relations can span collections.
+    # [Creates a relationship between two Key/Value objects](http://orchestrate.io/docs/api/#graph/put).
+    # Relations can span collections.
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param kind [#to_s] The kind of relationship to create.
@@ -324,8 +320,7 @@ module Orchestrate
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
-    # Performs a [Graph Delete](http://orchestrate.io/docs/api/#graph/delete28) request.
-    # Deletes a relationship between two objects.
+    # [Deletes a relationship between two objects](http://orchestrate.io/docs/api/#graph/delete28).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param kind [#to_s] The kind of relationship to delete.
@@ -337,6 +332,8 @@ module Orchestrate
       send_request :delete, path, { query: {purge: true} }
     end
 
+    # @!endgroup
+
     # Performs requests in parallel.  Requires using a Faraday adapter that supports parallel requests.
     # @yieldparam accumulator [Hash] A place to store the results of the parallel responses.
     # @example Performing three requests at once
@@ -345,6 +342,7 @@ module Orchestrate
     #     r[:user] = client.get(:users, current_user_key)
     #     r[:user_feed] = client.list_events(:users, current_user_key, :notices)
     #   end
+    # @see README See the Readme for more examples.
     def in_parallel(&block)
       accumulator = {}
       http.in_parallel do
@@ -355,7 +353,7 @@ module Orchestrate
 
     # Performs an HTTP request against the Orchestrate API
     # @param method [Symbol] The HTTP method - :get, :post, :put, :delete
-    # @param url [Array<string>] Path segments for the request's URI.  Prepended by 'v0'.
+    # @param path [Array<#to_s>] Path segments for the request's URI.  Prepended by 'v0'.
     # @param options [Hash] extra parameters
     # @option options [Hash] :query ({}) Query String parameters.
     # @option options [#to_json] :body ('') The request body.
@@ -363,8 +361,8 @@ module Orchestrate
     # @option options [Class] :response (Orchestrate::API::Response) A subclass of Orchestrate::API::Response to instantiate and return
     # @return API::Response
     # @see Orchestrate::Error The full list of exceptions that may be raised by accessing the API
-    def send_request(method, url, options={})
-      url = ['/v0'].concat(url).join('/')
+    def send_request(method, path, options={})
+      path = ['/v0'].concat(path).join('/')
       query_string = options.fetch(:query, {})
       body = options.fetch(:body, '')
       headers = options.fetch(:headers, {})
@@ -372,7 +370,7 @@ module Orchestrate
       headers['Accept'] = 'application/json' if method == :get
 
       response = http.send(method) do |request|
-        request.url url, query_string
+        request.url path, query_string
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
           request.body = body.to_json
