@@ -294,46 +294,44 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  Graph
 
-    # call-seq:
-    #   client.get_relations(collection_name, key, *kinds) -> response
-    #
-    # Returns the relation's collection, key and ref values.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +kinds+:: one or more String or Symbol values representing the relations and depth to walk.
-    #
+    # Performs a [Graph Get](http://orchestrate.io/docs/api/#graph/get26) request.
+    # Retrieves a relation's collection, key, ref and values.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param kinds [#to_s] The relationship kinds and depth to query.
+    # @example Retrieves the friend's of John's family
+    #   client.get_relations(:users, 'john', :family, :friends)
+    # @example If the relation facets exist in an array, use:
+    #   relations = [:family, :friends]
+    #   client.get_relations(:users, 'john', *relations)
+    # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::Error::NotFound If the given collection/key doesn't exist.
     def get_relations(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
       send_request :get, path, {response: API::CollectionResponse}
     end
 
-    # call-seq:
-    #   client.put_relation(collection_name, key, kind, to_collection_name, to_key) -> response
-    #
-    # Stores a relationship between two Key/Value items.  They do not need to be in the same collection.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +kind+:: a String or Symbol value representing the relation type.
-    # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
-    # +to_key+:: a String or Symbol representing the key for the related item.
-    #
+    # Performs a [Graph Put](http://orchestrate.io/docs/api/#graph/put) request.
+    # Creates a relationship between two Key/Value objects.  Relations can span collections.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param kind [#to_s] The kind of relationship to create.
+    # @param to_collection [#to_s] The name of the collection to relate to.
+    # @param to_key [#to_s] The name of the key to relate to.
+    # @return Orchestrate::API::Response
+    # @raise Orchestrate::Error::NotFound If either end of the relation doesn't exist.
     def put_relation(collection, key, kind, to_collection, to_key)
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
 
-    # call-seq:
-    #   client.delete_relation(collection_name, key, kind, to_collection, to_key) -> response
-    #
-    # Deletes a relationship between two Key/Value items.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +kind+:: a String or Symbol value representing the relation type.
-    # +to_collection_name+:: a String or Symbol representing the name of the collection the related item belongs.
-    # +to_key+:: a String or Symbol representing the key for the related item.
-    #
+    # Performs a [Graph Delete](http://orchestrate.io/docs/api/#graph/delete28) request.
+    # Deletes a relationship between two objects.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param kind [#to_s] The kind of relationship to delete.
+    # @param to_collection [#to_s] The name of the collection to relate to.
+    # @param to_key [#to_s] The name of the key to relate to.
+    # @return Orchestrate::API::Response
     def delete_relation(collection, key, kind, to_collection, to_key)
       path = [collection, key, 'relation', kind, to_collection, to_key]
       send_request :delete, path, { query: {purge: true} }
