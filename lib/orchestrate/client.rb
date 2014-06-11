@@ -50,7 +50,7 @@ module Orchestrate
     # Orchestrate sorts results lexicographically by key name.
     # @param collection [#to_s] The name of the collection
     # @param options [Hash] Parameters for the query
-    # @option options [Integer] :limit The number of results to return.  Default 10, Maximum 100.
+    # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
     # @option options [String] :start The inclusive start key of the query range.
     # @option options [String] :after The exclusive start key of the query range.
     # @option options [String] :before The exclusive end key of the query range.
@@ -59,6 +59,7 @@ module Orchestrate
     #   :start/:after or :before/:end keys.  The client will not stop you from doing this.
     # @note To include all keys in a collection, do not include any :start/:after/:before/:end parameters.
     # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::API::InvalidSearchParam The :limit value is not valid.
     def list(collection, options={})
       Orchestrate::Helpers.range_keys!('key', options)
       send_request :get, [collection], { query: options, response: API::CollectionResponse }
@@ -69,15 +70,17 @@ module Orchestrate
     # @param query [String] The [Lucene Query String][lucene] to query the collection with.
     #   [lucene]: http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview
     # @param options [Hash] Parameters for the query
-    # @option options [Integer] :limit The number of results to return.  Default 10, Maximum 100.
-    # @option options [Integer] :offset The starting position of the results.  Default 0.
+    # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
+    # @option options [Integer] :offset (0) The starting position of the results.
     # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::API::InvalidSearchParam The :limit/:offset values are not valid.
+    # @raise Orchestrate::API::SearchQueryMalformed if query isn't a valid Lucene query.
     def search(collection, query, options={})
       send_request :get, [collection], { query: options.merge({query: query}),
                                          response: API::CollectionResponse }
     end
 
-    # Performs a [Delete Collection request](http://orchestrate.io/docs/api/#collections/delete)
+    # Performs a [Delete Collection request](http://orchestrate.io/docs/api/#collections/delete).
     # @param collection [#to_s] The name of the collection
     # @return Orchestrate::API::Response
     # @note The Orchestrate API will return succesfully regardless of if the collection exists or not.
