@@ -48,7 +48,7 @@ module Orchestrate
 
     # Performs a [Key/Value List query](http://orchestrate.io/docs/api/#key/value/list) against the collection.
     # Orchestrate sorts results lexicographically by key name.
-    # @param collection [Symbol, String, #to_s] The name of the collection
+    # @param collection [#to_s] The name of the collection
     # @param options [Hash] Parameters for the query
     # @option options [Integer] :limit The number of results to return.  Default 10, Maximum 100.
     # @option options [String] :start The inclusive start key of the query range.
@@ -65,7 +65,7 @@ module Orchestrate
     end
 
     # Performs a [Search query](http://orchestrate.io/docs/api/#search) against the collection.
-    # @param collection [Symbol, String, #to_s] The name of the collection
+    # @param collection [#to_s] The name of the collection
     # @param query [String] The [Lucene Query String][lucene] to query the collection with.
     #   [lucene]: http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview
     # @param options [Hash] Parameters for the query
@@ -77,17 +77,10 @@ module Orchestrate
                                          response: API::CollectionResponse }
     end
 
-    # Notes:
-    # will return 204 No Content regardless of if collection exists or not,
-    # provided all other conditions are met.
-
-    # call-seq:
-    #   client.delete_collection(collection_name) -> response
-    #
-    # Deletes the given collection.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    #
+    # Performs a [Delete Collection request](http://orchestrate.io/docs/api/#collections/delete)
+    # @param collection [#to_s] The name of the collection
+    # @return Orchestrate::API::Response
+    # @note The Orchestrate API will return succesfully regardless of if the collection exists or not.
     def delete_collection(collection)
       send_request :delete, [collection], { query: {force:true} }
     end
