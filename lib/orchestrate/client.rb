@@ -5,30 +5,33 @@ module Orchestrate
 
   class Client
 
-    # Orchestrate::Configuration instance for the client.  If not explicitly
-    # provided during initialization, will default to Orchestrate.config
-    attr_accessor :config
+    # @!attribute [r] api_key
+    #   @return [String] The API key provided
+    attr_reader :api_key
 
-    # The Faraday HTTP "connection" for the client.
-    attr_accessor :http
+    # @!attribute [r] http
+    #   @return [Faraday::Connection] The Faraday HTTP connection.
+    attr_reader :http
 
-    # Initialize and return a new Client instance. Optionally, configure
-    # options for the instance by passing a Configuration object. If no
-    # custom configuration is provided, the configuration options from
-    # Orchestrate.config will be used.
-    def initialize(config = Orchestrate.config)
-      @config = config
+    # @!attribute [r] faraday_configuration
+    #   @reutrn [Proc] The block used to configure faraday.
+    attr_reader :faraday_configuration
 
-      @http = Faraday.new(config.base_url) do |faraday|
-        if config.faraday.respond_to?(:call)
-          config.faraday.call(faraday)
-        else
-          faraday.adapter Faraday.default_adapter
-        end
+    # Instantiate a new Client for an Orchestrate application.
+    # @param api_key [#to_s] The API Key for your Orchestrate application.
+    # @yieldparam [Faraday::Connection] The setup for the faraday connection.
+    # @return Orchestrate::Client
+    # @todo api_key -> app_url, parse api_key from auth section of url
+    def initialize(api_key, &block)
+      @api_key = api_key
+      @faraday_configuration = block
+      @http = Faraday.new("https://api.orchestrate.io") do |faraday|
+        block = lambda{|f| f.adapter Faraday.default_adapter } unless block
+        block.call faraday
 
         # faraday seems to want you do specify these twice.
-        faraday.request :basic_auth, config.api_key, ''
-        faraday.basic_auth config.api_key, ''
+        faraday.request :basic_auth, api_key, ''
+        faraday.basic_auth api_key, ''
 
         # parses JSON responses
         faraday.response :json, :content_type => /\bjson$/
