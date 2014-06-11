@@ -120,23 +120,10 @@ module Orchestrate
     # @return Orchestrate::API::CollectionResponse
     # @raise Orchestrate::Error::NotFound If there are no values for the provided key/collection.
     # @raise Orchestrate::API::InvalidSearchParam The :limit/:offset values are not valid.
+    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
     def list_refs(collection, key, options={})
       send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
-
-    # call-seq:
-    #   client.put(collection_name, key, body)            -> response
-    #   client.put(collection_name, key, body, condition) -> response
-    #
-    # Creates or Updates the value at the specified key.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +body+:: a Hash object representing the value for the key.
-    # +condition+::
-    # - +nil+ - the value for the specified key will be updated regardless.
-    # - String - used as 'If-Match'.  The value will only be updated if the Key's current Value's Ref matches the given condition.
-    # - false - used as 'If-None-Match'.  The value will only be created for the key if the key currently has no value.
 
     # Performs a [Key/Value Put](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)) request.
     # Creates or updates the value at the provided collection/key.
@@ -199,70 +186,58 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  Events
 
-    # call-seq:
-    #   client.get_event(collection_name, key, event_type, timestamp, ordinal) -> response
-    #
-    # Gets the event for the specified arguments.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
-    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
-    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
-    # - Integers are Milliseconds since Unix Epoch.
-    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # +ordinal+:: an Integer representing the order of the event for this timestamp.
-    #
+    # Performs a [Events Get](http://orchestrate.io/docs/api/#events/get19) request.
+    # Retrieves an individual event.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param event_type [#to_s] The category for the event.
+    # @param timestamp [Time, Date, Integer, String] The timestamp for the event.
+    #   If a String, must match the [Timestamp specification](http://orchestrate.io/docs/api/#events/timestamps)
+    #   and include the milliseconds portion.
+    # @param ordinal [Integer, #to_s] The ordinal for the event in the given timestamp.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::API::NotFound If the requested event doesn't exist.
     def get_event(collection, key, event_type, timestamp, ordinal)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       send_request :get, path, { response: API::ItemResponse }
     end
 
-    # call-seq:
-    #   client.post_event(collection_name, key, event_type) -> response
-    #   client.post_event(collection_name, key, event_type, timestamp) -> response
-    #
+    # Performs a [Events Post](http://orchestrate.io/docs/api/#events/post-\(create\)) request.
     # Creates an event.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +event_type+:: a String or Symbol representing the category for the event.
-    # +body+:: a Hash object representing the value for the event.
-    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
-    # - nil - Timestamp value will be created by Orchestrate.
-    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
-    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
-    # - Integers are Milliseconds since Unix Epoch.
-    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    #
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param event_type [#to_s] The category for the event.
+    # @param body [#to_json] The value for the event.
+    # @param timestamp [Time, Date, Integer, String, nil] The timestamp for the event.
+    #   If omitted, the timestamp is created by Orchestrate.
+    #   If a String, must match the [Timestamp specification](http://orchestrate.io/docs/api/#events/timestamps).
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::API::BadRequest If the body is not valid JSON.
     def post_event(collection, key, event_type, body, timestamp=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp].compact
       send_request :post, path, { body: body, response: API::ItemResponse }
     end
 
-    # call-seq:
-    #   client.put_event(collection_name, key, event_type, timestamp, ordinal, body) -> response
-    #   client.put_event(collection_name, key, event_type, timestamp, ordinal, body, ref) -> response
-    #
-    # Puts the event for the specified arguments.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
-    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
-    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
-    # - Integers are Milliseconds since Unix Epoch.
-    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # +ordinal+:: an Integer representing the order of the event for this timestamp.
-    # +body+:: a Hash object representing the value for the event.
-    # +ref+::
-    # - +nil+ - The event will update regardless.
-    # - String - used as 'If-Match'.  The event will only update if the event's current value matches this ref.
-    #
+    # Performs a [Events Put](http://orchestrate.io/docs/api/#events/put-\(update\)) request.
+    # Updates an existing event.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param event_type [#to_s] The category for the event.
+    # @param timestamp [Time, Date, Integer, String, nil] The timestamp for the event.
+    #   If a String, must match the [Timestamp specification](http://orchestrate.io/docs/api/#events/timestamps)
+    #   and include the milliseconds portion.
+    # @param ordinal [Integer, #to_s] The ordinal for the event in the given timestamp.
+    # @param body [#to_json] The value for the event.
+    # @param ref [nil, #to_s] If provided, used as `If-Match`, and event will
+    #   only update if its current value has the provided ref.  If omitted,
+    #   updates the event regardless.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::API::NotFound The specified event doesn't exist.
+    # @raise Orchestrate::API::BadRequest If the body is not valid JSON.
+    # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
+    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
     def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
@@ -271,25 +246,21 @@ module Orchestrate
       send_request :put, path, { body: body, headers: headers, response: API::ItemResponse }
     end
 
-    # call-seq:
-    #   client.purge_event(collection, key, event_type, timestamp, ordinal) -> response
-    #   client.purge_event(collection, key, event_type, timestamp, ordinal, ref) -> response
-    #
-    # Deletes the event for the specified arguments.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +event_type+:: a String or Symbol representing the category for the event.
-    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
-    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
-    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
-    # - Integers are Milliseconds since Unix Epoch.
-    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    # +ordinal+:: an Integer representing the order of the event for this timestamp.
-    # +ref+::
-    # - +nil+ - The event will be deleted regardless.
-    # - String - used as 'If-Match'.  The event will only be deleted if the event's current value matches this ref.
-    #
+    # Performs a [Events Delete](http://orchestrate.io/docs/api/#events/delete22) request.
+    # Deletes an existing event.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param event_type [#to_s] The category for the event.
+    # @param timestamp [Time, Date, Integer, String, nil] The timestamp for the event.
+    #   If a String, must match the [Timestamp specification](http://orchestrate.io/docs/api/#events/timestamps)
+    #   and include the milliseconds portion.
+    # @param ordinal [Integer, #to_s] The ordinal for the event in the given timestamp.
+    # @param ref [nil, #to_s] If provided, used as `If-Match`, and event will
+    #   only update if its current value has the provided ref.  If omitted,
+    #   updates the event regardless.
+    # @return Orchestrate::API::Response
+    # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
+    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
     def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
@@ -298,39 +269,26 @@ module Orchestrate
       send_request :delete, path, { query: { purge: true }, headers: headers }
     end
 
-    # call-seq:
-    #   client.list_events(collection_name, key, event_type) -> response
-    #   client.list_events(collection_name, key, event_type, parameters = {}) -> response
-    #
-    # Puts the event for the specified arguments.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +key+:: a String or Symbol representing the key for the value.
-    # +event_type+:: a String or Symbol representing the category for the event.
-    # +parameters+::
-    # - +:limit+   - integer, number of results to return.  Defaults to 10, Max 100.
-    # - +:start+   - Integer/String representing the inclusive start to a range.
-    # - +:after+   - Integer/String representing the exclusive start to a range.
-    # - +:before+  - Integer/String representing the exclusive end to a range.
-    # - +:end+     - Integer/String representing the inclusive end to a range.
-    #
-    # Range parameters are formatted as ":timestamp/:ordinal", where "/ordinal" is optional.
-    #
-    # +timestamp+:: a Time or Date, or an Integer or String representing a time.
-    # - Time, or class that responds positively to #kind_of?(Time) and #to_f returns a float
-    # - Date, or class that responds positively to #kind_of?(Date) (including DateTime) and implements #to_time, returning a Time
-    # - Integers are Milliseconds since Unix Epoch.
-    # - Strings must be formatted as per http://orchestrate.io/docs/api/#events/timestamps
-    #
-    # +ordinal+:: optional; an Integer representing the order of the event for this timestamp.
-    #
-    def list_events(collection, key, event_type, parameters={})
-      (parameters.keys & [:start, :after, :before, :end]).each do |param|
-        parameters[param] = Helpers.timestamp(parameters[param])
+    # Performs a [Events List](http://orchestrate.io/docs/api/#events/list23) request.
+    # Retrieves a list of events for the provided collection/key/event_type.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param event_type [#to_s] The category for the event.
+    # @param options [Hash] The parameters for the query.
+    # @option options [Integer] :limit (10) The number of results to return.  Default 100.
+    # @option options [Date, Time, String, Integer] :start The inclusive start of the range.
+    # @option options [Date, Time, String, Integer] :after The exclusive start of the range.
+    # @option options [Date, Time, String, Integer] :before The exclusive end of the range.
+    # @option options [Date, Time, String, Integer] :end The inclusive end of the range.
+    # @return Orchestrate::API::CollectionResponse
+    # @raise Orchestrate::Error::NotFound If the provided collection/key doesn't exist.
+    def list_events(collection, key, event_type, options={})
+      (options.keys & [:start, :after, :before, :end]).each do |param|
+        options[param] = Helpers.timestamp(options[param])
       end
-      Orchestrate::Helpers.range_keys!('event', parameters)
+      Orchestrate::Helpers.range_keys!('event', options)
       path = [collection, key, 'events', event_type]
-      send_request :get, path, { query: parameters, response: API::CollectionResponse }
+      send_request :get, path, { query: options, response: API::CollectionResponse }
     end
 
     # -------------------------------------------------------------------------
