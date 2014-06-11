@@ -3,11 +3,6 @@ require 'faraday_middleware'
 
 module Orchestrate
 
-  # ==== Ruby Client for the Orchestrate REST *API*.
-  #
-  # The primary entry point is the #send_request method, which generates a
-  # Request, and returns the Response to the caller.
-  #
   class Client
 
     # Orchestrate::Configuration instance for the client.  If not explicitly
@@ -40,6 +35,10 @@ module Orchestrate
       end
     end
 
+    # Sends a 'Ping' request to the API to test authentication:
+    # http://orchestrate.io/docs/api/#authentication/ping
+    # @return Orchestrate::API::Response
+    # @raise Orchestrate::Error::Unauthorized if the client could not authenticate.
     def ping
       send_request :get, []
     end
@@ -47,40 +46,34 @@ module Orchestrate
     # -------------------------------------------------------------------------
     #  collection
 
-    # call-seq:
-    #   client.list(collection_name, parameters = {})   -> response
-    #
-    # Performes a List query against the given collection.  Results are sorted
-    # lexicographically by key name.
-    #
-    # +collection_name+:: A String or Symbol representing the name of the collection.
-    # +parameters+:: a Hash object containing query parameters:
-    # - +:limit+   - integer, number of results to return.  Defaults to 10, Max 100.
-    # - +:start+   - string, start key of query range, including value.
-    # - +:after+   - string, start key of query range, excluding value.
-    # - +:before+  - string, end key of query range, excluding value.
-    # - +:end+     - string, end key of query range, including value.
-    #
-    # Note, you cannot provide *both* 'start' and 'after', or 'before' and 'end'
-    #
+    # Performs a [Key/Value List query](http://orchestrate.io/docs/api/#key/value/list) against the collection.
+    # Orchestrate sorts results lexicographically by key name.
+    # @param collection [Symbol, String, #to_s] The name of the collection
+    # @param options [Hash] Parameters for the query
+    # @option options [Integer] :limit The number of results to return.  Default 10, Maximum 100.
+    # @option options [String] :start The inclusive start key of the query range.
+    # @option options [String] :after The exclusive start key of the query range.
+    # @option options [String] :before The exclusive end key of the query range.
+    # @option options [String] :end The inclusive end key of the query range.
+    # @note The Orchestrate API may return an error if you include both the
+    #   :start/:after or :before/:end keys.  The client will not stop you from doing this.
+    # @note To include all keys in a collection, do not include any :start/:after/:before/:end parameters.
+    # @return Orchestrate::API::CollectionResponse
     def list(collection, options={})
       Orchestrate::Helpers.range_keys!('key', options)
       send_request :get, [collection], { query: options, response: API::CollectionResponse }
     end
 
-    # call-seq:
-    #   client.list(collection_name, query, parameters = {})  -> response
-    #
-    # Performs a Search query against the given collection.
-    #
-    # +collection_name+:: a String or Symbol representing the name of the collection.
-    # +query+:: a String containing a Lucene query
-    # +parameters+:: a Hash object containing additional parameters:
-    # - +limit+:  - integer, number of results to return.  Defaults to 10, Max 100.
-    # - +offset+: - ingeger, the starting position of the results.  Defaults to 0.
-    #
-    def search(collection, query, parameters={})
-      send_request :get, [collection], { query: parameters.merge({query: query}),
+    # Performs a [Search query](http://orchestrate.io/docs/api/#search) against the collection.
+    # @param collection [Symbol, String, #to_s] The name of the collection
+    # @param query [String] The [Lucene Query String][lucene] to query the collection with.
+    #   [lucene]: http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview
+    # @param options [Hash] Parameters for the query
+    # @option options [Integer] :limit The number of results to return.  Default 10, Maximum 100.
+    # @option options [Integer] :offset The starting position of the results.  Default 0.
+    # @return Orchestrate::API::CollectionResponse
+    def search(collection, query, options={})
+      send_request :get, [collection], { query: options.merge({query: query}),
                                          response: API::CollectionResponse }
     end
 
@@ -182,7 +175,7 @@ module Orchestrate
     def delete(collection, key, ref=nil)
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
-      resp = send_request :delete, [collection, key], { headers: headers }
+      send_request :delete, [collection, key], { headers: headers }
     end
 
     # call-seq:
