@@ -102,4 +102,22 @@ client = Orchestrate::Client.new(api_key) do |conn|
 end
 ```
 
+## Release Notes
+- June 12, 2014: release 0.6.0
+  - **BACKWARDS-INCOMPATIBLE** Reworked Client constructor to take API key and
+    optional Faraday configuration block.  See 9045ffc for details.
+  - Migrated documentation to YARD
+  - Provide basic response wrappers specific to generic request types.
+  - Raise Exceptions on error response from Orchestrate API.
+  - Remove custom logger in favor of the option to use Faraday middleware.
+  - Accept Time/Date objects for Timestamp arguments to Event-related methods.
+
+- May 29, 2014: release 0.5.1
+  - Fix problem with legacy code preventing gem from loading in some environments
+
+- May 21, 2014: release 0.5.0
+  Initial Port from @jimcar
+  - Uses Faraday HTTP Library as backend, with examples of alternate adapters
+  - Cleanup client method signatures
+
 
