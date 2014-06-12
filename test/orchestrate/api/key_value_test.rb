@@ -41,7 +41,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
-    assert_raises Orchestrate::Error::NotFound do
+    assert_raises Orchestrate::API::NotFound do
       @client.get(@collection, @key)
     end
   end

@@ -1,38 +1,21 @@
-module Orchestrate::Error
-  # given a response and a possible JSON response body, raises the
-  # appropriate Exception
+module Orchestrate::API
 
-  # Will raise the appropriate exception for an Error response from the Orchestrate API:
-  # http://orchestrate.io/docs/api/#errors
-  # @param response Faraday::Response The response from the Orchestrate Service
-  # @raise [Orchestrate::Error::RequestError, Orchestrate::Error::ServiceError] if Orchestrate responds with a 4xx- or 5xx- class error.
-  def self.handle_response(response)
-    err_type = ERRORS.find do |err|
-      err.status == response.status && err.code == response.body['code']
-    end
-    if err_type
-      raise err_type.new(response)
-    elsif response.status >= 500
-      raise ServiceError.new(response)
-    elsif response.status >= 400
-      raise RequestError.new(response)
-    end
-  end
-
-  # Base class for Errors when talking to the Orchestrate API.
-  class Base < StandardError
+  # Base class for Errors from Orchestrate.
+  class BaseError < StandardError
     # class-level attr-reader for the error's response code.
+    # @return [Integer] Status code for error.
     def self.status; @status; end
 
     # class-level attr-reader for the error's code.
+    # @return [String] API's error code.
     def self.code; @code; end
 
-    # The response that caused the error
-    # @!attribute r response
+    # @return [Faraday::Response] The response that caused the error.
     attr_reader :response
 
+    # @param response [Faraday::Response] The response that caused the error.
     def initialize(response)
-      @resposne = response
+      @response = response
       if response.headers['Content-Type'] == 'application/json'
         super(response.body['message'])
       else
@@ -42,7 +25,7 @@ module Orchestrate::Error
   end
 
   # indicates a 4xx-class response, and the problem was with the request.
-  class RequestError < Base; end
+  class RequestError < BaseError; end
 
   # The client provided a malformed request.
   class BadRequest < RequestError
@@ -109,7 +92,7 @@ module Orchestrate::Error
   end
 
   # indicates a 500-class response, the problem is on Orchestrate's end
-  class ServiceError < Base; end
+  class ServiceError < BaseError; end
 
   class SecurityAuthentication < ServiceError
     @status = 500
@@ -126,6 +109,7 @@ module Orchestrate::Error
     @code = 'internal_error'
   end
 
+  # The full complement of Error classes.
   ERRORS=[ BadRequest, MalformedSearch, MalformedRef, InvalidSearchParam,
            Unauthorized, NotFound, IndexingConflict,
            VersionMismatch, AlreadyPresent,

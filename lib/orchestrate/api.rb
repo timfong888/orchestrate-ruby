@@ -8,3 +8,4 @@ module Orchestrate
 end
 
 require_relative 'api/response'
+require_relative 'api/errors'

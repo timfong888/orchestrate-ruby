@@ -37,7 +37,7 @@ module Orchestrate
 
     # Tests authentication with Orchestrate.
     # @return Orchestrate::API::Response
-    # @raise Orchestrate::Error::Unauthorized if the client could not authenticate.
+    # @raise Orchestrate::API::Unauthorized if the client could not authenticate.
     def ping
       send_request :get, []
     end
@@ -79,8 +79,8 @@ module Orchestrate
     # @param key [#to_s] The name of the key.
     # @param ref [#to_s] The opaque version identifier of the ref to return, if a historical value is desired.
     # @return Orchestrate::API::ItemResponse
-    # @raise Orchestrate::Error::NotFound If the key or ref doesn't exist.
-    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
+    # @raise Orchestrate::API::NotFound If the key or ref doesn't exist.
+    # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def get(collection, key, ref=nil)
       path = [collection, key]
       path.concat(['refs', ref]) if ref
@@ -98,9 +98,9 @@ module Orchestrate
     #   for each ref.  Refs with no content (for example, deleted with `#delete`) will not have
     #   a value, but marked with a `'tombstone' => true` key.
     # @return Orchestrate::API::CollectionResponse
-    # @raise Orchestrate::Error::NotFound If there are no values for the provided key/collection.
+    # @raise Orchestrate::API::NotFound If there are no values for the provided key/collection.
     # @raise Orchestrate::API::InvalidSearchParam The :limit/:offset values are not valid.
-    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
+    # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def list_refs(collection, key, options={})
       send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
@@ -116,13 +116,13 @@ module Orchestrate
     #   If `false`, uses `If-None-Match` the value will only be set if there is no existent value for the key.
     #   If `nil` (default), value is set regardless.
     # @return Orchestrate::API::ItemResponse
-    # @raise Orchestrate::Error::BadRequest the body is not valid JSON.
-    # @raise Orchestrate::Error::IndexingConflict One of the value's keys
+    # @raise Orchestrate::API::BadRequest the body is not valid JSON.
+    # @raise Orchestrate::API::IndexingConflict One of the value's keys
     #   contains a value of a different type than the schema that exists for
     #   the collection.
-    # @see Orchestrate::Error::IndexingConflict
-    # @raise Orchestrate::Error::VersionMismatch A ref was provided, but it does not match the ref for the current value.
-    # @raise Orchestrate::Error::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
+    # @see Orchestrate::API::IndexingConflict
+    # @raise Orchestrate::API::VersionMismatch A ref was provided, but it does not match the ref for the current value.
+    # @raise Orchestrate::API::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
     def put(collection, key, body, condition=nil)
       headers={}
       if condition.is_a?(String)
@@ -147,7 +147,7 @@ module Orchestrate
     # @param key [#to_s] The name of the key.
     # @param ref [#to_s] If specified, deletes the ref only if the current value's ref matches.
     # @return Orchestrate::API::Response
-    # @raise Orchestrate::Error::VersionMismatch if the provided ref is not the ref for the current value.
+    # @raise Orchestrate::API::VersionMismatch if the provided ref is not the ref for the current value.
     # @note previous versions of the values at this key are still available via #list_refs and #get.
     def delete(collection, key, ref=nil)
       headers = {}
@@ -235,7 +235,7 @@ module Orchestrate
     # @raise Orchestrate::API::NotFound The specified event doesn't exist.
     # @raise Orchestrate::API::BadRequest If the body is not valid JSON.
     # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
-    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
+    # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
@@ -257,7 +257,7 @@ module Orchestrate
     #   updates the event regardless.
     # @return Orchestrate::API::Response
     # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
-    # @raise Orchestrate::Error::MalformedRef If the ref provided is not a valid ref.
+    # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
       timestamp = Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
@@ -278,7 +278,7 @@ module Orchestrate
     # @option options [Date, Time, String, Integer] :before The exclusive end of the range.
     # @option options [Date, Time, String, Integer] :end The inclusive end of the range.
     # @return Orchestrate::API::CollectionResponse
-    # @raise Orchestrate::Error::NotFound If the provided collection/key doesn't exist.
+    # @raise Orchestrate::API::NotFound If the provided collection/key doesn't exist.
     def list_events(collection, key, event_type, options={})
       (options.keys & [:start, :after, :before, :end]).each do |param|
         options[param] = Helpers.timestamp(options[param])
@@ -301,7 +301,7 @@ module Orchestrate
     #   relations = [:family, :friends]
     #   client.get_relations(:users, 'john', *relations)
     # @return Orchestrate::API::CollectionResponse
-    # @raise Orchestrate::Error::NotFound If the given collection/key doesn't exist.
+    # @raise Orchestrate::API::NotFound If the given collection/key doesn't exist.
     def get_relations(collection, key, *kinds)
       path = [collection, key, 'relations'].concat(kinds)
       send_request :get, path, {response: API::CollectionResponse}
@@ -315,7 +315,7 @@ module Orchestrate
     # @param to_collection [#to_s] The name of the collection to relate to.
     # @param to_key [#to_s] The name of the key to relate to.
     # @return Orchestrate::API::Response
-    # @raise Orchestrate::Error::NotFound If either end of the relation doesn't exist.
+    # @raise Orchestrate::API::NotFound If either end of the relation doesn't exist.
     def put_relation(collection, key, kind, to_collection, to_key)
       send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
     end
@@ -360,7 +360,7 @@ module Orchestrate
     # @option options [Hash] :headers ({}) Extra request headers.
     # @option options [Class] :response (Orchestrate::API::Response) A subclass of Orchestrate::API::Response to instantiate and return
     # @return API::Response
-    # @see Orchestrate::Error The full list of exceptions that may be raised by accessing the API
+    # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] see http://orchestrate.io/docs/api/#errors
     def send_request(method, path, options={})
       path = ['/v0'].concat(path).join('/')
       query_string = options.fetch(:query, {})
@@ -378,7 +378,18 @@ module Orchestrate
         headers.each {|header, value| request[header] = value }
       end
 
-      Error.handle_response(response) if (!response.success?)
+      if ! response.success?
+        err_type = API::ERRORS.find do |err|
+          err.status == response.status && err.code == response.body['code']
+        end
+        if err_type
+          raise err_type.new(response)
+        elsif response.status >= 500
+          raise API::ServiceError.new(response)
+        elsif response.status >= 400
+          raise API::RequestError.new(response)
+        end
+      end
       response_class = options.fetch(:response, API::Response)
       response_class.new(response, self)
     end
