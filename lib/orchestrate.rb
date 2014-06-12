@@ -1,6 +1,5 @@
 require "orchestrate/api"
 require "orchestrate/client"
-require "orchestrate/helpers"
 require "orchestrate/version"
 
 #

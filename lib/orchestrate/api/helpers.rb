@@ -1,4 +1,4 @@
-module Orchestrate
+module Orchestrate::API
   module Helpers
 
     extend self

@@ -180,7 +180,7 @@ module Orchestrate
     # @return Orchestrate::API::CollectionResponse
     # @raise Orchestrate::API::InvalidSearchParam The :limit value is not valid.
     def list(collection, options={})
-      Orchestrate::Helpers.range_keys!('key', options)
+      API::Helpers.range_keys!('key', options)
       send_request :get, [collection], { query: options, response: API::CollectionResponse }
     end
 
@@ -198,7 +198,7 @@ module Orchestrate
     # @return Orchestrate::API::ItemResponse
     # @raise Orchestrate::API::NotFound If the requested event doesn't exist.
     def get_event(collection, key, event_type, timestamp, ordinal)
-      timestamp = Helpers.timestamp(timestamp)
+      timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       send_request :get, path, { response: API::ItemResponse }
     end
@@ -214,7 +214,7 @@ module Orchestrate
     # @return Orchestrate::API::ItemResponse
     # @raise Orchestrate::API::BadRequest If the body is not valid JSON.
     def post_event(collection, key, event_type, body, timestamp=nil)
-      timestamp = Helpers.timestamp(timestamp)
+      timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp].compact
       send_request :post, path, { body: body, response: API::ItemResponse }
     end
@@ -237,7 +237,7 @@ module Orchestrate
     # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
     # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def put_event(collection, key, event_type, timestamp, ordinal, body, ref=nil)
-      timestamp = Helpers.timestamp(timestamp)
+      timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
@@ -259,7 +259,7 @@ module Orchestrate
     # @raise Orchestrate::API::VersionMismatch The event's current value has a ref that does not match the provided ref.
     # @raise Orchestrate::API::MalformedRef If the ref provided is not a valid ref.
     def purge_event(collection, key, event_type, timestamp, ordinal, ref=nil)
-      timestamp = Helpers.timestamp(timestamp)
+      timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
       headers['If-Match'] = format_ref(ref) if ref
@@ -281,9 +281,9 @@ module Orchestrate
     # @raise Orchestrate::API::NotFound If the provided collection/key doesn't exist.
     def list_events(collection, key, event_type, options={})
       (options.keys & [:start, :after, :before, :end]).each do |param|
-        options[param] = Helpers.timestamp(options[param])
+        options[param] = API::Helpers.timestamp(options[param])
       end
-      Orchestrate::Helpers.range_keys!('event', options)
+      API::Helpers.range_keys!('event', options)
       path = [collection, key, 'events', event_type]
       send_request :get, path, { query: options, response: API::CollectionResponse }
     end
