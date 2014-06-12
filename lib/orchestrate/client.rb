@@ -126,7 +126,7 @@ module Orchestrate
     def put(collection, key, body, condition=nil)
       headers={}
       if condition.is_a?(String)
-        headers['If-Match'] = format_ref(condition)
+        headers['If-Match'] = API::Helpers.format_ref(condition)
       elsif condition == false
         headers['If-None-Match'] = '*'
       end
@@ -151,7 +151,7 @@ module Orchestrate
     # @note previous versions of the values at this key are still available via #list_refs and #get.
     def delete(collection, key, ref=nil)
       headers = {}
-      headers['If-Match'] = format_ref(ref) if ref
+      headers['If-Match'] = API::Helpers.format_ref(ref) if ref
       send_request :delete, [collection, key], { headers: headers }
     end
 
@@ -240,7 +240,7 @@ module Orchestrate
       timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
-      headers['If-Match'] = format_ref(ref) if ref
+      headers['If-Match'] = API::Helpers.format_ref(ref) if ref
       send_request :put, path, { body: body, headers: headers, response: API::ItemResponse }
     end
 
@@ -262,7 +262,7 @@ module Orchestrate
       timestamp = API::Helpers.timestamp(timestamp)
       path = [collection, key, 'events', event_type, timestamp, ordinal]
       headers = {}
-      headers['If-Match'] = format_ref(ref) if ref
+      headers['If-Match'] = API::Helpers.format_ref(ref) if ref
       send_request :delete, path, { query: { purge: true }, headers: headers }
     end
 
@@ -393,17 +393,6 @@ module Orchestrate
       response_class = options.fetch(:response, API::Response)
       response_class.new(response, self)
     end
-
-    # ------------------------------------------------------------------------
-
-    private
-
-      # Formats the provided 'ref' to be quoted per API specification.  If
-      # already quoted, does not add additional quotes.
-      def format_ref(ref)
-        "\"#{ref.gsub(/"/,'')}\""
-      end
-
   end
 
 end

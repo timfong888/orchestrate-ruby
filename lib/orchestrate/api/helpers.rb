@@ -24,12 +24,6 @@ module Orchestrate::API
       end
     end
 
-    # call-seq:
-    #   Orchestrate::Helpers.timestamp(time) -> Integer
-    #
-    # Returns the Milliseconds since Unix Epoch if given a Time, or Date object.
-    # Otherwise, returns value called with.
-
     # Coerces a Date or Time object to Integer Milliseconds, per the Timestamps documentation:
     # http://orchestrate.io/docs/api/#events/timestamps
     # If provided a value other than Date or Time, will return it untouched.
@@ -40,6 +34,14 @@ module Orchestrate::API
       time = time.to_time if time.kind_of?(Date)
       time = (time.getutc.to_f * 1000).to_i if time.kind_of?(Time)
       time
+    end
+
+
+    # Formats the provided 'ref' to be quoted per API specification.
+    # @param ref [String] The ref desired.
+    # @return [String] The ref, quoted.  If already quoted, does not double-quote.
+    def format_ref(ref)
+      "\"#{ref.gsub(/"/,'')}\""
     end
 
   end
