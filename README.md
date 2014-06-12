@@ -90,7 +90,7 @@ client = Orchestrate::Client.new(api_key) do |conn|
 end
 ```
 
-### Using with EM-Syncrony
+### Using with EM-Synchrony
 
 EM-Synchrony is a collection of utility classes for EventMachine to help untangle evented code.  It enables parallelization.
 
