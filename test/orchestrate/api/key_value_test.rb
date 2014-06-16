@@ -27,6 +27,11 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     assert_equal "\"#{ref}\"", response.headers['Etag']
     assert_equal ref_url, response.headers['Content-Location']
+
+    assert_equal ref_url, response.location
+    assert_equal ref, response.ref
+    assert_equal Time.parse(response.headers['Date']), response.request_time
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_gets_key_value_is_404_when_does_not_exist
@@ -36,22 +41,28 @@ class KeyValueTest < MiniTest::Unit::TestCase
       [ 404, response_headers(), response_not_found({collection:@collection, key:@key}) ]
     end
 
-    assert_raises Orchestrate::Error::NotFound do
+    assert_raises Orchestrate::API::NotFound do
       @client.get(@collection, @key)
     end
   end
 
   def test_puts_key_value_without_ref
     body={"foo" => "bar"}
-    @stubs.put("/v0/#{@collection}/#{@key}") do |env|
+    ref = "12345"
+    base_location = "/v0/#{@collection}/#{@key}"
+    @stubs.put(base_location) do |env|
       assert_authorization @basic_auth, env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body.to_json, env.body
-      [ 201, response_headers, '' ]
+      headers = { "Location" => "#{base_location}/refs/#{ref}", 
+                  "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
     end
 
     response = @client.put(@collection, @key, body)
     assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "#{base_location}/refs/#{ref}", response.location
   end
 
   def test_puts_key_value_with_specific_ref
@@ -122,6 +133,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
     response = @client.delete(@collection, @key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_delete_key_value_with_condition
@@ -154,37 +166,53 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
     response = @client.purge(@collection, @key)
     assert_equal 204, response.status
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_gets_ref
     body = {"key" => "value"}
     ref = '123456'
-    @stubs.get("/v0/#{@collection}/#{@key}/refs/#{ref}") do |env|
+    ref_url = "/v0/#{@collection}/#{@key}/refs/#{ref}"
+    @stubs.get(ref_url) do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
-      [ 200, response_headers, body.to_json ]
+      headers = {
+        'Content-Location' => ref_url,
+        'Etag' => "\"#{ref}\""
+      }
+      [ 200, response_headers(headers), body.to_json ]
     end
 
     response = @client.get(@collection, @key, ref)
     assert_equal 200, response.status
     assert_equal body, response.body
+
+    assert_equal ref_url, response.location
+    assert_equal ref, response.ref
+    assert_equal Time.parse(response.headers['Date']), response.request_time
+    assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
   def test_list_refs
     reflist = (1..3).map do |i|
-      { path:{collection:@collection, key:@key, ref:SecureRandom.hex(16)},
-        reftime: Time.now.to_i - (-2 * i * 3600 * 1000) }
+      { "path" => {}, "reftime" => Time.now.to_i - (-2 * i * 3600 * 1000) }
     end
+    body = { "results" => reflist, "count" => 3, "prev" => "__PREV__" }
+
     @stubs.get("/v0/#{@collection}/#{@key}/refs") do |env|
       assert_authorization @basic_auth, env
       assert_accepts_json env
       assert_equal "10", env.params['offset']
-      [ 200, response_headers, {result:reflist, count: 3}.to_json ]
+      [ 200, response_headers, body.to_json ]
     end
 
     response = @client.list_refs(@collection, @key, {offset: 10})
     assert_equal 200, response.status
-    assert_equal JSON.parse(reflist.to_json), response.body['result']
+    assert_equal body, response.body
+    assert_equal body['count'], response.count
+    assert_equal body['results'], response.results
+    assert_equal body['prev'], response.prev_link
+    assert_nil response.next_link
   end
 
 end

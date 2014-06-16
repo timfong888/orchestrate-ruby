@@ -13,7 +13,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         "code" => "security_unauthorized"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::Unauthorized do
+    assert_raises Orchestrate::API::Unauthorized do
       @client.list(:foo)
     end
   end
@@ -26,7 +26,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "api_bad_request"
       }.to_json ]
     end
-    err = assert_raises Orchestrate::Error::BadRequest do
+    err = assert_raises Orchestrate::API::BadRequest do
       @client.put(:foo, "bar", {}, "'foo'")
     end
     assert_equal message, err.message
@@ -39,7 +39,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "search_query_malformed"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::MalformedSearch do
+    assert_raises Orchestrate::API::MalformedSearch do
       @client.search(:foo, "foo=\"no")
     end
   end
@@ -52,7 +52,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "search_param_invalid"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::InvalidSearchParam do
+    assert_raises Orchestrate::API::InvalidSearchParam do
       @client.search(:foo, '')
     end
   end
@@ -65,7 +65,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "item_ref_malformed"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::MalformedRef do
+    assert_raises Orchestrate::API::MalformedRef do
       @client.put(:foo, "bar", {:blerg => 'blerg'}, "blerg")
     end
   end
@@ -81,7 +81,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "indexing_conflict"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::IndexingConflict do
+    assert_raises Orchestrate::API::IndexingConflict do
       @client.put(:foo, 'bar', {count: "foo"})
     end
   end
@@ -93,7 +93,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "item_version_mismatch"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::VersionMismatch do
+    assert_raises Orchestrate::API::VersionMismatch do
       @client.put(:foo, 'bar', {foo:'bar'}, "7ae8635207acbb2f")
     end
   end
@@ -105,7 +105,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "item_already_present"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::AlreadyPresent do
+    assert_raises Orchestrate::API::AlreadyPresent do
       @client.put_if_absent(:foo, 'bar', {foo:'bar'})
     end
   end
@@ -117,7 +117,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "teapot"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::RequestError do
+    assert_raises Orchestrate::API::RequestError do
       @client.get(:teapot, "spout")
     end
   end
@@ -129,7 +129,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "security_authentication"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::SecurityAuthentication do
+    assert_raises Orchestrate::API::SecurityAuthentication do
       @client.get(:test, '123')
     end
   end
@@ -141,7 +141,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "search_index_not_found"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::SearchIndexNotFound do
+    assert_raises Orchestrate::API::SearchIndexNotFound do
       @client.search(:test, '123')
     end
   end
@@ -153,7 +153,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
         code: "internal_error"
       }.to_json ]
     end
-    assert_raises Orchestrate::Error::InternalError do
+    assert_raises Orchestrate::API::InternalError do
       @client.get(:test, '123')
     end
   end
@@ -163,7 +163,7 @@ class ExceptionsTest < MiniTest::Unit::TestCase
     @stubs.get("/v0/test/123") do |env|
       [ 500, {}, body ]
     end
-    err = assert_raises Orchestrate::Error::ServiceError do
+    err = assert_raises Orchestrate::API::ServiceError do
       @client.get(:test, '123')
     end
     assert_equal body, err.message
