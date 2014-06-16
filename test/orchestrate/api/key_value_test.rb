@@ -102,7 +102,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
 
     @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
-      assert_header 'If-None-Match', '*', env
+      assert_header 'If-None-Match', '"*"', env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body.to_json, env.body
       [ 200, response_headers, '' ]
@@ -116,7 +116,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     body = {"foo" => "bar"}
     @stubs.put("/v0/#{@collection}/#{@key}") do |env|
       assert_authorization @basic_auth, env
-      assert_header 'If-None-Match', '*', env
+      assert_header 'If-None-Match', '"*"', env
       assert_header 'Content-Type', 'application/json', env
       assert_equal body.to_json, env.body
       [ 200, response_headers, '' ]
