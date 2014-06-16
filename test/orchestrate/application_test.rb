@@ -19,4 +19,23 @@ class ApplicationTest < MiniTest::Unit::TestCase
     assert pinged, "API wasn't pinged"
   end
 
+  def test_instantiates_with_client
+    client, stubs = make_client_and_artifacts
+    pinged = false
+    stubs.get('/v0') do |env|
+      pinged = true
+      [ 200, response_headers, '' ]
+    end
+
+    app = Orchestrate::Application.new(client)
+    assert_equal client.api_key, app.api_key
+    assert_equal client, app.client
+    assert pinged, "API wasn't pinged"
+  end
+
+  def test_collection_accessor
+    app, stubs = make_application
+    assert_kind_of Orchestrate::Collection, app[:users]
+  end
+
 end

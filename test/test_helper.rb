@@ -61,6 +61,13 @@ def make_client_and_artifacts(parallel=false)
   [client, stubs, basic_auth]
 end
 
+def make_application
+  client, stubs = make_client_and_artifacts
+  stubs.get("/v0") { [200, response_headers, ''] }
+  app = Orchestrate::Application.new(client)
+  [app, stubs]
+end
+
 def capture_warnings
   old, $stderr = $stderr, StringIO.new
   begin
