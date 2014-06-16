@@ -10,5 +10,9 @@ module Orchestrate
       @name = collection_name.to_s
     end
 
+    def destroy!
+      app.client.delete_collection(name)
+    end
+
   end
 end
