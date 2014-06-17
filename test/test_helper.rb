@@ -63,7 +63,7 @@ end
 
 def make_application
   client, stubs = make_client_and_artifacts
-  stubs.get("/v0") { [200, response_headers, ''] }
+  stubs.head("/v0") { [200, response_headers, ''] }
   app = Orchestrate::Application.new(client)
   [app, stubs]
 end

@@ -46,5 +46,17 @@ module Orchestrate
       set(key_name, value, false)
     end
 
+    def each
+      return enum_for(:each) unless block_given?
+      response = app.client.list(name)
+      loop do
+        response.results.each do |doc|
+          yield doc
+        end
+        break unless response.next_link
+        response = response.next_results
+      end
+    end
+
   end
 end
