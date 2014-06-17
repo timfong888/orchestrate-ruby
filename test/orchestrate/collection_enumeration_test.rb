@@ -24,7 +24,7 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       end
       [ 200, response_headers, body.to_json ]
     end
-    items = app[:items].each.map {|doc| doc }
+    items = app[:items].map {|doc| doc }
     assert_equal 14, items.length
   end
 

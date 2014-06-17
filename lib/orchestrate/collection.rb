@@ -46,6 +46,7 @@ module Orchestrate
       set(key_name, value, false)
     end
 
+    include Enumerable
     def each
       return enum_for(:each) unless block_given?
       response = app.client.list(name)
