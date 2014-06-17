@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class CollectionTest < MiniTest::Unit::TestCase
+class CollectionAPITest < MiniTest::Unit::TestCase
   def setup
     @collection = 'test'
     @client, @stubs, @basic_auth = make_client_and_artifacts
