@@ -5,7 +5,7 @@ class ApplicationTest < MiniTest::Unit::TestCase
   def test_instantianes_with_api_key
     stubs = Faraday::Adapter::Test::Stubs.new
     pinged = false
-    stubs.get('/v0') do |env|
+    stubs.head('/v0') do |env|
       pinged = true
       [200, response_headers, '']
     end
@@ -22,7 +22,7 @@ class ApplicationTest < MiniTest::Unit::TestCase
   def test_instantiates_with_client
     client, stubs = make_client_and_artifacts
     pinged = false
-    stubs.get('/v0') do |env|
+    stubs.head('/v0') do |env|
       pinged = true
       [ 200, response_headers, '' ]
     end

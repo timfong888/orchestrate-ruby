@@ -11,7 +11,7 @@ class CollectionTest < MiniTest::Unit::TestCase
 
   def test_instantiates_with_client_and_name
     client, stubs = make_client_and_artifacts
-    stubs.get("/v0") { [200, response_headers, ''] }
+    stubs.head("/v0") { [200, response_headers, ''] }
     users = Orchestrate::Collection.new(client, :users)
     assert_equal client, users.app.client
     assert_equal 'users', users.name
