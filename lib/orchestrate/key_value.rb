@@ -43,12 +43,18 @@ module Orchestrate
 
     def save
       begin
+        save!
+      rescue API::RequestError, API::ServiceError
+        false
+      end
+    end
+
+    def save!
+      begin
         load_from_response(@app.client.put(collection_name, key, value, ref), false)
       rescue API::IndexingConflict => e
         @ref = e.response.headers['Location'].split('/').last
         true
-      rescue API::RequestError, API::ServiceError
-        false
       end
     end
 
