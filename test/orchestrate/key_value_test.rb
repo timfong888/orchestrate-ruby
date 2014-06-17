@@ -71,36 +71,23 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal true, kv.save
     assert_equal new_ref, kv.ref
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [ 412, response_headers, {
-        message: "The version of the item does not match.",
-        code: "item_version_mismatch"
-      }.to_json ]
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:version_mismatch) }
     assert_equal false, kv.save
 
     stubs.put("/v0/items/#{kv.key}") do |env|
       new_ref = make_ref
-      [ 409, response_headers({"Location" => "/v0/items/#{kv.key}/refs/#{new_ref}"}), {
-        message: "The item has been stored but conflicts were detected when indexing. Conflicting fields have not been indexed.",
-        details: {
-          conflicts: { name: { type: "string", expected: "long" } },
-          conflicts_uri: "/v0/test/one/refs/f8a86a25029a907b/conflicts"
-        },
-        code: "indexing_conflict"
-      }.to_json ]
+      error_response(:indexing_conflict, {
+        headers: {"Location" => "/v0/items/#{kv.key}/refs/#{new_ref}"},
+        conflicts_uri: "/v0/items/#{kv.key}/refs/#{new_ref}/conflicts"
+      })
     end
     assert_equal true, kv.save
     assert_equal new_ref, kv.ref
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [400, response_headers, { message: message, code: "api_bad_request" }.to_json ]
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:bad_request) }
     assert_equal false, kv.save
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [500, response_headers, '{}']
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:service_error) }
     assert_equal false, kv.save
   end
 
@@ -118,40 +105,27 @@ class KeyValueTest < MiniTest::Unit::TestCase
     kv.save!
     assert_equal ref, kv.ref
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [ 412, response_headers, {
-        message: "The version of the item does not match.",
-        code: "item_version_mismatch"
-      }.to_json ]
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:version_mismatch) }
     assert_raises Orchestrate::API::VersionMismatch do
       kv.save!
     end
 
     stubs.put("/v0/items/#{kv.key}") do |env|
       ref = make_ref
-      [ 409, response_headers({"Location" => "/v0/items/#{kv.key}/refs/#{ref}"}), {
-        message: "The item has been stored but conflicts were detected when indexing. Conflicting fields have not been indexed.",
-        details: {
-          conflicts: { name: { type: "string", expected: "long" } },
-          conflicts_uri: "/v0/test/one/refs/f8a86a25029a907b/conflicts"
-        },
-        code: "indexing_conflict"
-      }.to_json ]
+      error_response(:indexing_conflict, {
+        headers: {"Location" => "/v0/items/#{kv.key}/refs/#{ref}"},
+        conflicts_uri: "/v0/items/#{kv.key}/refs/#{ref}/conflicts"
+      })
     end
     kv.save!
     assert_equal ref, kv.ref
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [400, response_headers, { message: message, code: "api_bad_request" }.to_json ]
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:bad_request) }
     assert_raises Orchestrate::API::BadRequest do
       kv.save!
     end
 
-    stubs.put("/v0/items/#{kv.key}") do |env|
-      [500, response_headers, '{}']
-    end
+    stubs.put("/v0/items/#{kv.key}") { error_response(:service_error) }
     assert_raises Orchestrate::API::ServiceError do
       kv.save!
     end

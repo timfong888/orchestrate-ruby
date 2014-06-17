@@ -104,6 +104,64 @@ def response_not_found(items)
 }.to_json
 end
 
+def error_response(error, etc={})
+  headers = response_headers(etc.fetch(:headers, {}))
+  case error
+  when :bad_request
+    [400, headers, {message: "The API request is malformed.", code: "api_bad_request"}.to_json ]
+  when :search_query_malformed
+    [ 400, headers, {
+      message: "The search query provided is invalid.",
+      code: "search_query_malformed"
+    }.to_json ]
+  when :invalid_search_param
+    [ 400, headers, {
+      message: "A provided search query param is invalid.",
+      details: { query: "Query is empty." },
+      code: "search_param_invalid"
+    }.to_json ]
+  when :malformed_ref
+    [ 400, headers, {
+      message: "The provided Item Ref is malformed.",
+      details: { ref: "blerg" },
+      code: "item_ref_malformed"
+    }.to_json ]
+  when :unauthorized
+    [ 401, headers, {
+      "message" => "Valid credentials are required.",
+      "code" => "security_unauthorized"
+    }.to_json ]
+  when :indexing_conflict
+    [409, headers, {
+      message: "The item has been stored but conflicts were detected when indexing. Conflicting fields have not been indexed.",
+      details: {
+        conflicts: { name: { type: "string", expected: "long" } },
+        conflicts_uri: etc[:conflicts_uri]
+      },
+      code: "indexing_conflict"
+    }.to_json ]
+  when :version_mismatch
+    [412, headers, {
+      message: "The version of the item does not match.",
+      code: "item_version_mismatch"
+    }.to_json]
+  when :already_present
+    [ 412, headers, {
+      message: "The item is already present.",
+      code: "item_already_present"
+    }.to_json ]
+  when :request_error
+    [ 418, response_headers, {
+      message: "I'm a little teapot",
+      code: "teapot"
+    }.to_json ]
+  when :service_error
+    headers.delete("Content-Type")
+    [ 500, headers, '' ]
+  else raise ArgumentError.new("unknown error #{error}")
+  end
+end
+
 # Assertion Helpers
 
 def assert_header(header, expected, env)
