@@ -4,7 +4,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application
     @items = @app[:items]
-    @kv = make_kv_item(@items, @stubs)
+    @kv = make_kv_item(@items, @stubs, :loaded => Time.now - 60)
   end
 
   def test_save_performs_put_if_match_and_returns_true_on_success
@@ -18,6 +18,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     end
     assert_equal true, @kv.save
     assert_equal new_ref, @kv.ref
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
   def test_save_performs_put_if_match_and_returns_false_on_version_mismatch
@@ -40,6 +41,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     end
     assert_equal true, @kv.save
     assert_equal ref, @kv.ref
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
   def test_save_returns_false_on_etc_errors
@@ -49,7 +51,6 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     @stubs.put("/v0/items/#{@kv.key}") { error_response(:service_error) }
     assert_equal false, @kv.save
   end
-
 
   def test_save_bang_performs_put_if_match_doesnt_raise_on_success
     @kv[:foo] = "bar"
@@ -62,6 +63,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     end
     @kv.save!
     assert_equal ref, @kv.ref
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
   def test_save_bang_performs_put_if_match_raises_on_version_mismatch
@@ -86,6 +88,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     end
     @kv.save!
     assert_equal ref, @kv.ref
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
   def test_save_bang_performs_put_if_match_raises_on_request_error
@@ -111,6 +114,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
     assert_equal true, @kv.destroy
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
   def test_destroy_performs_delete_if_match_and_returns_false_on_error

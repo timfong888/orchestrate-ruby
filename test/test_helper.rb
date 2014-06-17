@@ -81,7 +81,9 @@ def make_kv_item(collection, stubs, opts={})
     'Content-Location' => "/v0/#{collection.name}/#{key}/refs/#{ref}"
   })
   stubs.get("/v0/items/#{key}") { [200, res_headers, body.to_json] }
-  Orchestrate::KeyValue.load(collection, key)
+  kv = Orchestrate::KeyValue.load(collection, key)
+  kv.instance_variable_set(:@last_request_time, opts[:loaded]) if opts[:loaded]
+  kv
 end
 
 def capture_warnings

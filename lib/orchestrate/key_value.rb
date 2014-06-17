@@ -15,6 +15,7 @@ module Orchestrate
     attr_reader :value
 
     attr_reader :loaded
+    attr_reader :last_request_time
 
     def initialize(coll, key_name)
       @collection = coll
@@ -54,6 +55,7 @@ module Orchestrate
         load_from_response(@app.client.put(collection_name, key, value, ref), false)
       rescue API::IndexingConflict => e
         @ref = e.response.headers['Location'].split('/').last
+        @last_request_time = Time.parse(e.response.headers['Date'])
         true
       end
     end
@@ -68,13 +70,15 @@ module Orchestrate
     end
 
     def destroy!
-      @app.client.delete(collection_name, key, ref)
+      response = @app.client.delete(collection_name, key, ref)
+      @last_request_time = response.request_time
     end
 
     private
     def load_from_response(response, set_body=true)
       @ref = response.ref
       @value = response.body if set_body
+      @last_request_time = response.request_time
       @loaded = true
     end
 

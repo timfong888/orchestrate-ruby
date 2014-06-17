@@ -13,6 +13,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal "items/hello", kv.id
     assert_equal body, kv.value
     assert kv.loaded?
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
   def test_value_accessors
