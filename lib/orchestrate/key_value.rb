@@ -12,6 +12,7 @@ module Orchestrate
     attr_reader :key
     attr_reader :id
     attr_reader :ref
+    attr_reader :reftime
     attr_accessor :value
 
     attr_reader :loaded
@@ -30,6 +31,7 @@ module Orchestrate
         path = key_name_or_listing.fetch('path')
         @key = path.fetch('key')
         @ref = path.fetch('ref')
+        @reftime = Time.at(key_name_or_listing.fetch('reftime') / 1000.0)
         @value = key_name_or_listing.fetch('value')
         @last_request_time = response if response.kind_of?(Time)
       else

@@ -53,6 +53,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal "foo", kv.key
     assert_equal listing['path']['ref'], kv.ref
     assert_equal listing['value'], kv.value
+    assert_in_delta Time.at(listing['reftime'] / 1000), kv.reftime, 1
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
