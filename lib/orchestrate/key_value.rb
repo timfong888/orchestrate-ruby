@@ -12,18 +12,19 @@ module Orchestrate
     attr_reader :key
     attr_reader :id
     attr_reader :ref
-    attr_reader :value
+    attr_accessor :value
 
     attr_reader :loaded
     attr_reader :last_request_time
 
-    def initialize(coll, key_name)
+    def initialize(coll, key_name, response=nil)
       @collection = coll
       @collection_name = coll.name
       @app = coll.app
       @key = key_name.to_s
       @id = "#{collection_name}/#{key}"
       @loaded = false
+      load_from_response(response) if response
     end
 
     def loaded?

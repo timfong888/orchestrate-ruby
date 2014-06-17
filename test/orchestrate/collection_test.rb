@@ -47,5 +47,41 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert_nil items[:absent]
   end
 
+  def test_kv_setter
+    app, stubs = make_application
+    items = Orchestrate::Collection.new(app, :items)
+    body = { "hello" => "world" }
+    ref = nil
+    stubs.put("/v0/items/newitem") do |env|
+      assert_header "If-Match", nil, env
+      assert_header "If-None-Match", nil, env
+      assert_equal body, JSON.parse(env.body)
+      ref = make_ref
+      [ 201, response_headers({'Etag' => %|"#{ref}"|, 'Location' => "/v0/items/newitem/refs/#{ref}"}), '' ]
+    end
+    items[:newitem] = body
+    assert ref
+  end
+
+  def test_set
+    app, stubs = make_application
+    items = Orchestrate::Collection.new(app, :items)
+    body = { "hello" => "world" }
+    ref = nil
+    stubs.put("/v0/items/newitem") do |env|
+      assert_header "If-Match", nil, env
+      assert_header "If-None-Match", nil, env
+      assert_equal body, JSON.parse(env.body)
+      ref = make_ref
+      [ 201, response_headers({'Etag' => %|"#{ref}"|, 'Location' => "/v0/items/newitem/refs/#{ref}"}), '' ]
+    end
+    kv = items.set(:newitem, body)
+    assert_equal ref, kv.ref
+    assert_equal "newitem", kv.key
+    assert_equal body, kv.value
+    assert kv.loaded?
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+  end
+
 end
 

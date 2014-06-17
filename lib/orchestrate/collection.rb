@@ -26,5 +26,16 @@ module Orchestrate
       end
     end
 
+    def []=(key_name, value)
+      set(key_name, value)
+    end
+
+    def set(key_name, value)
+      resp = app.client.put(name, key_name, value)
+      kv = KeyValue.new(self, key_name, resp)
+      kv.value = value
+      kv
+    end
+
   end
 end
