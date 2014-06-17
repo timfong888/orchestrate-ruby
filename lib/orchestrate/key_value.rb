@@ -58,6 +58,19 @@ module Orchestrate
       end
     end
 
+    def destroy
+      begin
+        destroy!
+        true
+      rescue API::VersionMismatch
+        false
+      end
+    end
+
+    def destroy!
+      @app.client.delete(collection_name, key, ref)
+    end
+
     private
     def load_from_response(response, set_body=true)
       @ref = response.ref

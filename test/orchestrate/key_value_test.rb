@@ -14,6 +14,12 @@ class KeyValueTest < MiniTest::Unit::TestCase
     Orchestrate::KeyValue.load(collection, key)
   end
 
+  def setup
+    @app, @stubs = make_application
+    @items = @app[:items]
+    @kv = make_kv_item(@items, @stubs)
+  end
+
   def test_load_with_collection_and_key
     app, stubs = make_application
     items = app[:items]
@@ -128,6 +134,26 @@ class KeyValueTest < MiniTest::Unit::TestCase
     stubs.put("/v0/items/#{kv.key}") { error_response(:service_error) }
     assert_raises Orchestrate::API::ServiceError do
       kv.save!
+    end
+  end
+
+  def test_destroy_performs_delete_if_match_and_returns_true_on_success
+    @stubs.delete("/v0/items/#{@kv.key}") do |env|
+      assert_header 'If-Match', "\"#{@kv.ref}\"", env
+      [204, response_headers, '']
+    end
+    assert_equal true, @kv.destroy
+  end
+
+  def test_destroy_performs_delete_if_match_and_returns_false_on_error
+    @stubs.delete("/v0/items/#{@kv.key}") { error_response(:version_mismatch) }
+    assert_equal false, @kv.destroy
+  end
+
+  def test_destroy_bang_performs_delete_raises_on_error
+    @stubs.delete("/v0/items/#{@kv.key}") { error_response(:version_mismatch) }
+    assert_raises Orchestrate::API::VersionMismatch do
+      @kv.destroy!
     end
   end
 

@@ -150,11 +150,6 @@ def error_response(error, etc={})
       message: "The item is already present.",
       code: "item_already_present"
     }.to_json ]
-  when :request_error
-    [ 418, response_headers, {
-      message: "I'm a little teapot",
-      code: "teapot"
-    }.to_json ]
   when :service_error
     headers.delete("Content-Type")
     [ 500, headers, '' ]
