@@ -55,7 +55,7 @@ module Orchestrate::API
     def initialize(faraday_response, client)
       super(faraday_response, client)
       @location = headers['Content-Location'] || headers['Location']
-      @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
+      @ref = headers.fetch('Etag','').gsub('"','')
     end
   end
 
