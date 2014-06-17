@@ -29,11 +29,12 @@ class CollectionTest < MiniTest::Unit::TestCase
 
   def test_kv_getter
     app, stubs = make_application
-    users = Orchestrate::Collection.new(app, :users)
+    items = Orchestrate::Collection.new(app, :items)
+    body = {"hello" => "world"}
     stubs.get("/v0/items/hello") do |env|
-      [200, response_headers, {"hello" => "world"}]
+      [200, response_headers, body]
     end
-    hello = users[:hello]
+    hello = items[:hello]
     assert_kind_of Orchestrate::KeyValue, hello
   end
 

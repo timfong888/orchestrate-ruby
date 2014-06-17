@@ -19,7 +19,7 @@ module Orchestrate
     end
 
     def [](key_name)
-      KeyValue.new(app, name, key_name)
+      KeyValue.load(self, key_name)
     end
 
   end
