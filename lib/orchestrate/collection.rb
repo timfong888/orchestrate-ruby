@@ -5,6 +5,11 @@ module Orchestrate
 
     attr_reader :name
 
+    def to_s
+      "#<Orchestrate::Collection name=#{name} api_key=#{app.api_key[0..7]}...>"
+    end
+    alias :inspect :to_s
+
     def initialize(app, collection_name)
       if app.kind_of? Orchestrate::Client
         @app = Application.new(app)

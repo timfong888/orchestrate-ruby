@@ -17,6 +17,11 @@ module Orchestrate
     attr_reader :loaded
     attr_reader :last_request_time
 
+    def to_s
+      "#<Orchestrate::KeyValue id=#{id} ref=#{ref} last_request_time=#{last_request_time}>"
+    end
+    alias :inspect :to_s
+
     def initialize(coll, key_name, response=nil)
       @collection = coll
       @collection_name = coll.name

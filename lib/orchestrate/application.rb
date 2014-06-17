@@ -20,5 +20,10 @@ module Orchestrate
       Collection.new(self, collection_name)
     end
 
+    def to_s
+      "#<Orchestrate::Application api_key=#{api_key[0..7]}...>"
+    end
+    alias :inspect :to_s
+
   end
 end
