@@ -22,11 +22,18 @@ module Orchestrate
     end
     alias :inspect :to_s
 
-    def initialize(coll, key_name, response=nil)
+    def initialize(coll, key_name_or_listing, response=nil)
       @collection = coll
       @collection_name = coll.name
       @app = coll.app
-      @key = key_name.to_s
+      if key_name_or_listing.kind_of?(Hash)
+        path = key_name_or_listing.fetch('path')
+        @key = path.fetch('key')
+        @ref = path.fetch('ref')
+        @value = key_name_or_listing.fetch('value')
+      else
+        @key = key_name_or_listing.to_s
+      end
       @id = "#{collection_name}/#{key}"
       @loaded = false
       load_from_response(response) if response

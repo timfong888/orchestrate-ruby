@@ -86,6 +86,15 @@ def make_kv_item(collection, stubs, opts={})
   kv
 end
 
+def make_kv_listing(collection, opts={})
+  key = opts[:key] || "item-#{rand(1_000_000)}"
+  ref = opts[:ref] || make_ref
+  reftime = opts[:reftime] || Time.now.to_f - (rand(24) * 3600_000)
+  body = opts[:body] || {"key" => key}
+  { "path" => { "collection" => collection, "key" => key, "ref" => ref },
+    "reftime" => reftime, "value" => body }
+end
+
 def capture_warnings
   old, $stderr = $stderr, StringIO.new
   begin
