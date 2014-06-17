@@ -42,12 +42,12 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     assert_equal ref, @kv.ref
   end
 
-  def foo
-    stubs.put("/v0/items/#{kv.key}") { error_response(:bad_request) }
-    assert_equal false, kv.save
+  def test_save_returns_false_on_etc_errors
+    @stubs.put("/v0/items/#{@kv.key}") { error_response(:bad_request) }
+    assert_equal false, @kv.save
 
-    stubs.put("/v0/items/#{kv.key}") { error_response(:service_error) }
-    assert_equal false, kv.save
+    @stubs.put("/v0/items/#{@kv.key}") { error_response(:service_error) }
+    assert_equal false, @kv.save
   end
 
 
