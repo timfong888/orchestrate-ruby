@@ -103,7 +103,12 @@ end
 ```
 
 ## Release Notes
-- June 12, 2014: release 0.6.0
+
+- June 17, 2014: release 0.6.1
+  - Fix #43 for If-None-Match on Client#put
+  - License changed to ASLv2
+
+- June 16, 2014: release 0.6.0
   - **BACKWARDS-INCOMPATIBLE** Reworked Client constructor to take API key and
     optional Faraday configuration block.  See 9045ffc for details.
   - Migrated documentation to YARD
@@ -119,5 +124,4 @@ end
   Initial Port from @jimcar
   - Uses Faraday HTTP Library as backend, with examples of alternate adapters
   - Cleanup client method signatures
-
 
