@@ -35,7 +35,10 @@ class ApplicationTest < MiniTest::Unit::TestCase
 
   def test_collection_accessor
     app, stubs = make_application
-    assert_kind_of Orchestrate::Collection, app[:users]
+    users = app[:users]
+    assert_kind_of Orchestrate::Collection, users
+    assert_equal app, users.app
+    assert_equal 'users', users.name
   end
 
 end

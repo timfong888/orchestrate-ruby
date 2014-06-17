@@ -9,6 +9,14 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert_equal 'users', users.name
   end
 
+  def test_instantiates_with_client_and_name
+    client, stubs = make_client_and_artifacts
+    stubs.get("/v0") { [200, response_headers, ''] }
+    users = Orchestrate::Collection.new(client, :users)
+    assert_equal client, users.app.client
+    assert_equal 'users', users.name
+  end
+
   def test_destroy
     app, stubs = make_application
     users = Orchestrate::Collection.new(app, :users)
@@ -17,6 +25,16 @@ class CollectionTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
     assert true, users.destroy!
+  end
+
+  def test_kv_getter
+    app, stubs = make_application
+    users = Orchestrate::Collection.new(app, :users)
+    stubs.get("/v0/items/hello") do |env|
+      [200, response_headers, {"hello" => "world"}]
+    end
+    hello = users[:hello]
+    assert_kind_of Orchestrate::KeyValue, hello
   end
 
 end
