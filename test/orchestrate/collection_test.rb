@@ -63,7 +63,7 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert ref
   end
 
-  def test_set
+  def test_set_performs_put
     app, stubs = make_application
     items = Orchestrate::Collection.new(app, :items)
     body = { "hello" => "world" }
@@ -81,6 +81,17 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert_equal body, kv.value
     assert kv.loaded?
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+  end
+
+  def test_create_performs_put_if_absent
+    app, stubs = make_application
+    items = Orchestrate::Collection.new(app, :items)
+    body = { "hello" => "world" }
+    ref = nil
+    stubs.put("/v0/items/newitem") do |env|
+      assert_header "If-Match", nil, env
+      # assert_header "If-None-Match", '"*"', env
+    end
   end
 
 end
