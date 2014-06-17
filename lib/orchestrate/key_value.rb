@@ -31,11 +31,12 @@ module Orchestrate
         @key = path.fetch('key')
         @ref = path.fetch('ref')
         @value = key_name_or_listing.fetch('value')
+        @last_request_time = response if response.kind_of?(Time)
       else
         @key = key_name_or_listing.to_s
       end
       @id = "#{collection_name}/#{key}"
-      load_from_response(response) if response
+      load_from_response(response) if response.kind_of?(API::Response)
     end
 
     def loaded?
