@@ -71,6 +71,7 @@ module Orchestrate
 
     def destroy!
       response = @app.client.delete(collection_name, key, ref)
+      @ref = nil
       @last_request_time = response.request_time
     end
 

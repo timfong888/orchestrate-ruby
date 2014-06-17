@@ -114,6 +114,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
       [204, response_headers, '']
     end
     assert_equal true, @kv.destroy
+    assert_nil @kv.ref
     assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
   end
 
