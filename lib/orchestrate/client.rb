@@ -35,6 +35,12 @@ module Orchestrate
       end
     end
 
+    # @!visibility private
+    def to_s
+      "#<Orchestrate::Client api_key=#{api_key[0..7]}... >"
+    end
+    alias :inspect :to_s
+
     # Tests authentication with Orchestrate.
     # @return Orchestrate::API::Response
     # @raise Orchestrate::API::Unauthorized if the client could not authenticate.
