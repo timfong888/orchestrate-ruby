@@ -52,7 +52,7 @@ module Orchestrate
       response = app.client.list(name)
       loop do
         response.results.each do |doc|
-          yield doc
+          yield KeyValue.new(self, doc, response.request_time)
         end
         break unless response.next_link
         response = response.next_results

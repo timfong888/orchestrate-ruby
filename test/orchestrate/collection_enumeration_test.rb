@@ -17,8 +17,16 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       end
       [ 200, response_headers, body.to_json ]
     end
-    items = app[:items].map {|doc| doc }
+    items = app[:items].map {|item| item }
     assert_equal 14, items.length
+    items.each_with_index do |item, index|
+      assert_equal "key-#{index}", item.key
+      assert item.ref
+      assert item.reftime
+      assert item.value
+      assert_equal "key-#{index}", item[:key]
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1
+    end
   end
 
 end
