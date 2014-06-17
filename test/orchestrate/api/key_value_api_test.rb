@@ -1,6 +1,6 @@
 require_relative "../../test_helper"
 
-class KeyValueTest < MiniTest::Unit::TestCase
+class KeyValueAPITest < MiniTest::Unit::TestCase
   def setup
     @collection = 'test'
     @key = 'keyname'
