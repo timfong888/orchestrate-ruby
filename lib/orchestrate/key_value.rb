@@ -30,5 +30,13 @@ module Orchestrate
       @value = response.body
     end
 
+    def [](attr_name)
+      value[attr_name.to_s]
+    end
+
+    def []=(attr_name, attr_value)
+      value[attr_name.to_s] = attr_value
+    end
+
   end
 end
