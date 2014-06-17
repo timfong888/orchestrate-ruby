@@ -35,12 +35,11 @@ module Orchestrate
         @key = key_name_or_listing.to_s
       end
       @id = "#{collection_name}/#{key}"
-      @loaded = false
       load_from_response(response) if response
     end
 
     def loaded?
-      !! @loaded
+      !! last_request_time
     end
 
     def reload
@@ -66,6 +65,7 @@ module Orchestrate
     def save!
       begin
         load_from_response(@app.client.put(collection_name, key, value, ref), false)
+        true
       rescue API::IndexingConflict => e
         @ref = e.response.headers['Location'].split('/').last
         @last_request_time = Time.parse(e.response.headers['Date'])
@@ -76,7 +76,6 @@ module Orchestrate
     def destroy
       begin
         destroy!
-        true
       rescue API::VersionMismatch
         false
       end
@@ -86,6 +85,7 @@ module Orchestrate
       response = @app.client.delete(collection_name, key, ref)
       @ref = nil
       @last_request_time = response.request_time
+      true
     end
 
     private
@@ -93,7 +93,6 @@ module Orchestrate
       @ref = response.ref
       @value = response.body if set_body
       @last_request_time = response.request_time
-      @loaded = true
     end
 
   end
