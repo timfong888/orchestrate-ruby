@@ -128,7 +128,7 @@ module Orchestrate
       if condition.is_a?(String)
         headers['If-Match'] = API::Helpers.format_ref(condition)
       elsif condition == false
-        headers['If-None-Match'] = '*'
+        headers['If-None-Match'] = '"*"'
       end
       send_request :put, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
     end
