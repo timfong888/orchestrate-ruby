@@ -30,11 +30,15 @@ module Orchestrate
       set(key_name, value)
     end
 
-    def set(key_name, value)
-      resp = app.client.put(name, key_name, value)
+    def set(key_name, value, condition=nil)
+      resp = app.client.put(name, key_name, value, condition)
       kv = KeyValue.new(self, key_name, resp)
       kv.value = value
       kv
+    end
+
+    def create(key_name, value)
+      set(key_name, value, false)
     end
 
   end

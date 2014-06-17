@@ -90,8 +90,18 @@ class CollectionTest < MiniTest::Unit::TestCase
     ref = nil
     stubs.put("/v0/items/newitem") do |env|
       assert_header "If-Match", nil, env
-      # assert_header "If-None-Match", '"*"', env
+      assert_header "If-None-Match", '"*"', env
+      assert_equal body, JSON.parse(env.body)
+      ref = make_ref
+      [ 201, response_headers({"Etag" => %|"#{ref}"|, "Location" => "/v0/items/newitem/refs/#{ref}"}), '' ]
     end
+    kv = items.create(:newitem, body)
+    assert_equal items, kv.collection
+    assert_equal "newitem", kv.key
+    assert_equal ref, kv.ref
+    assert_equal body, kv.value
+    assert kv.loaded?
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
 end
