@@ -30,7 +30,7 @@ describe Orchestrate::Client do
 
   it "handles ping request" do
     client, stubs = make_client_and_artifacts
-    stubs.get("/v0") do |env|
+    stubs.head("/v0") do |env|
       [ 200, response_headers, '' ]
     end
     client.ping

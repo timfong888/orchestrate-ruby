@@ -39,7 +39,7 @@ module Orchestrate
     # @return Orchestrate::API::Response
     # @raise Orchestrate::API::Unauthorized if the client could not authenticate.
     def ping
-      send_request :get, []
+      send_request :head, []
     end
 
     # @!group Collections
