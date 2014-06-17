@@ -106,6 +106,7 @@ end
 
 - June 17, 2014: release 0.6.1
   - Fix #43 for If-None-Match on Client#put
+  - Fix #46 for Client#ping
   - License changed to ASLv2
 
 - June 16, 2014: release 0.6.0
