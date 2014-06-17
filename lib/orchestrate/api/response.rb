@@ -40,6 +40,12 @@ module Orchestrate::API
       @request_time = Time.parse(headers['Date'])
     end
 
+    # @!visibility private
+    def to_s
+      "#<#{self.class.name} status=#{status} request_id=#{request_id}>"
+    end
+    alias :inspect :to_s
+
   end
 
   # A generic response for a single entity (K/V, Ref, Event)
@@ -55,8 +61,9 @@ module Orchestrate::API
     def initialize(faraday_response, client)
       super(faraday_response, client)
       @location = headers['Content-Location'] || headers['Location']
-      @ref = headers.fetch('Etag','').gsub('"','')
+      @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
     end
+
   end
 
   # A generic response for a collection of entities (K/V, Refs, Events, Search)

@@ -16,7 +16,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
       assert_accepts_json env
       headers = {
         'Content-Location' => ref_url,
-        'ETag' => "\"#{ref}\"",
+        'ETag' => "\"#{ref}-gzip\"",
       }.merge(chunked_encoding_header)
       [ 200, response_headers(headers), body.to_json]
     end
@@ -25,7 +25,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal 200, response.status
     assert_equal body, response.body
 
-    assert_equal "\"#{ref}\"", response.headers['Etag']
+    assert_equal "\"#{ref}-gzip\"", response.headers['Etag']
     assert_equal ref_url, response.headers['Content-Location']
 
     assert_equal ref_url, response.location
