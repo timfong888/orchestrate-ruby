@@ -68,6 +68,10 @@ def make_application
   [app, stubs]
 end
 
+def make_ref
+  SecureRandom.hex(16)
+end
+
 def capture_warnings
   old, $stderr = $stderr, StringIO.new
   begin

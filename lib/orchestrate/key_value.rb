@@ -11,6 +11,10 @@ module Orchestrate
     attr_reader :collection_name
     attr_reader :key
     attr_reader :id
+    attr_reader :ref
+    attr_reader :value
+
+    attr_reader :loaded
 
     def initialize(coll, key_name)
       @collection = coll
@@ -21,13 +25,12 @@ module Orchestrate
       @loaded = false
     end
 
-    attr_reader :ref
-    attr_reader :value
+    def loaded?
+      !! @loaded
+    end
 
     def reload
-      response = @app.client.get(collection_name, key)
-      @ref = response.ref
-      @value = response.body
+      load_from_response(@app.client.get(collection_name, key))
     end
 
     def [](attr_name)
@@ -36,6 +39,24 @@ module Orchestrate
 
     def []=(attr_name, attr_value)
       value[attr_name.to_s] = attr_value
+    end
+
+    def save
+      begin
+        load_from_response(@app.client.put(collection_name, key, value, ref), false)
+      rescue API::IndexingConflict => e
+        @ref = e.response.headers['Location'].split('/').last
+        true
+      rescue API::RequestError, API::ServiceError
+        false
+      end
+    end
+
+    private
+    def load_from_response(response, set_body=true)
+      @ref = response.ref
+      @value = response.body if set_body
+      @loaded = true
     end
 
   end
