@@ -19,7 +19,11 @@ module Orchestrate
     end
 
     def [](key_name)
-      KeyValue.load(self, key_name)
+      begin
+        KeyValue.load(self, key_name)
+      rescue API::NotFound
+        nil
+      end
     end
 
   end

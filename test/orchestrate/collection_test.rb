@@ -27,7 +27,7 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert true, users.destroy!
   end
 
-  def test_kv_getter
+  def test_kv_getter_when_present
     app, stubs = make_application
     items = Orchestrate::Collection.new(app, :items)
     body = {"hello" => "world"}
@@ -36,6 +36,15 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
     hello = items[:hello]
     assert_kind_of Orchestrate::KeyValue, hello
+  end
+
+  def test_kv_getter_when_absent
+    app, stubs = make_application
+    items = Orchestrate::Collection.new(app, :items)
+    stubs.get("/v0/items/absent") do |env|
+      [404, response_headers, response_not_found('absent')]
+    end
+    assert_nil items[:absent]
   end
 
 end
