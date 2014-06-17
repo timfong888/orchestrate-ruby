@@ -72,6 +72,18 @@ def make_ref
   SecureRandom.hex(16)
 end
 
+def make_kv_item(collection, stubs, opts={})
+  key = opts[:key] || 'hello'
+  ref = opts[:ref] || "12345"
+  body = opts[:body] || {"hello" => "world"}
+  res_headers = response_headers({
+    'Etag' => "\"#{ref}\"",
+    'Content-Location' => "/v0/#{collection.name}/#{key}/refs/#{ref}"
+  })
+  stubs.get("/v0/items/#{key}") { [200, res_headers, body.to_json] }
+  Orchestrate::KeyValue.load(collection, key)
+end
+
 def capture_warnings
   old, $stderr = $stderr, StringIO.new
   begin
@@ -96,12 +108,12 @@ def chunked_encoding_header
 end
 
 def response_not_found(items)
-{ "message" => "The requested items could not be found.",
-  "details" => {
-    "items" => [ items ]
-  },
-  "code" => "items_not_found"
-}.to_json
+  { "message" => "The requested items could not be found.",
+    "details" => {
+      "items" => [ items ]
+    },
+    "code" => "items_not_found"
+  }.to_json
 end
 
 def error_response(error, etc={})
