@@ -29,5 +29,20 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_enumerates_lazily
+    app, stubs = make_application
+    stubs.get("/v0/items") do |env|
+      if env.params['afterKey'] != nil
+        raise ArgumentError.new("unexpected afterKey: #{env.params['afterKey']}")
+      else
+        body = { "results" => 10.times.map {|x| make_kv_listing(:items, key: "key-#{x}")},
+                 "next" => "/v0/items?afterKey=key-9", "count" => 10 }
+        [ 200, response_headers, body.to_json ]
+      end
+    end
+    items = app[:items].take(5).map {|item| item }
+    assert_equal 5, items.length
+  end
+
 end
 
