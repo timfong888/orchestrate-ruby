@@ -104,5 +104,16 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
+  def test_create_performs_put_if_absent_returns_false_on_already_exists
+    app, stubs = make_application
+    items = app[:items]
+    stubs.put("/v0/items/newitem") do |env|
+      assert_header "If-Match", nil, env
+      assert_header "If-None-Match", '"*"', env
+      error_response(:already_present)
+    end
+    assert_equal false, items.create(:newitem, {"hello" => "world"})
+  end
+
 end
 

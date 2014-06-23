@@ -44,6 +44,8 @@ module Orchestrate
 
     def create(key_name, value)
       set(key_name, value, false)
+    rescue Orchestrate::API::AlreadyPresent
+      false
     end
 
     include Enumerable
