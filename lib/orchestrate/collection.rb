@@ -82,6 +82,11 @@ module Orchestrate
       true
     end
 
+    def purge(key_name)
+      app.client.purge(name, key_name)
+      true
+    end
+
     # @!endgroup
 
 

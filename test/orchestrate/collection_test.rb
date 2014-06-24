@@ -126,6 +126,13 @@ class CollectionTest < MiniTest::Unit::TestCase
   end
 
   def test_purge_performs_purge
+    app, stubs = make_application
+    items = app[:items]
+    stubs.delete("/v0/items/olditem") do |env|
+      assert_equal "true", env.params['purge']
+      [ 204, response_headers, '' ]
+    end
+    assert_equal true, items.purge(:olditem)
   end
 
 end
