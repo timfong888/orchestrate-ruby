@@ -27,7 +27,7 @@ module Orchestrate
     end
     alias :inspect :to_s
 
-    # Equivalent to `String#==`.
+    # Equivalent to `String#==`.  Compares by name and app's api_key.
     # @param other [Orchestrate::Collection] the collection to compare against.
     # @return [true, false]
     def ==(other)
@@ -37,7 +37,7 @@ module Orchestrate
     end
     alias :eql? :==
 
-    # Equivalent to `String#<=>`.
+    # Equivalent to `String#<=>`.  Compares by name and app's api_key.
     # @param other [Orchestrate::Collection] the collection to compare against.
     # @return [nil, -1, 0, 1]
     def <=>(other)
