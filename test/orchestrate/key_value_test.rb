@@ -57,5 +57,29 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
+  def test_equality
+    app, stubs = make_application
+    app2, stubs = make_application
+    items = app[:items]
+
+    foo = Orchestrate::KeyValue.new(items, :foo)
+
+    assert_equal foo, Orchestrate::KeyValue.new(items, :foo)
+    refute_equal foo, Orchestrate::KeyValue.new(items, :bar)
+    refute_equal foo, Orchestrate::KeyValue.new(app[:users], :foo)
+    refute_equal foo, Orchestrate::KeyValue.new(app2[:items], :foo)
+    refute_equal foo, :foo
+
+    assert foo.eql?(Orchestrate::KeyValue.new(items, :foo))
+    refute foo.eql?(Orchestrate::KeyValue.new(items, :bar))
+    refute foo.eql?(Orchestrate::KeyValue.new(app[:users], :foo))
+    refute foo.eql?(Orchestrate::KeyValue.new(app2[:items], :foo))
+    refute foo.eql?(:foo)
+
+    # equal? is for Object equality
+    assert foo.equal?(foo)
+    refute foo.equal?(Orchestrate::KeyValue.new(items, :foo))
+  end
+
 end
 
