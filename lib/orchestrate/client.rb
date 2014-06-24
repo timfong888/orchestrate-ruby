@@ -111,6 +111,15 @@ module Orchestrate
       send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
 
+    # [Creates a value at an auto-generated
+    # key](https://orchestrate.io/docs/api/?shell#key/value/post-\(create-&-generate-key\)).
+    # @param collection [#to_s] The name of the collection.
+    # @param body [#to_json] The value to store.
+    # @return Orchestrate::API::ItemResponse
+    def post(collection, body)
+      send_request :post, [collection], { body: body, response: API::ItemResponse }
+    end
+
     # [Updates the value associated with
     # a key](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
     # If the key does not currently have a value, will create the value.
@@ -165,10 +174,12 @@ module Orchestrate
     # key](http://orchestrate.io/docs/api/#key/value/delete11).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
+    # @param ref [#to_s] If specified, purges the ref only if the current value's ref matches.
     # @return Orchestrate::API::Response
-    # @todo take an optional ref for If-Match
-    def purge(collection, key)
-      send_request :delete, [collection, key], { query: { purge: true } }
+    def purge(collection, key, ref=nil)
+      headers = {}
+      headers['If-Match'] = API::Helpers.format_ref(ref) if ref
+      send_request :delete, [collection, key], { query: { purge: true }, headers: headers }
     end
 
     # [List the KeyValue items in a collection](http://orchestrate.io/docs/api/#key/value/list).

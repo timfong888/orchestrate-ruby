@@ -46,6 +46,23 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_posts_key_value
+    body = {"foo" => "bar"}
+    ref = "12345"
+    key = "567890ac"
+    @stubs.post("/v0/#{@collection}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body.to_json, env.body
+      headers = { "Location" => "/v0/#{@collection}/#{key}/refs/#{ref}", "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
+    end
+    response = @client.post(@collection, body)
+    assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "/v0/#{@collection}/#{key}/refs/#{ref}", response.location
+  end
+
   def test_puts_key_value_without_ref
     body={"foo" => "bar"}
     ref = "12345"
@@ -167,6 +184,18 @@ class KeyValueTest < MiniTest::Unit::TestCase
     response = @client.purge(@collection, @key)
     assert_equal 204, response.status
     assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
+  end
+
+  def test_delete_key_value_with_purge_and_condition
+    ref = "12345"
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal "true", env.params["purge"]
+      assert_header 'If-Match', "\"#{ref}\"", env
+      [ 204, response_headers, '' ]
+    end
+    response = @client.purge(@collection, @key, ref)
+    assert_equal 204, response.status
   end
 
   def test_gets_ref
