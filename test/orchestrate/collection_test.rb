@@ -29,6 +29,7 @@ class CollectionTest < MiniTest::Unit::TestCase
 
   def test_equality
     app, stubs = make_application
+    app2, stubs = make_application
     items1 = app[:items]
     items2 = app[:items]
     other = app[:other]
@@ -36,10 +37,14 @@ class CollectionTest < MiniTest::Unit::TestCase
     refute_equal items1, other
     refute_equal items1, OpenStruct.new({name: 'items'})
     refute_equal items1, 3
+    refute_equal items1, app2[:items]
+
     assert items1.eql?(items2)
     assert items2.eql?(items1)
     refute items1.eql?(other)
     refute other.eql?(items1)
+    refute items1.eql?(app2[:items])
+
     # equal? is for object identity only
     refute items1.equal?(items2)
     refute other.equal?(items1)
@@ -47,10 +52,12 @@ class CollectionTest < MiniTest::Unit::TestCase
 
   def test_sorting
     app, stubs = make_application
+    app2, stubs = make_application
     assert_equal(-1, app[:users] <=> app[:items])
     assert_equal  0, app[:items] <=> app[:items]
     assert_equal  1, app[:items] <=> app[:users]
     assert_nil 2 <=> app[:items]
+    assert_nil app2[:items] <=> app[:items]
   end
 end
 

@@ -31,7 +31,9 @@ module Orchestrate
     # @param other [Orchestrate::Collection] the collection to compare against.
     # @return [true, false]
     def ==(other)
-      other.kind_of?(Orchestrate::Collection) && other.name == name
+      other.kind_of?(Orchestrate::Collection) && \
+        other.app.api_key == app.api_key && \
+        other.name == name
     end
     alias :eql? :==
 
@@ -40,6 +42,7 @@ module Orchestrate
     # @return [nil, -1, 0, 1]
     def <=>(other)
       return nil unless other.kind_of?(Orchestrate::Collection)
+      return nil unless other.app.api_key == app.api_key
       other.name <=> name
     end
 
