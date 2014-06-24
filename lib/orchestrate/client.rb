@@ -111,6 +111,15 @@ module Orchestrate
       send_request :get, [collection, key, :refs], { query: options, response: API::CollectionResponse }
     end
 
+    # [Creates a value at an auto-generated
+    # key](https://orchestrate.io/docs/api/?shell#key/value/post-\(create-&-generate-key\)).
+    # @param collection [#to_s] The name of the collection.
+    # @param body [#to_json] The value to store.
+    # @return Orchestrate::API::ItemResponse
+    def post(collection, body)
+      send_request :post, [collection], { body: body, response: API::ItemResponse }
+    end
+
     # [Updates the value associated with
     # a key](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
     # If the key does not currently have a value, will create the value.

@@ -46,6 +46,23 @@ class KeyValueTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_posts_key_value
+    body = {"foo" => "bar"}
+    ref = "12345"
+    key = "567890ac"
+    @stubs.post("/v0/#{@collection}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body.to_json, env.body
+      headers = { "Location" => "/v0/#{@collection}/#{key}/refs/#{ref}", "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
+    end
+    response = @client.post(@collection, body)
+    assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "/v0/#{@collection}/#{key}/refs/#{ref}", response.location
+  end
+
   def test_puts_key_value_without_ref
     body={"foo" => "bar"}
     ref = "12345"
