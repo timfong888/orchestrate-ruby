@@ -115,5 +115,18 @@ class CollectionTest < MiniTest::Unit::TestCase
     assert_equal false, items.create(:newitem, {"hello" => "world"})
   end
 
+  def test_delete_performs_delete
+    app, stubs = make_application
+    items = app[:items]
+    stubs.delete("/v0/items/olditem") do |env|
+      assert_nil env.params['purge']
+      [ 204, response_headers, '' ]
+    end
+    assert_equal true, items.delete(:olditem)
+  end
+
+  def test_purge_performs_purge
+  end
+
 end
 

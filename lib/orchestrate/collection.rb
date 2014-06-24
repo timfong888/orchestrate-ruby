@@ -77,6 +77,11 @@ module Orchestrate
       false
     end
 
+    def delete(key_name)
+      app.client.delete(name, key_name)
+      true
+    end
+
     # @!endgroup
 
 
