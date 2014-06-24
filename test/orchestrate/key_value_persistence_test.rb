@@ -130,4 +130,31 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_purge_performs_purge_if_match_and_returns_true_on_success
+    @stubs.delete("/v0/items/#{@kv.key}") do |env|
+      assert_header 'If-Match', %|"#{@kv.ref}"|, env
+      assert_equal "true", env.params['purge']
+      [ 204, response_headers, '' ]
+    end
+    assert_equal true, @kv.purge
+    assert_nil @kv.ref
+    assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
+  end
+
+  def test_purge_performs_purge_if_match_and_returns_false_on_error
+    @stubs.delete("/v0/items/#{@kv.key}") { error_response(:version_mismatch) }
+    assert_equal false, @kv.purge
+  end
+
+  def test_purge_bang_performs_purge_if_match_and_raises_on_error
+    @stubs.delete("/v0/items/#{@kv.key}") do |env|
+      assert_header 'If-Match', %|"#{@kv.ref}"|, env
+      assert_equal "true", env.params['purge']
+      error_response(:version_mismatch)
+    end
+    assert_raises Orchestrate::API::VersionMismatch do
+      @kv.purge!
+    end
+  end
+
 end

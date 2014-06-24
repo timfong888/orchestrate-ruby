@@ -154,6 +154,21 @@ module Orchestrate
       true
     end
 
+    def purge
+      begin
+        purge!
+      rescue API::VersionMismatch
+        false
+      end
+    end
+
+    def purge!
+      response = @app.client.purge(collection_name, key, ref)
+      @ref = nil
+      @last_request_time = response.request_time
+      true
+    end
+
     private
     def load_from_response(response, set_body=true)
       @ref = response.ref
