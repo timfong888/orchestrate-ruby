@@ -161,6 +161,7 @@ module Orchestrate
     # Iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
     # Items are provided in lexicographically sorted order by key name.
     # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
+    # @see KeyValueList#each
     # @example
     #   keys = collection.take(20).map(&:key)
     #   # returns the first 20 keys in the collection.
@@ -169,50 +170,98 @@ module Orchestrate
       KeyValueList.new(self).each(&block)
     end
 
+    # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
+    # @see KeyValueList#start
+    # @return [KeyValueList]
     def start(start_key)
       KeyValueList.new(self).start(start_key)
     end
 
+    # Sets the exclusive start key for enumeration over the KeyValue items in the collection.
+    # @see KeyValueList#after
+    # @return [KeyValueList]
     def after(start_key)
       KeyValueList.new(self).after(start_key)
     end
 
+    # Sets the exclusive end key for enumeration over the KeyValue items in the collection.
+    # @see KeyValueList#before
+    # @return [KeyValueList]
     def before(end_key)
       KeyValueList.new(self).before(end_key)
     end
 
+    # Sets the inclusive end key for enumeration over the KeyValue items in the collection.
+    # @see KeyValueList#end
+    # @return [KeyValueList]
     def end(end_key)
       KeyValueList.new(self).end(end_key)
     end
 
     # @!endgroup
 
+    # An enumerator with boundaries for performing a [KeyValue List
+    # query](http://orchestrate.io/docs/api/#key/value/list) against a collection.
     class KeyValueList
+      # @return [Collection] The collection which this KeyValueList enumerates over.
       attr_reader :collection
+
+      # @return [Hash] parameters for setting the boundaries of the enumeration.
       attr_reader :range
 
+      # Instantiate a new KeyValueList to enumerate over a collection
+      # @param collection [Collection] the collection to enumerate over.
+      # @param range [Hash] parameters for setting the boundaries of the enumeration.
+      # @option range [#to_s] :begin The beginning of the range.
+      # @option range [true, false] :begin_inclusive Whether the begin key is inclusive or not.
+      # @option range [#to_s] :end The end of the range.
+      # @option range [true, false] :end_inclusive Whether the end key is inclusive or not.
+      # @return KeyValueList
       def initialize(collection, range={})
         @collection = collection
         @range = range
       end
 
+      # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
+      # Overwrites any value given to #after.
+      # @param start_key [#to_s] The inclusive start of the key range.
+      # @return [KeyValueList] A new KeyValueList with the new range.
       def start(start_key)
         self.class.new(collection, range.merge({begin: start_key, begin_inclusive: true}))
       end
 
+      # Sets the exclusive start key for enumeration over the KeyValue items in the collection.
+      # Overwrites any value given to #start.
+      # @param start_key [#to_s] The exclusive start of the key range.
+      # @return [KeyValueList] A new KeyValueList with the new range.
       def after(start_key)
         self.class.new(collection, range.merge({begin: start_key, begin_inclusive: false}))
       end
 
+      # Sets the exclusive end key for enumeration over the KeyValue items in the collection.
+      # Overwrites any value given to #end.
+      # @param end_key [#to_s] The exclusive end of the key range.
+      # @return [KeyValueList] A new KeyValueList with the new range.
       def before(end_key)
         self.class.new(collection, range.merge({end: end_key, end_inclusive: false}))
       end
 
+      # Sets the inclusive end key for enumeration over the KeyValue items in the collection.
+      # Overwrites any value given to #before.
+      # @param end_key [#to_s] The inclusive end of the key range.
+      # @return [KeyValueList] A new KeyValueList with the new range.
       def end(end_key)
         self.class.new(collection, range.merge({end: end_key, end_inclusive: true}))
       end
 
       include Enumerable
+
+      # Lazily iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
+      # Items are provided in lexicographically sorted order by key name.
+      # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
+      # @example
+      #   keys = collection.after(:foo).take(20).map(&:key)
+      #   # returns the first 20 keys in the collection that occur after "foo"
       def each
         return enum_for(:each) unless block_given?
         params = {}
