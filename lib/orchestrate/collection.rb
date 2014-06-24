@@ -71,10 +71,21 @@ module Orchestrate
     # @param key_name [#to_s] The name of the key
     # @param value [#to_json] The value to store at the key
     # @return [Orchestrate::KeyValue, nil] The KeyValue if created, false if not
-    def create(key_name, value)
-      set(key_name, value, false)
-    rescue Orchestrate::API::AlreadyPresent
-      false
+    def create(key_name_or_value, value=nil)
+      if value.nil? and key_name_or_value.respond_to?(:to_json)
+        response = app.client.post(name, key_name_or_value)
+        match_data = response.location.match(%r{#{name}/([^/]+)})
+        raise API::ServiceError.new(response) unless match_data
+        kv = KeyValue.new(self, match_data[1], response)
+        kv.value = key_name_or_value
+        kv
+      else
+        begin
+          set(key_name_or_value, value, false)
+        rescue Orchestrate::API::AlreadyPresent
+          false
+        end
+      end
     end
 
     # [Deletes the value for a KeyValue
