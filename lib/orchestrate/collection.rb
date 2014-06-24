@@ -164,17 +164,9 @@ module Orchestrate
     # @example
     #   keys = collection.take(20).map(&:key)
     #   # returns the first 20 keys in the collection.
-    def each
-      return enum_for(:each) unless block_given?
-      response = app.client.list(name)
-      raise ResultsNotReady.new if app.client.http.parallel_manager
-      loop do
-        response.results.each do |doc|
-          yield KeyValue.new(self, doc, response.request_time)
-        end
-        break unless response.next_link
-        response = response.next_results
-      end
+    def each(&block)
+      return enum_for(:each) unless block
+      KeyValueList.new(self).each(&block)
     end
 
     def start(start_key)
@@ -233,6 +225,7 @@ module Orchestrate
           params[end_key] = range[:end]
         end
         response = collection.app.client.list(collection.name, params)
+        raise ResultsNotReady.new if collection.app.client.http.parallel_manager
         loop do
           response.results.each do |doc|
             yield KeyValue.new(collection, doc, response.request_time)
