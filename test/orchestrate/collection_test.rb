@@ -26,5 +26,24 @@ class CollectionTest < MiniTest::Unit::TestCase
     end
     assert true, users.destroy!
   end
+
+  def test_equality
+    app, stubs = make_application
+    items1 = app[:items]
+    items2 = app[:items]
+    other = app[:other]
+    assert_equal items1, items2
+    refute_equal items1, other
+    refute_equal items1, OpenStruct.new({name: 'items'})
+    refute_equal items1, 3
+    assert items1.eql?(items2)
+    assert items2.eql?(items1)
+    refute items1.eql?(other)
+    refute other.eql?(items1)
+    # equal? is for object identity only
+    refute items1.equal?(items2)
+    refute other.equal?(items1)
+  end
+
 end
 

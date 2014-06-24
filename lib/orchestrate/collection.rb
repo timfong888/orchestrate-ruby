@@ -27,6 +27,14 @@ module Orchestrate
       app.client.delete_collection(name)
     end
 
+    # Equivalent to `String#==`.
+    # @param other [Orchestrate::Collection] the collection to compare against.
+    # @return [true, false]
+    def ==(other)
+      other.kind_of?(Orchestrate::Collection) && other.name == name
+    end
+    alias :eql? :==
+
     # @!group KeyValue getters, setters
 
     # [Retrieves a KeyValue item by key](http://orchestrate.io/docs/api/#key/value/get).
