@@ -77,11 +77,19 @@ module Orchestrate
       false
     end
 
+    # [Deletes the value for a KeyValue
+    # item](http://orchestrate.io/docs/api/#key/value/delete12).
+    # @param key_name [#to_s] The name of the key
+    # @return [true] If the request suceeds.
     def delete(key_name)
       app.client.delete(name, key_name)
       true
     end
 
+    # [Purges a KeyValue item and its Ref
+    # history](http://orchestrate.io/docs/api/#key/value/delete12).
+    # @param key_name [#to_s] The name of the key
+    # @return [true] If the request suceeds.
     def purge(key_name)
       app.client.purge(name, key_name)
       true
