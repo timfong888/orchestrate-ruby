@@ -154,6 +154,9 @@ module Orchestrate
       true
     end
 
+    # Deletes a KeyValue item and its entire Ref history from Orchestrate using 'If-Match' with the current ref.
+    # Returns false if the item failed to delete because a new ref had been created since this KeyValue was loaded.
+    # @return [true, false]
     def purge
       begin
         purge!
@@ -162,6 +165,8 @@ module Orchestrate
       end
     end
 
+    # Deletes a KeyValue item and its entire Ref history from Orchestrate using 'If-Match' with the current ref.
+    # @raise [Orchestrate::API::VersionMismatch] If the KeyValue item has been updated with a new ref since this KeyValue was loaded.
     def purge!
       response = @app.client.purge(collection_name, key, ref)
       @ref = nil
