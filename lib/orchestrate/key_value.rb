@@ -75,7 +75,7 @@ module Orchestrate
         @key = key_name_or_listing.to_s
       end
       @id = "#{collection_name}/#{key}"
-      load_from_response(response) if response_or_request_time.kind_of?(API::Response)
+      load_from_response(response_or_request_time) if response_or_request_time.kind_of?(API::Response)
     end
 
     # If the KeyValue has been loaded or not.
