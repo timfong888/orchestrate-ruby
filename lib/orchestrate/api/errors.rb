@@ -16,7 +16,7 @@ module Orchestrate::API
     # @param response [Faraday::Response] The response that caused the error.
     def initialize(response)
       @response = response
-      if response.headers['Content-Type'] == 'application/json'
+      if response.headers['Content-Type'] == 'application/json' && response.body
         super(response.body['message'])
       else
         super(response.body)

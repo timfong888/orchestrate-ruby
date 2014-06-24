@@ -396,8 +396,13 @@ module Orchestrate
       end
 
       if ! response.success?
-        err_type = API::ERRORS.find do |err|
-          err.status == response.status && err.code == response.body['code']
+        err_type = if response.body
+          API::ERRORS.find do |err|
+            err.status == response.status && err.code == response.body['code']
+          end
+        else
+          errors = API::ERRORS.select {|err| err.status == response.status }
+          errors.length == 1 ? errors.first : nil
         end
         if err_type
           raise err_type.new(response)
