@@ -169,6 +169,18 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal response.headers['X-Orchestrate-Req-Id'], response.request_id
   end
 
+  def test_delete_key_value_with_purge_and_condition
+    ref = "12345"
+    @stubs.delete("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_equal "true", env.params["purge"]
+      assert_header 'If-Match', "\"#{ref}\"", env
+      [ 204, response_headers, '' ]
+    end
+    response = @client.purge(@collection, @key, ref)
+    assert_equal 204, response.status
+  end
+
   def test_gets_ref
     body = {"key" => "value"}
     ref = '123456'

@@ -167,8 +167,10 @@ module Orchestrate
     # @param key [#to_s] The name of the key.
     # @return Orchestrate::API::Response
     # @todo take an optional ref for If-Match
-    def purge(collection, key)
-      send_request :delete, [collection, key], { query: { purge: true } }
+    def purge(collection, key, ref=nil)
+      headers = {}
+      headers['If-Match'] = API::Helpers.format_ref(ref) if ref
+      send_request :delete, [collection, key], { query: { purge: true }, headers: headers }
     end
 
     # [List the KeyValue items in a collection](http://orchestrate.io/docs/api/#key/value/list).
