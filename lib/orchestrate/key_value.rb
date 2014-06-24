@@ -88,6 +88,15 @@ module Orchestrate
     end
     alias :eql? :==
 
+    # Equivalent to `String#<=>`.  Compares by key and collection.
+    # @param other [Orchestrate::KeyValue] the KeyValue to compare against.
+    # @return [nil, -1, 0, 1]
+    def <=>(other)
+      return nil unless other.kind_of?(Orchestrate::KeyValue)
+      return nil unless other.collection == collection
+      other.key <=> key
+    end
+
     # @return Pretty-Printed string representation of the KeyValue
     def to_s
       "#<Orchestrate::KeyValue id=#{id} ref=#{ref} last_request_time=#{last_request_time}>"

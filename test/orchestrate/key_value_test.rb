@@ -81,5 +81,19 @@ class KeyValueTest < MiniTest::Unit::TestCase
     refute foo.equal?(Orchestrate::KeyValue.new(items, :foo))
   end
 
+  def test_sorting
+    app, stubs = make_application
+    app2, stubs = make_application
+
+    foo = Orchestrate::KeyValue.new(app[:items], :foo)
+
+    assert_equal(-1, foo <=> Orchestrate::KeyValue.new(app[:items], :bar))
+    assert_equal  0, foo <=> Orchestrate::KeyValue.new(app[:items], :foo)
+    assert_equal  1, foo <=> Orchestrate::KeyValue.new(app[:items], :zoo)
+    assert_nil foo <=> Orchestrate::KeyValue.new(app[:users], :foo)
+    assert_nil foo <=> Orchestrate::KeyValue.new(app2[:items], :foo)
+    assert_nil foo <=> :foo
+  end
+
 end
 
