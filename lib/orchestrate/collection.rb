@@ -66,11 +66,20 @@ module Orchestrate
       kv
     end
 
-    # [Creates a KeyValue item by key, if the key doesn't have
-    # a value](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
-    # @param key_name [#to_s] The name of the key
-    # @param value [#to_json] The value to store at the key
-    # @return [Orchestrate::KeyValue, nil] The KeyValue if created, false if not
+    # Creates a KeyValue item in the collection.
+    # @overload create(value)
+    #   [Creates a KeyValue item with an auto-generated
+    #   key](http://orchestrate.io/docs/api/#key/value/post-\(create-&-generate-key\))
+    #   @param value [#to_json] The value to store
+    #   @return [Orchestrate::KeyValue] The KeyValue created.
+    #   @note If the create is considered a success but the client is unable to parse the key
+    #     from the location header, an API::ServiceError is raised.
+    # @overload create(key_name, value)
+    #   [Creates a KeyValue item by key, if the key doesn't have
+    #   a value](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
+    #   @param key_name [#to_s] The name of the key
+    #   @param value [#to_json] The value to store at the key
+    #   @return [Orchestrate::KeyValue, nil] The KeyValue if created, false if not
     def create(key_name_or_value, value=nil)
       if value.nil? and key_name_or_value.respond_to?(:to_json)
         response = app.client.post(name, key_name_or_value)
