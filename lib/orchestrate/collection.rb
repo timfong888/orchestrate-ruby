@@ -177,6 +177,51 @@ module Orchestrate
       end
     end
 
+    def start(start_key)
+      KeyValueList.new(self).start(start_key)
+    end
+
     # @!endgroup
+
+    class KeyValueList
+      attr_reader :collection
+      attr_reader :range
+
+      def initialize(collection, range={})
+        @collection = collection
+        @range = range
+      end
+
+      def start(start_key)
+        self.class.new(collection, range.merge({begin: start_key, begin_inclusive: true}))
+      end
+
+      def end(end_key)
+        self.class.new(collection, range.merge({end: end_key, end_inclusive: true}))
+      end
+
+      include Enumerable
+      def each
+        return enum_for(:each) unless block_given?
+        params = {}
+        if range[:begin]
+          begin_key = range[:begin_inclusive] ? :start : :after
+          params[begin_key] = range[:begin]
+        end
+        if range[:end]
+          end_key = range[:end_inclusive] ? :end : :before
+          params[end_key] = range[:end]
+        end
+        response = collection.app.client.list(collection.name, params)
+        loop do
+          response.results.each do |doc|
+            yield KeyValue.new(collection, doc, response.request_time)
+          end
+          break unless response.next_link
+          response = response.next_results
+        end
+      end
+    end
+
   end
 end

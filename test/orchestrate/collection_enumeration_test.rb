@@ -80,5 +80,20 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     assert_equal 5, items.length
   end
 
+  def test_enumerates_with_range_start_and_end
+    keys = %w[bar bat bee cat dog ear foo]
+    app, stubs = make_application
+    stubs.get("/v0/items") do |env|
+      assert_equal "bar", env.params['startKey']
+      assert_equal "foo", env.params['endKey']
+      body = { "results" => keys.map {|k| make_kv_listing(:items, key: k)},
+               "count" => keys.length }
+      [ 200, response_headers, body.to_json ]
+    end
+    items = app[:items].start(:bar).end(:foo).take(5).map {|item| item.key }
+    assert_equal 5, items.length
+    assert_equal %w[bar bat bee cat dog], items
+  end
+
 end
 
