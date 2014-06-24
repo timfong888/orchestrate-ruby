@@ -35,6 +35,14 @@ module Orchestrate
     end
     alias :eql? :==
 
+    # Equivalent to `String#<=>`.
+    # @param other [Orchestrate::Collection] the collection to compare against.
+    # @return [nil, -1, 0, 1]
+    def <=>(other)
+      return nil unless other.kind_of?(Orchestrate::Collection)
+      other.name <=> name
+    end
+
     # @!group KeyValue getters, setters
 
     # [Retrieves a KeyValue item by key](http://orchestrate.io/docs/api/#key/value/get).

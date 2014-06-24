@@ -45,5 +45,12 @@ class CollectionTest < MiniTest::Unit::TestCase
     refute other.equal?(items1)
   end
 
+  def test_sorting
+    app, stubs = make_application
+    assert_equal(-1, app[:users] <=> app[:items])
+    assert_equal  0, app[:items] <=> app[:items]
+    assert_equal  1, app[:items] <=> app[:users]
+    assert_nil 2 <=> app[:items]
+  end
 end
 
