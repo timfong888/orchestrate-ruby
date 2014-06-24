@@ -1,4 +1,5 @@
 module Orchestrate
+  # Collections are groupings of KeyValue items.  They are analagous to tables in SQL databases.
   class Collection
 
     # @return [Orchestrate::Application] The application this collection belongs to.
