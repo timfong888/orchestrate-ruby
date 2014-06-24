@@ -54,6 +54,28 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
+  def test_append_operator_performs_post
+    body = { "hello" => "world" }
+    key = nil
+    ref = nil
+    @stubs.post("/v0/items") do |env|
+      assert_header 'Content-Type', 'application/json', env
+      assert_equal body, JSON.parse(env.body)
+      ref = make_ref
+      key = SecureRandom.hex(16)
+      [ 201, response_headers({
+        'Etag' => %|"#{ref}"|, "Location" => "/v0/items/#{key}/refs/#{ref}"
+      }), '' ]
+    end
+    kv = @items << body
+    assert kv
+    assert_equal key, kv.key
+    assert_equal ref, kv.ref
+    assert_equal body, kv.value
+    assert kv.loaded?
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+  end
+
   def test_create_performs_post_with_one_arg
     body = { "hello" => "world" }
     key = nil

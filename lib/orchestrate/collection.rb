@@ -66,6 +66,15 @@ module Orchestrate
       kv
     end
 
+    def <<(value)
+      response = app.client.post(name, value)
+      match_data = response.location.match(%r{#{name}/([^/]+)})
+      raise API::ServiceError.new(response) unless match_data
+      kv = KeyValue.new(self, match_data[1], response)
+      kv.value = value
+      kv
+    end
+
     # Creates a KeyValue item in the collection.
     # @overload create(value)
     #   [Creates a KeyValue item with an auto-generated
