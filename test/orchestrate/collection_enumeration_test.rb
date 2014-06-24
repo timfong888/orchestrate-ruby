@@ -95,5 +95,20 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     assert_equal %w[bar bat bee cat dog], items
   end
 
+  def test_enumerates_with_range_after_and_before
+    keys = %w[bar bat bee cat dog ear foo]
+    app, stubs = make_application
+    stubs.get("/v0/items") do |env|
+      assert_equal "bar", env.params['afterKey']
+      assert_equal "goo", env.params['beforeKey']
+      body = { "results" => keys.drop(1).map {|k| make_kv_listing(:items, key: k)},
+               "count" => keys.length }
+      [ 200, response_headers, body.to_json ]
+    end
+    items = app[:items].after(:bar).before(:goo).take(5).map {|item| item.key }
+    assert_equal 5, items.length
+    assert_equal %w[bat bee cat dog ear], items
+  end
+
 end
 

@@ -181,6 +181,18 @@ module Orchestrate
       KeyValueList.new(self).start(start_key)
     end
 
+    def after(start_key)
+      KeyValueList.new(self).after(start_key)
+    end
+
+    def before(end_key)
+      KeyValueList.new(self).before(end_key)
+    end
+
+    def end(end_key)
+      KeyValueList.new(self).end(end_key)
+    end
+
     # @!endgroup
 
     class KeyValueList
@@ -194,6 +206,14 @@ module Orchestrate
 
       def start(start_key)
         self.class.new(collection, range.merge({begin: start_key, begin_inclusive: true}))
+      end
+
+      def after(start_key)
+        self.class.new(collection, range.merge({begin: start_key, begin_inclusive: false}))
+      end
+
+      def before(end_key)
+        self.class.new(collection, range.merge({end: end_key, end_inclusive: false}))
       end
 
       def end(end_key)
