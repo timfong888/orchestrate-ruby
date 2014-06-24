@@ -36,4 +36,15 @@ describe Orchestrate::Client do
     client.ping
   end
 
+  it "handles ping with invalid api_key and raises Unauthorized" do
+    client, stubs = make_client_and_artifacts
+    stubs.head("/v0") { [ 401, response_headers, {
+      "message" => "Valid credentials are required.",
+      "code" => "security_unauthorized"
+    }.to_json ] }
+    assert_raises Orchestrate::API::Unauthorized do
+      client.ping
+    end
+  end
+
 end
