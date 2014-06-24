@@ -66,6 +66,12 @@ module Orchestrate
       kv
     end
 
+    # [Creates a KeyValue item with an auto-generated
+    # key](http://orchestrate.io/docs/api/#key/value/post-\(create-&-generate-key\))
+    # @param value [#to_json] The value to store
+    # @return [Orchestrate::KeyValue] The KeyValue created.
+    # @note If the create is considered a success but the client is unable to parse the key
+    #   from the location header, an API::ServiceError is raised.
     def <<(value)
       response = app.client.post(name, value)
       match_data = response.location.match(%r{#{name}/([^/]+)})
@@ -77,6 +83,7 @@ module Orchestrate
 
     # Creates a KeyValue item in the collection.
     # @overload create(value)
+    #   (see #<<)
     #   [Creates a KeyValue item with an auto-generated
     #   key](http://orchestrate.io/docs/api/#key/value/post-\(create-&-generate-key\))
     #   @param value [#to_json] The value to store
