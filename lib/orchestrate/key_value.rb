@@ -78,6 +78,12 @@ module Orchestrate
       load_from_response(response_or_request_time) if response_or_request_time.kind_of?(API::Response)
     end
 
+    # @return Pretty-Printed string representation of the KeyValue
+    def to_s
+      "#<Orchestrate::KeyValue id=#{id} ref=#{ref} last_request_time=#{last_request_time}>"
+    end
+    alias :inspect :to_s
+
     # If the KeyValue has been loaded or not.
     # @return [true, false] loaded
     def loaded?
@@ -89,6 +95,8 @@ module Orchestrate
     def reload
       load_from_response(@app.client.get(collection_name, key))
     end
+
+    # @!group Attribute accessors
 
     # Get an attribute from the KeyValue item's value.
     # @param attr_name [#to_s] The name of the attribute.
@@ -104,6 +112,10 @@ module Orchestrate
     def []=(attr_name, attr_value)
       value[attr_name.to_s] = attr_value
     end
+
+    # @!endgroup
+    #
+    # @!group Persistence
 
     # Saves the KeyValue item to Orchestrate using 'If-Match' with the current ref.
     # Sets the new ref for this value to the ref attribute.
@@ -174,19 +186,14 @@ module Orchestrate
       true
     end
 
+    # @!engroup persistence
+
     private
     def load_from_response(response, set_body=true)
       @ref = response.ref
       @value = response.body if set_body
       @last_request_time = response.request_time
     end
-
-    public
-    # @!visibility private
-    def to_s
-      "#<Orchestrate::KeyValue id=#{id} ref=#{ref} last_request_time=#{last_request_time}>"
-    end
-    alias :inspect :to_s
 
   end
 end
