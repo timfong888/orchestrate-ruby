@@ -104,9 +104,11 @@ end
 
 ## Release Notes
 
-- WIP Master
+- June 24, 2014: release 0.6.2
   - Fix #48 to remove trailing -gzip from Etag header for ref value.
   - Custom #to_s and #inspect methods for Client, Response classes.
+  - Implement `If-Match` header for Client#purge
+  - Implement Client#post for auto-generated keys endpoint
 
 - June 17, 2014: release 0.6.1
   - Fix #43 for If-None-Match on Client#put
