@@ -91,12 +91,7 @@ module Orchestrate
     #   @return [Orchestrate::KeyValue, nil] The KeyValue if created, false if not
     def create(key_name_or_value, value=nil)
       if value.nil? and key_name_or_value.respond_to?(:to_json)
-        response = app.client.post(name, key_name_or_value)
-        match_data = response.location.match(%r{#{name}/([^/]+)})
-        raise API::ServiceError.new(response) unless match_data
-        kv = KeyValue.new(self, match_data[1], response)
-        kv.value = key_name_or_value
-        kv
+        self << key_name_or_value
       else
         begin
           set(key_name_or_value, value, false)
