@@ -104,6 +104,10 @@ end
 
 ## Release Notes
 
+- WIP Master
+  - Fix #48 to remove trailing -gzip from Etag header for ref value.
+  - Custom #to_s and #inspect methods for Client, Response classes.
+
 - June 17, 2014: release 0.6.1
   - Fix #43 for If-None-Match on Client#put
   - Fix #46 for Client#ping
