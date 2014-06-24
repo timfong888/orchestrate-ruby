@@ -165,8 +165,8 @@ module Orchestrate
     # key](http://orchestrate.io/docs/api/#key/value/delete11).
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
+    # @param ref [#to_s] If specified, purges the ref only if the current value's ref matches.
     # @return Orchestrate::API::Response
-    # @todo take an optional ref for If-Match
     def purge(collection, key, ref=nil)
       headers = {}
       headers['If-Match'] = API::Helpers.format_ref(ref) if ref
