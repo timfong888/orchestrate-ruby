@@ -21,11 +21,11 @@ module Orchestrate
       @name = collection_name.to_s
     end
 
-    # Deletes the collection.
-    # @return Orchestrate::API::Response
-    def destroy!
-      app.client.delete_collection(name)
+    # @return a pretty-printed representation of the collection.
+    def to_s
+      "#<Orchestrate::Collection name=#{name} api_key=#{app.api_key[0..7]}...>"
     end
+    alias :inspect :to_s
 
     # Equivalent to `String#==`.
     # @param other [Orchestrate::Collection] the collection to compare against.
@@ -45,6 +45,16 @@ module Orchestrate
       return nil unless other.app.api_key == app.api_key
       other.name <=> name
     end
+
+    # @!group Collection api
+
+    # Deletes the collection.
+    # @return Orchestrate::API::Response
+    def destroy!
+      app.client.delete_collection(name)
+    end
+
+    # @!endgroup
 
     # @!group KeyValue getters, setters
 
@@ -171,12 +181,6 @@ module Orchestrate
     end
 
     # @!endgroup
-
-    # @!visibility private
-    def to_s
-      "#<Orchestrate::Collection name=#{name} api_key=#{app.api_key[0..7]}...>"
-    end
-    alias :inspect :to_s
 
   end
 end
