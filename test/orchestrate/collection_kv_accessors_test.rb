@@ -54,7 +54,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
-  def test_create_performs_put_if_absent
+  def test_create_performs_put_if_absent_with_two_args
     body = { "hello" => "world" }
     ref = nil
     @stubs.put("/v0/items/newitem") do |env|
@@ -73,7 +73,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
   end
 
-  def test_create_performs_put_if_absent_returns_false_on_already_exists
+  def test_create_performs_put_if_absent_with_two_args_returns_false_on_already_exists
     @stubs.put("/v0/items/newitem") do |env|
       assert_header "If-Match", nil, env
       assert_header "If-None-Match", '"*"', env
