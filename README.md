@@ -104,6 +104,9 @@ end
 
 ## Release Notes
 
+- June 24, 2014: release 0.6.3
+  - Fix #55 to handle ping responses when unauthorized
+
 - June 24, 2014: release 0.6.2
   - Fix #48 to remove trailing -gzip from Etag header for ref value.
   - Custom #to_s and #inspect methods for Client, Response classes.
