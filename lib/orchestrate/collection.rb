@@ -198,6 +198,10 @@ module Orchestrate
       KeyValueList.new(self).end(end_key)
     end
 
+    # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
+    # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
+    # @param count [Integer] The number of items to limit to.
+    # @return [Array]
     def take(count)
       KeyValueList.new(self).take(count)
     end
@@ -290,6 +294,10 @@ module Orchestrate
         end
       end
 
+      # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
+      # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
+      # @param count [Integer] The number of items to limit to.
+      # @return [Array]
       def take(count)
         count = 1 if count < 1
         range[:limit] = count > 100 ? 100 : count
