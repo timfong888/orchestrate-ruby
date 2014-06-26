@@ -198,6 +198,10 @@ module Orchestrate
       KeyValueList.new(self).end(end_key)
     end
 
+    def take(count)
+      KeyValueList.new(self).take(count)
+    end
+
     # @!endgroup
 
     # An enumerator with boundaries for performing a [KeyValue List
@@ -285,6 +289,13 @@ module Orchestrate
           response = response.next_results
         end
       end
+
+      def take(count)
+        count = 1 if count < 1
+        range[:limit] = count > 100 ? 100 : count
+        super(count)
+      end
+
     end
 
   end

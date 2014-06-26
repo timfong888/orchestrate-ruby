@@ -69,11 +69,12 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
   def test_enumerates_as_needed
     app, stubs = make_application
     stubs.get("/v0/items") do |env|
+      assert_equal "5", env.params["limit"]
       if env.params['afterKey'] != nil
         raise ArgumentError.new("unexpected afterKey: #{env.params['afterKey']}")
       else
-        body = { "results" => 10.times.map {|x| make_kv_listing(:items, key: "key-#{x}")},
-                 "next" => "/v0/items?afterKey=key-9", "count" => 10 }
+        body = { "results" => 5.times.map {|x| make_kv_listing(:items, key: "key-#{x}")},
+                 "next" => "/v0/items?afterKey=key-4&limit=5", "count" => 5 }
         [ 200, response_headers, body.to_json ]
       end
     end
