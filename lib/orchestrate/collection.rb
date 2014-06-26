@@ -220,6 +220,7 @@ module Orchestrate
       def initialize(collection, range={})
         @collection = collection
         @range = range
+        range[:limit] ||= 100
       end
 
       # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
@@ -273,6 +274,7 @@ module Orchestrate
           end_key = range[:end_inclusive] ? :end : :before
           params[end_key] = range[:end]
         end
+        params[:limit] = range[:limit]
         response = collection.app.client.list(collection.name, params)
         raise ResultsNotReady.new if collection.app.client.http.parallel_manager
         loop do
