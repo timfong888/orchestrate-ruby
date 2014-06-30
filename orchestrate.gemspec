@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "faraday", "~> 0.9"
   s.add_dependency "faraday_middleware", "~> 0.9", ">= 0.9.1"
+  s.add_dependency "net-http-persistent", "~> 2.9"
   s.add_development_dependency "bundler", "~> 1.6"
   s.add_development_dependency "rake"
   s.add_development_dependency "typhoeus"
