@@ -22,13 +22,12 @@ client.list(:my_collection)
 
 ## Swapping out the HTTP backend
 
-This gem uses [Faraday][] for its HTTP needs -- and Faraday allows you to change the underlying HTTP client used.  It defaults to `Net::HTTP` but if you wanted to use [Typhoeus][] or [EventMachine HTTP][em-http], doing so would be easy.  Alternate Faraday backends enable using callbacks or parallel request support.
-
-In your Orchestrate configuration, simply provide a `faraday` key with a block that will be called with the `Faraday::Connection` object.  You may decorate it with middleware or change the adapter as described in the Faraday README.  Examples are below.
+This gem uses [Faraday][] for its HTTP needs -- and Faraday allows you to change the underlying HTTP client used.  The Orchestrate client defaults to [net-http-persistent][nhp] for speed on repeat requests without having to resort to a compiled library.  You can easily swap in [Typhoeus][] which uses libcurl to enable fast, parallel requests, or [EventMachine HTTP][em-http] to use a non-blocking, callback-based interface.  Examples are below.
 
 You may use Faraday's `test` adapter to stub out calls to the Orchestrate API in your tests.  See `tests/test_helper.rb` and the tests in `tests/orchestrate/api/*_test.rb` for examples.
 
 [Faraday]: https://github.com/lostisland/faraday/
+[nhp]: http://docs.seattlerb.org/net-http-persistent/
 [Typhoeus]: https://github.com/typhoeus/typhoeus#readme
 [em-http]: https://github.com/igrigorik/em-http-request#readme
 
