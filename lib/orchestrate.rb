@@ -9,5 +9,6 @@ require "orchestrate/version"
 #
 module Orchestrate
 
+  # If you attempt to enumerate over results in an in_parallel block
   class ResultsNotReady < StandardError; end
 end

@@ -32,6 +32,16 @@ module Orchestrate
       Collection.new(self, collection_name)
     end
 
+    # Performs requests in parallel.  Requires using a Faraday adapter that supports parallel requests.
+    # @yieldparam accumulator [Hash] A place to store the results of the parallel responses.
+    # @example Performing three requests at once
+    #   responses = app.in_parallel do |r|
+    #     r[:some_items] = app[:site_globals].lazy
+    #     r[:user]       = app[:users][current_user_key]
+    #     r[:user_feed]  = app.client.list_events(:users, current_user_key, :notices)
+    #   end
+    # @see README See the Readme for more examples.
+
     def in_parallel(&block)
       client.in_parallel(&block)
     end
