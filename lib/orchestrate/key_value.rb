@@ -26,6 +26,16 @@ module Orchestrate
       kv
     end
 
+    def self.from_listing(collection, listing, response)
+      path = listing.fetch('path')
+      key = path.fetch('key')
+      ref = path.fetch('ref')
+      kv = new(collection, key, response)
+      kv.instance_variable_set(:@ref, ref)
+      kv.value = listing.fetch('value')
+      kv
+    end
+
     # The collection this KeyValue belongs to.
     # @return [Orchestrate::Collection]
     attr_reader :collection
@@ -222,7 +232,7 @@ module Orchestrate
     private
     def load_from_response(response)
       response.on_complete do
-        @ref = response.ref
+        @ref = response.ref if response.respond_to?(:ref)
         @value = response.body unless response.body.respond_to?(:strip) && response.body.strip.empty?
         @last_request_time = response.request_time
       end

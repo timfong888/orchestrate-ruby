@@ -303,8 +303,17 @@ module Orchestrate
         range[:limit] = count > 100 ? 100 : count
         super(count)
       end
-
     end
+
+    # @!group Searching
+    def search(query)
+      response = app.client.search(name, query)
+      response.results.map do |result|
+        kv = KeyValue.from_listing(self, result, response)
+        [ result['score'], kv ]
+      end
+    end
+    # @!endgroup
 
   end
 end
