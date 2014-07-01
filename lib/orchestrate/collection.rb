@@ -158,7 +158,7 @@ module Orchestrate
     include Enumerable
     # @!group KeyValue enumerators
 
-    # Lazily iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
+    # Iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
     # Items are provided in lexicographically sorted order by key name.
     # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
     # @example
@@ -167,6 +167,7 @@ module Orchestrate
     def each
       return enum_for(:each) unless block_given?
       response = app.client.list(name)
+      raise ResultsNotReady.new if app.client.http.parallel_manager
       loop do
         response.results.each do |doc|
           yield KeyValue.new(self, doc, response.request_time)
@@ -177,6 +178,5 @@ module Orchestrate
     end
 
     # @!endgroup
-
   end
 end

@@ -8,4 +8,6 @@ require "orchestrate/version"
 # A library for supporting connections to the \Orchestrate API.
 #
 module Orchestrate
+
+  class ResultsNotReady < StandardError; end
 end
