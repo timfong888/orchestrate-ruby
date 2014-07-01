@@ -31,6 +31,7 @@ module Orchestrate::API
     # @return [Orchestrate::Client] The client used to generate the response.
     attr_reader :client
 
+    # @return [String, Hash] The response body from Orchestrate
     attr_reader :body
 
     # Instantiate a new Respose
@@ -51,6 +52,13 @@ module Orchestrate::API
       end
     end
 
+    # @!visibility private
+    def to_s
+      "#<#{self.class.name} status=#{status} request_id=#{request_id}>"
+    end
+    alias :inspect :to_s
+
+    private
     def handle_error_response
       err_type = if body && body['code']
         ERRORS.find {|err| err.status == status && err.code == body['code'] }
@@ -66,12 +74,6 @@ module Orchestrate::API
         raise ServiceError.new(self)
       end
     end
-
-    # @!visibility private
-    def to_s
-      "#<#{self.class.name} status=#{status} request_id=#{request_id}>"
-    end
-    alias :inspect :to_s
 
   end
 
