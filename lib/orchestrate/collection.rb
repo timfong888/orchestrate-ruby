@@ -334,6 +334,11 @@ module Orchestrate
           response = response.next_results
         end
       end
+
+      def take(count)
+        @limit = count > 100 ? 100 : count
+        super(count)
+      end
     end
 
   end
