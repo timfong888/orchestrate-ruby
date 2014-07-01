@@ -9,7 +9,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
   def test_kv_getter_when_present
     body = {"hello" => "world"}
     @stubs.get("/v0/items/hello") do |env|
-      [200, response_headers, body]
+      [200, response_headers, body.to_json]
     end
     hello = @items[:hello]
     assert_kind_of Orchestrate::KeyValue, hello

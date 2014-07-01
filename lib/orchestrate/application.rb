@@ -32,7 +32,11 @@ module Orchestrate
       Collection.new(self, collection_name)
     end
 
-    # @!visibility private
+    def in_parallel(&block)
+      client.in_parallel(&block)
+    end
+
+    # @return a pretty-printed representation of the application.
     def to_s
       "#<Orchestrate::Application api_key=#{api_key[0..7]}...>"
     end

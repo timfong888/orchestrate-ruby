@@ -209,9 +209,11 @@ module Orchestrate
 
     private
     def load_from_response(response, set_body=true)
-      @ref = response.ref
-      @value = response.body if set_body
-      @last_request_time = response.request_time
+      response.on_complete do
+        @ref = response.ref
+        @value = response.body if set_body
+        @last_request_time = response.request_time
+      end
     end
 
   end

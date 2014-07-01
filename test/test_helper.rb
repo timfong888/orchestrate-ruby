@@ -21,7 +21,7 @@ class ParallelTest < Faraday::Adapter::Test
     end
 
     def run
-      @queue.each {|env| env[:response].finish(env) }
+      @queue.each {|env| env[:response].finish(env) unless env[:response].finished? }
     end
   end
 
@@ -31,7 +31,7 @@ class ParallelTest < Faraday::Adapter::Test
 
   def call(env)
     super(env)
-    env[:parallel_manager].queue(env)
+    env[:parallel_manager].queue(env) if env[:parallel_manager]
     env[:response]
   end
 end
@@ -61,8 +61,12 @@ def make_client_and_artifacts(parallel=false)
   [client, stubs, basic_auth]
 end
 
-def make_application
-  client, stubs = make_client_and_artifacts
+def ref_headers(coll, key, ref)
+  {'Etag' => %|"#{ref}"|, 'Location' => "/v0/#{coll}/#{key}/refs/#{ref}"}
+end
+
+def make_application(opts={})
+  client, stubs = make_client_and_artifacts(opts[:parallel])
   stubs.head("/v0") { [200, response_headers, ''] }
   app = Orchestrate::Application.new(client)
   [app, stubs]
