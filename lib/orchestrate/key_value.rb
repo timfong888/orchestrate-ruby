@@ -6,7 +6,7 @@ module Orchestrate
     # Instantiates and loads a KeyValue item.
     # @param collection [Orchestrate::Collection] The collection to which the KeyValue belongs.
     # @param key [#to_s] The key name.
-    # @return Orchestrate::KeyValue key_value The KeyValue item.
+    # @return Orchestrate::KeyValue The KeyValue item.
     # @raise Orchestrate::API::NotFound if there is no value for the provided key.
     def self.load(collection, key)
       kv = new(collection, key)
@@ -14,6 +14,12 @@ module Orchestrate
       kv
     end
 
+    # Instantiate a KeyValue from a PUT or POST request and known value
+    # @param collection [Orchestrate::Collection] The collection to which the KeyValue belongs.
+    # @param key [#to_s] The key name.
+    # @param value [#to_json] The key's value.
+    # @param response [Orchestrate::API::Response] The response that is associated with the PUT/POST.
+    # @return Orchestrate::KeyValue The KeyValue item.
     def self.from_bodyless_response(collection, key, value, response)
       kv = new(collection, key, response)
       kv.value = value

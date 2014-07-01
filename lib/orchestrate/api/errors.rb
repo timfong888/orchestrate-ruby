@@ -73,7 +73,6 @@ module Orchestrate::API
   # @example This is the example provided to me by the Orchestrate team:
   #   client.put(:test, :first, { "count" => 0 }) # establishes 'count' as a Long
   #   client.put(:test, :second, { "count" => "none" }) # 'count' is not a Long
-  #
   class IndexingConflict < RequestError
     @status = 409
     @code   = 'indexing_conflict'
@@ -94,16 +93,19 @@ module Orchestrate::API
   # indicates a 500-class response, the problem is on Orchestrate's end
   class ServiceError < BaseError; end
 
+  # An error occurred while validating authentication
   class SecurityAuthentication < ServiceError
     @status = 500
     @code = 'security_authentication'
   end
 
+  # An error occurred while searching
   class SearchIndexNotFound < ServiceError
     @status = 500
     @code = 'search_index_not_found'
   end
 
+  # An unknown 500-class error occurred.
   class InternalError < ServiceError
     @status = 500
     @code = 'internal_error'

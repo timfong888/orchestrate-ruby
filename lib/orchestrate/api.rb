@@ -2,6 +2,7 @@ require "orchestrate"
 
 module Orchestrate
 
+  # Namespace for concerns related to the Orchestrate API
   module API
   end
 

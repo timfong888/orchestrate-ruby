@@ -2,6 +2,8 @@ require 'faraday'
 
 module Orchestrate
 
+  # The "method client": A single entry point to an Orchestrate Application,
+  # with methods for accessing each API endpoint.
   class Client
 
     # @return [String] The API key provided

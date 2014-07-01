@@ -41,7 +41,6 @@ module Orchestrate
     #     r[:user_feed]  = app.client.list_events(:users, current_user_key, :notices)
     #   end
     # @see README See the Readme for more examples.
-
     def in_parallel(&block)
       client.in_parallel(&block)
     end

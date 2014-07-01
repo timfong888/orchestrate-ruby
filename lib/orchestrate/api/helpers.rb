@@ -1,4 +1,5 @@
 module Orchestrate::API
+  # Some convenience methods for constructing API requests or reading responses.
   module Helpers
 
     extend self
