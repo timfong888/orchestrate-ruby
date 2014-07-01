@@ -4,7 +4,7 @@ class ClientTest < MiniTest::Unit::TestCase
 
   def test_initialization
     client = Orchestrate::Client.new('8c3')
-    client.must_be_kind_of Orchestrate::Client
+    assert_equal '8c3', client.api_key
   end
 
   def test_parallelism
