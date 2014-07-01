@@ -36,8 +36,27 @@ module Orchestrate::API
     def initialize(faraday_response, client)
       @client = client
       @response = faraday_response
-      @request_id = headers['X-Orchestrate-Req-Id']
-      @request_time = Time.parse(headers['Date'])
+      @response.on_complete do
+        @request_id = headers['X-Orchestrate-Req-Id'] if headers['X-Orchestrate-Req-Id']
+        @request_time = Time.parse(headers['Date']) if headers['Date']
+        handle_error_response unless success?
+      end
+    end
+
+    def handle_error_response
+      err_type = if body
+        ERRORS.find {|err| err.status == status && err.code == body['code'] }
+      else
+        errors = ERRORS.select {|err| err.status == status}
+        errors.length == 1 ? errors.first : nil
+      end
+      if err_type
+        raise err_type.new(self)
+      elsif status < 500
+        raise RequestError.new(self)
+      else
+        raise ServiceError.new(self)
+      end
     end
 
     # @!visibility private
@@ -60,8 +79,10 @@ module Orchestrate::API
     # (see Orchestrate::API::Response#initialize)
     def initialize(faraday_response, client)
       super(faraday_response, client)
-      @location = headers['Content-Location'] || headers['Location']
-      @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
+      @response.on_complete do
+        @location = headers['Content-Location'] || headers['Location']
+        @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
+      end
     end
 
   end
@@ -87,11 +108,13 @@ module Orchestrate::API
     # (see Orchestrate::API::Response#initialize)
     def initialize(faraday_response, client)
       super(faraday_response, client)
-      @count = body['count']
-      @total_count = body['total_count']
-      @results = body['results']
-      @next_link = body['next']
-      @prev_link = body['prev']
+      @response.on_complete do
+        @count = body['count']
+        @total_count = body['total_count']
+        @results = body['results']
+        @next_link = body['next']
+        @prev_link = body['prev']
+      end
     end
 
     # Retrieves the next page of results, if available

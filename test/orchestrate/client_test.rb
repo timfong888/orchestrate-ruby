@@ -16,11 +16,9 @@ describe Orchestrate::Client do
       [ 200, response_headers, {}.to_json ]
     end
     responses = nil
-    capture_warnings do
-      responses = client.in_parallel do |r|
-        r[:list] = client.list(:foo)
-        r[:user] = client.get(:users, "mattly")
-      end
+    responses = client.in_parallel do |r|
+      r[:list] = client.list(:foo)
+      r[:user] = client.get(:users, "mattly")
     end
     assert responses[:list]
     assert_equal 200, responses[:list].status

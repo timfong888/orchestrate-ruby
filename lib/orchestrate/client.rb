@@ -386,7 +386,7 @@ module Orchestrate
       headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       headers['Accept'] = 'application/json' if method == :get
 
-      response = http.send(method) do |request|
+      http_response = http.send(method) do |request|
         request.url path, query_string
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
@@ -395,25 +395,8 @@ module Orchestrate
         headers.each {|header, value| request[header] = value }
       end
 
-      if ! response.success?
-        err_type = if response.body
-          API::ERRORS.find do |err|
-            err.status == response.status && err.code == response.body['code']
-          end
-        else
-          errors = API::ERRORS.select {|err| err.status == response.status }
-          errors.length == 1 ? errors.first : nil
-        end
-        if err_type
-          raise err_type.new(response)
-        elsif response.status >= 500
-          raise API::ServiceError.new(response)
-        elsif response.status >= 400
-          raise API::RequestError.new(response)
-        end
-      end
       response_class = options.fetch(:response, API::Response)
-      response_class.new(response, self)
+      response_class.new(http_response, self)
     end
   end
 

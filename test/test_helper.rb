@@ -11,17 +11,28 @@ class ParallelTest < Faraday::Adapter::Test
   self.supports_parallel = true
   extend Faraday::Adapter::Parallelism
 
+  class Manager
+    def initialize
+      @queue = []
+    end
+
+    def queue(env)
+      @queue.push(env)
+    end
+
+    def run
+      @queue.each {|env| env[:response].finish(env) }
+    end
+  end
+
   def self.setup_parallel_manager(options={})
-    true
+    @mgr ||= Manager.new
   end
 
   def call(env)
-    Thread.new do
-      sleep 0.01
-      super(env)
-      env[:response].finish(env)
-    end
-    env
+    super(env)
+    env[:parallel_manager].queue(env)
+    env[:response]
   end
 end
 
