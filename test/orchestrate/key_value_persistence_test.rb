@@ -19,6 +19,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     assert_equal true, @kv.save
     assert_equal new_ref, @kv.ref
     assert_in_delta Time.now.to_f, @kv.last_request_time.to_f, 1
+    assert_equal "bar", @kv[:foo]
   end
 
   def test_save_performs_put_if_match_and_returns_false_on_version_mismatch

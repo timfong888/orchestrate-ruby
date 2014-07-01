@@ -90,10 +90,8 @@ module Orchestrate
     # @raise Orchestrate::API::AlreadyPresent a false condition was provided, but a value already exists for this key
     # @see #[]=
     def set(key_name, value, condition=nil)
-      resp = app.client.put(name, key_name, value, condition)
-      kv = KeyValue.new(self, key_name, resp)
-      kv.value = value
-      kv
+      response = app.client.put(name, key_name, value, condition)
+      KeyValue.from_bodyless_response(self, key_name, value, response)
     end
 
     # [Creates a KeyValue item with an auto-generated
@@ -106,9 +104,7 @@ module Orchestrate
       response = app.client.post(name, value)
       match_data = response.location.match(%r{#{name}/([^/]+)})
       raise API::ServiceError.new(response) unless match_data
-      kv = KeyValue.new(self, match_data[1], response)
-      kv.value = value
-      kv
+      KeyValue.from_bodyless_response(self, match_data[1], value, response)
     end
 
     # Creates a KeyValue item in the collection.

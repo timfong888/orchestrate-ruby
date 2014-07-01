@@ -14,6 +14,12 @@ module Orchestrate
       kv
     end
 
+    def self.from_bodyless_response(collection, key, value, response)
+      kv = new(collection, key, response)
+      kv.value = value
+      kv
+    end
+
     # The collection this KeyValue belongs to.
     # @return [Orchestrate::Collection]
     attr_reader :collection
@@ -156,7 +162,7 @@ module Orchestrate
     # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] If there are any other problems with saving.
     def save!
       begin
-        load_from_response(@app.client.put(collection_name, key, value, ref), false)
+        load_from_response(@app.client.put(collection_name, key, value, ref))
         true
       rescue API::IndexingConflict => e
         @ref = e.response.headers['Location'].split('/').last
@@ -208,10 +214,10 @@ module Orchestrate
     # @!engroup persistence
 
     private
-    def load_from_response(response, set_body=true)
+    def load_from_response(response)
       response.on_complete do
         @ref = response.ref
-        @value = response.body if set_body
+        @value = response.body unless response.body.respond_to?(:strip) && response.body.strip.empty?
         @last_request_time = response.request_time
       end
     end
