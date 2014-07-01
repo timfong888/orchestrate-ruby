@@ -13,7 +13,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal "items/hello", kv.id
     assert_equal body, kv.value
     assert kv.loaded?
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_value_accessors
@@ -70,8 +70,8 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal "foo", kv.key
     assert_equal listing['path']['ref'], kv.ref
     assert_equal listing['value'], kv.value
-    assert_in_delta Time.at(listing['reftime'] / 1000), kv.reftime, 1
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.at(listing['reftime'] / 1000), kv.reftime, 1.1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_equality
