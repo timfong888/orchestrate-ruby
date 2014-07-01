@@ -51,7 +51,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_equal "newitem", kv.key
     assert_equal body, kv.value
     assert kv.loaded?
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_append_operator_performs_post
@@ -73,7 +73,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_equal ref, kv.ref
     assert_equal body, kv.value
     assert kv.loaded?
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_create_performs_post_with_one_arg
@@ -95,7 +95,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_equal ref, kv.ref
     assert_equal body, kv.value
     assert kv.loaded?
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_create_performs_put_if_absent_with_two_args
@@ -114,7 +114,7 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_equal ref, kv.ref
     assert_equal body, kv.value
     assert kv.loaded?
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1
+    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
   end
 
   def test_create_performs_put_if_absent_with_two_args_returns_false_on_already_exists

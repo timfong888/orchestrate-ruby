@@ -26,7 +26,7 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       assert item.reftime
       assert item.value
       assert_equal "key-#{index}", item[:key]
-      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
     end
   end
 
@@ -61,7 +61,7 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
         assert item.reftime
         assert item.value
         assert_equal "key-#{index}", item[:key]
-        assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1
+        assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
       end
     end
   end
