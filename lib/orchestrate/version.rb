@@ -1,3 +1,4 @@
 module Orchestrate
-  VERSION = "0.6.3"
+  # @return [String] The version number of the Orchestrate Gem
+  VERSION = "0.7.0"
 end

@@ -8,19 +8,52 @@ Ruby client interface for the [Orchestrate.io](http://orchestrate.io) REST API.
 
 ## Getting Started
 
-Provide your API key:
+The Orchestrate Gem provides two interfaces currently, the _method_ client and the _object_ client.  The method client is a solid but basic interface that provides a single entry point to an Orchestrate Application.  The object client uses the method client under the hood, and maps Orchestrate's domain objects (Collections, KeyValues, etc) to Ruby classes, and is still very much in progress.  This guide will show you how to use both.
 
-``` ruby
-client = Orchestrate::Client.new('8ce391a...')
+### Object client use
+
+#### Setup the Application and a Collection
+```ruby
+app = Orchestrate::Application.new(api_key)
+users = app[:users]
 ```
 
-and start making requests:
-
-``` ruby
-client.list(:my_collection)
+#### Store some KeyValues, List them
+```ruby
+users[:joe] = { "name" => "Joe" }           # PUTs joe, returns the input, as per Ruby convention on #[]=
+users.set(:jack, { "name" => "Jack" })      # PUTs jack, returns a KeyValue
+users.create(:jill, { "name" => "Jill" })   # PUT-If-Absent hill, returns a KeyValue
+users << { "name" => "Unknown" }            # POSTs the body, returns a KeyValue
+users.map {|user| [user.key, user.ref]}     # enumerates over ALL items in collection
 ```
 
-## Swapping out the HTTP backend
+#### Manipulate KeyValues
+```ruby
+jill = users[:jill]
+jill[:name]                                 # "Jill"
+jill[:location] = "On the Hill"
+jill.value                                  # { "name" => "Jill", "location" => "On the Hill" }
+jill.save                                   # PUT-If-Match, updates ref
+```
+
+### Method Client use
+
+#### Create a Client
+``` ruby
+# method client
+client = Orchestrate::Client.new(api_key)
+```
+
+#### Query Collections, Keys and Values
+``` ruby
+# method client
+client.put(:users, :jane, {"name"=>"Jane"}) # PUTs jane, returns API::ItemResponse
+jack = client.get(:users, :jack)            # GETs jack, returns API::ItemResponse
+client.delete(:users, :jack, jack.ref)      # DELETE-If-Match, returns API::Response
+client.list(:users)                         # LIST users, returns API::CollectionResposne
+```
+
+## Swapping out the HTTP back end
 
 This gem uses [Faraday][] for its HTTP needs -- and Faraday allows you to change the underlying HTTP client used.  The Orchestrate client defaults to [net-http-persistent][nhp] for speed on repeat requests without having to resort to a compiled library.  You can easily swap in [Typhoeus][] which uses libcurl to enable fast, parallel requests, or [EventMachine HTTP][em-http] to use a non-blocking, callback-based interface.  Examples are below.
 
@@ -33,10 +66,11 @@ You may use Faraday's `test` adapter to stub out calls to the Orchestrate API in
 
 ### Parallel HTTP requests
 
-If you're using a Faraday backend that enables parallelization, such as Typhoeus, EM-HTTP-Request, or EM-Synchrony you can use `Orchestrate::Client#in_parallel` to fire off multiple requests at once.  If your Faraday backend does not support this, the method will still work as expected, but Faraday will output a warning to STDERR and the requests will be performed in series.
+If you're using a Faraday back end that enables parallelization, such as Typhoeus, EM-HTTP-Request, or EM-Synchrony you can use `Orchestrate::Client#in_parallel` to fire off multiple requests at once.  If your Faraday back end does not support this, the method will still work as expected, but Faraday will output a warning to STDERR and the requests will be performed in series.
 
+#### method client
 ``` ruby
-client = Orchestrate::Client.new(api_key)
+client = Orchestrate::Client.new(api_key) {|f| f.adapter :typhoeus }
 
 responses = client.in_parallel do |r|
   r[:list] = client.list(:my_collection)
@@ -48,27 +82,26 @@ end
 responses[:user] = #<Orchestrate::API::ItemResponse:0x00...>
 ```
 
-### Callback Support
+#### object client
+```ruby
+app = Orchestrate::Application.new(api_key) {|f| f.adapter :typhoeus }
 
-If you're using a Faraday backend that enables callbacks, such as EM-HTTP-Request or EM-Synchrony, you may use the callback interface to designate actions to perform when the request completes.
-
-``` ruby
-response = client.list(:my_collection)
-response.finished? # false
-response.on_complete do
-  # do stuff with the response as normal
+app.in_parallel do
+  @items = app[:my_collection].lazy.take(100)
+  @user = app[:users][current_user_id]
 end
 ```
 
-If the Faraday backend adapter does not support callbacks, the block provided will be executed when `Orchestrate::Client#on_complete` is called.
+Note that values are not available inside of the `in_parallel` block.  The `r[:list]` or `@items` objects are placeholders for their future values and will be available after the `in_parallel` block returns.  Since `take` and other enumerable methods normally attempt to access the value when called, you **must** convert the `app[:my_collection]` enumerator to a lazy enumerator with #lazy.  Attempting to access the enumerator's values (for example, without using `#lazy` or by using `#any?` or `#find`) while inside the `in_parallel` block will raise an `Orchestrate::ResultsNotReady` exception.
 
+Lazy Enumerators are not available by default in Ruby 1.9.
 
 ### Using with Typhoeus
 
 Typhoeus is backed by libcurl and enables parallelization.
 
 ``` ruby
-require 'typhoeus'
+require 'orchestrate'
 require 'typhoeus/adapters/faraday'
 
 client = Orchestrate::Client.new(api_key) do |conn|
@@ -103,21 +136,26 @@ end
 
 ## Release Notes
 
-- June 24, 2014: release 0.6.3
+### July 1, 2014: release 0.7.0
+  - Fix #66 to make parallel mode work properly
+  - Switch the default Faraday adapter to the `net-http-persistent` gem, which in casual testing yields much better performance for sustained use.
+  - Introduced the object client, `Orchestrate::Application`, `Orchestrate::Collection` & `Orchestrate::KeyValue`
+
+### June 24, 2014: release 0.6.3
   - Fix #55 to handle ping responses when unauthorized
 
-- June 24, 2014: release 0.6.2
+### June 24, 2014: release 0.6.2
   - Fix #48 to remove trailing -gzip from Etag header for ref value.
-  - Custom #to_s and #inspect methods for Client, Response classes.
+  - Custom `#to_s` and `#inspect` methods for Client, Response classes.
   - Implement `If-Match` header for Client#purge
   - Implement Client#post for auto-generated keys endpoint
 
-- June 17, 2014: release 0.6.1
+### June 17, 2014: release 0.6.1
   - Fix #43 for If-None-Match on Client#put
   - Fix #46 for Client#ping
   - License changed to ASLv2
 
-- June 16, 2014: release 0.6.0
+### June 16, 2014: release 0.6.0
   - **BACKWARDS-INCOMPATIBLE** Reworked Client constructor to take API key and
     optional Faraday configuration block.  See 9045ffc for details.
   - Migrated documentation to YARD
@@ -126,10 +164,10 @@ end
   - Remove custom logger in favor of the option to use Faraday middleware.
   - Accept Time/Date objects for Timestamp arguments to Event-related methods.
 
-- May 29, 2014: release 0.5.1
+### May 29, 2014: release 0.5.1
   - Fix problem with legacy code preventing gem from loading in some environments
 
-- May 21, 2014: release 0.5.0
+### May 21, 2014: release 0.5.0
   Initial Port from @jimcar
   - Uses Faraday HTTP Library as backend, with examples of alternate adapters
   - Cleanup client method signatures
