@@ -7,6 +7,26 @@ require "securerandom"
 require "time"
 require "logger"
 
+class ParallelTest < Faraday::Adapter::Test
+  self.supports_parallel = true
+  extend Faraday::Adapter::Parallelism
+
+  def self.setup_parallel_manager(options={})
+    true
+  end
+
+  def call(env)
+    Thread.new do
+      sleep 0.01
+      super(env)
+      env[:response].finish(env)
+    end
+    env
+  end
+end
+
+Faraday::Adapter.register_middleware :parallel_test => :ParallelTest
+
 # Test Helpers ---------------------------------------------------------------
 
 def output_message(name, msg = nil)
@@ -15,12 +35,16 @@ end
 
 # TODO this is a bit messy for now at least but there's a bunch of
 # intermediate state we'd have to deal with in a bunch of other places
-def make_client_and_artifacts
+def make_client_and_artifacts(parallel=false)
   api_key = SecureRandom.hex(24)
   basic_auth = "Basic #{Base64.encode64("#{api_key}:").gsub(/\n/,'')}"
   stubs = Faraday::Adapter::Test::Stubs.new
   client = Orchestrate::Client.new(api_key) do |f|
-    f.adapter :test, stubs
+    if parallel
+      f.adapter :parallel_test, stubs
+    else
+      f.adapter :test, stubs
+    end
     f.response :logger, Logger.new(File.join(File.dirname(__FILE__), "test.log"))
   end
   [client, stubs, basic_auth]

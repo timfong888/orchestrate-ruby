@@ -8,7 +8,7 @@ describe Orchestrate::Client do
   end
 
   it "handles parallel requests" do
-    client, stubs = make_client_and_artifacts
+    client, stubs = make_client_and_artifacts(true)
     stubs.get("/v0/foo") do |env|
       [ 200, response_headers, {}.to_json ]
     end
