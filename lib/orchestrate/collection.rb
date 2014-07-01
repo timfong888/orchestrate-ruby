@@ -312,19 +312,27 @@ module Orchestrate
     # @!endgroup
 
     class SearchResults
+      attr_reader :collection
+      attr_reader :query
+      attr_reader :limit
       def initialize(collection, query)
-        response = collection.app.client.search(collection.name, query)
-        @results = response.results.map do |result|
-          kv = KeyValue.from_listing(collection, result, response)
-          [ result['score'], kv ]
-        end
+        @collection = collection
+        @query = query
+        @limit = 100
       end
 
       include Enumerable
 
       def each
         return enum_for(:each) unless block_given?
-        @results.each {|result| yield result }
+        response = collection.app.client.search(collection.name, query, {limit:limit})
+        loop do
+          response.results.each do |listing|
+            yield [ listing['score'], KeyValue.from_listing(collection, listing, response) ]
+          end
+          break unless response.next_link
+          response = response.next_results
+        end
       end
     end
 
