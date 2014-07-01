@@ -1,5 +1,4 @@
 require 'faraday'
-require 'faraday_middleware'
 
 module Orchestrate
 
@@ -29,9 +28,6 @@ module Orchestrate
         # faraday seems to want you do specify these twice.
         faraday.request :basic_auth, api_key, ''
         faraday.basic_auth api_key, ''
-
-        # parses JSON responses
-        faraday.response :json, :content_type => /\bjson$/
       end
     end
 

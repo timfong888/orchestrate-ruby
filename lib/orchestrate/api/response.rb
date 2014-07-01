@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'webrick'
+require 'json' unless defined?(::JSON)
 
 module Orchestrate::API
 
@@ -7,7 +8,7 @@ module Orchestrate::API
   class Response
 
     extend Forwardable
-    def_delegators :@response, :status, :body, :headers, :success?, :finished?, :on_complete
+    def_delegators :@response, :status, :headers, :success?, :finished?, :on_complete
     # @!attribute [r] status
     #   @return [Integer] The HTTP Status code of the response.
     # @!attribute [r] body
@@ -30,6 +31,8 @@ module Orchestrate::API
     # @return [Orchestrate::Client] The client used to generate the response.
     attr_reader :client
 
+    attr_reader :body
+
     # Instantiate a new Respose
     # @param faraday_response [Faraday::Response] The Faraday response object.
     # @param client [Orchestrate::Client] The client used to generate the response.
@@ -39,12 +42,17 @@ module Orchestrate::API
       @response.on_complete do
         @request_id = headers['X-Orchestrate-Req-Id'] if headers['X-Orchestrate-Req-Id']
         @request_time = Time.parse(headers['Date']) if headers['Date']
+        if headers['Content-Type'] =~ /json/ && !@response.body.strip.empty?
+          @body = JSON.parse(@response.body)
+        else
+          @body = @response.body
+        end
         handle_error_response unless success?
       end
     end
 
     def handle_error_response
-      err_type = if body
+      err_type = if body && body['code']
         ERRORS.find {|err| err.status == status && err.code == body['code'] }
       else
         errors = ERRORS.select {|err| err.status == status}
