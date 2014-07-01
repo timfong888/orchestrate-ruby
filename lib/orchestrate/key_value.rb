@@ -32,6 +32,7 @@ module Orchestrate
       ref = path.fetch('ref')
       kv = new(collection, key, response)
       kv.instance_variable_set(:@ref, ref)
+      kv.instance_variable_set(:@reftime, listing['reftime']) if listing['reftime']
       kv.value = listing.fetch('value')
       kv
     end
@@ -82,22 +83,13 @@ module Orchestrate
     #   If key_name_or_listing is a listing, and this value is a Time, used to set last_request_time.
     #   Otherwise if an API::Request, used to load attributes and value.
     # @return Orchestrate::KeyValue
-    def initialize(coll, key_name_or_listing, response_or_request_time=nil)
+    def initialize(coll, key_name, associated_response=nil)
       @collection = coll
       @collection_name = coll.name
       @app = coll.app
-      if key_name_or_listing.kind_of?(Hash)
-        path = key_name_or_listing.fetch('path')
-        @key = path.fetch('key')
-        @ref = path.fetch('ref')
-        @reftime = Time.at(key_name_or_listing.fetch('reftime') / 1000.0)
-        @value = key_name_or_listing.fetch('value')
-        @last_request_time = response_or_request_time if response_or_request_time.kind_of?(Time)
-      else
-        @key = key_name_or_listing.to_s
-      end
+      @key = key_name.to_s
       @id = "#{collection_name}/#{key}"
-      load_from_response(response_or_request_time) if response_or_request_time.kind_of?(API::Response)
+      load_from_response(associated_response) if associated_response
     end
 
     # Equivalent to `String#==`.  Compares by key and collection.

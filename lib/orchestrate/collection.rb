@@ -287,7 +287,7 @@ module Orchestrate
         raise ResultsNotReady.new if collection.app.client.http.parallel_manager
         loop do
           response.results.each do |doc|
-            yield KeyValue.new(collection, doc, response.request_time)
+            yield KeyValue.from_listing(collection, doc, response)
           end
           break unless response.next_link
           response = response.next_results
