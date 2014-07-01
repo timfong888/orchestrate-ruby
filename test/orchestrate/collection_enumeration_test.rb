@@ -48,18 +48,20 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     assert_raises Orchestrate::ResultsNotReady do
       app.in_parallel { app[:items].take(5) }
     end
-    app.in_parallel do
-      items = app[:items].lazy.map {|item| item }
-    end
-    items = items.force
-    assert_equal 14, items.length
-    items.each_with_index do |item, index|
-      assert_equal "key-#{index}", item.key
-      assert item.ref
-      assert item.reftime
-      assert item.value
-      assert_equal "key-#{index}", item[:key]
-      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1
+    if app[:items].respond_to?(:lazy)
+      app.in_parallel do
+        items = app[:items].lazy.map {|item| item }
+      end
+      items = items.force
+      assert_equal 14, items.length
+      items.each_with_index do |item, index|
+        assert_equal "key-#{index}", item.key
+        assert item.ref
+        assert item.reftime
+        assert item.value
+        assert_equal "key-#{index}", item[:key]
+        assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1
+      end
     end
   end
 
