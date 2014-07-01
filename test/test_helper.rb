@@ -21,7 +21,7 @@ class ParallelTest < Faraday::Adapter::Test
     end
 
     def run
-      @queue.each {|env| env[:response].finish(env) }
+      @queue.each {|env| env[:response].finish(env) unless env[:response].finished? }
     end
   end
 
@@ -31,7 +31,7 @@ class ParallelTest < Faraday::Adapter::Test
 
   def call(env)
     super(env)
-    env[:parallel_manager].queue(env)
+    env[:parallel_manager].queue(env) if env[:parallel_manager]
     env[:response]
   end
 end
@@ -61,6 +61,44 @@ def make_client_and_artifacts(parallel=false)
   [client, stubs, basic_auth]
 end
 
+def ref_headers(coll, key, ref)
+  {'Etag' => %|"#{ref}"|, 'Location' => "/v0/#{coll}/#{key}/refs/#{ref}"}
+end
+
+def make_application(opts={})
+  client, stubs = make_client_and_artifacts(opts[:parallel])
+  stubs.head("/v0") { [200, response_headers, ''] }
+  app = Orchestrate::Application.new(client)
+  [app, stubs]
+end
+
+def make_ref
+  SecureRandom.hex(16)
+end
+
+def make_kv_item(collection, stubs, opts={})
+  key = opts[:key] || 'hello'
+  ref = opts[:ref] || "12345"
+  body = opts[:body] || {"hello" => "world"}
+  res_headers = response_headers({
+    'Etag' => "\"#{ref}\"",
+    'Content-Location' => "/v0/#{collection.name}/#{key}/refs/#{ref}"
+  })
+  stubs.get("/v0/items/#{key}") { [200, res_headers, body.to_json] }
+  kv = Orchestrate::KeyValue.load(collection, key)
+  kv.instance_variable_set(:@last_request_time, opts[:loaded]) if opts[:loaded]
+  kv
+end
+
+def make_kv_listing(collection, opts={})
+  key = opts[:key] || "item-#{rand(1_000_000)}"
+  ref = opts[:ref] || make_ref
+  reftime = opts[:reftime] || Time.now.to_f - (rand(24) * 3600_000)
+  body = opts[:body] || {"key" => key}
+  { "path" => { "collection" => collection, "key" => key, "ref" => ref },
+    "reftime" => reftime, "value" => body }
+end
+
 def capture_warnings
   old, $stderr = $stderr, StringIO.new
   begin
@@ -85,12 +123,65 @@ def chunked_encoding_header
 end
 
 def response_not_found(items)
-{ "message" => "The requested items could not be found.",
-  "details" => {
-    "items" => [ items ]
-  },
-  "code" => "items_not_found"
-}.to_json
+  { "message" => "The requested items could not be found.",
+    "details" => {
+      "items" => [ items ]
+    },
+    "code" => "items_not_found"
+  }.to_json
+end
+
+def error_response(error, etc={})
+  headers = response_headers(etc.fetch(:headers, {}))
+  case error
+  when :bad_request
+    [400, headers, {message: "The API request is malformed.", code: "api_bad_request"}.to_json ]
+  when :search_query_malformed
+    [ 400, headers, {
+      message: "The search query provided is invalid.",
+      code: "search_query_malformed"
+    }.to_json ]
+  when :invalid_search_param
+    [ 400, headers, {
+      message: "A provided search query param is invalid.",
+      details: { query: "Query is empty." },
+      code: "search_param_invalid"
+    }.to_json ]
+  when :malformed_ref
+    [ 400, headers, {
+      message: "The provided Item Ref is malformed.",
+      details: { ref: "blerg" },
+      code: "item_ref_malformed"
+    }.to_json ]
+  when :unauthorized
+    [ 401, headers, {
+      "message" => "Valid credentials are required.",
+      "code" => "security_unauthorized"
+    }.to_json ]
+  when :indexing_conflict
+    [409, headers, {
+      message: "The item has been stored but conflicts were detected when indexing. Conflicting fields have not been indexed.",
+      details: {
+        conflicts: { name: { type: "string", expected: "long" } },
+        conflicts_uri: etc[:conflicts_uri]
+      },
+      code: "indexing_conflict"
+    }.to_json ]
+  when :version_mismatch
+    [412, headers, {
+      message: "The version of the item does not match.",
+      code: "item_version_mismatch"
+    }.to_json]
+  when :already_present
+    [ 412, headers, {
+      message: "The item is already present.",
+      code: "item_already_present"
+    }.to_json ]
+  when :service_error
+    headers.delete("Content-Type")
+    [ 500, headers, '' ]
+  else raise ArgumentError.new("unknown error #{error}")
+  end
 end
 
 # Assertion Helpers

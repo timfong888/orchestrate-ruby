@@ -1,13 +1,13 @@
 require "test_helper"
 
-describe Orchestrate::Client do
+class ClientTest < MiniTest::Unit::TestCase
 
-  it "should initialize" do
+  def test_initialization
     client = Orchestrate::Client.new('8c3')
-    client.must_be_kind_of Orchestrate::Client
+    assert_equal '8c3', client.api_key
   end
 
-  it "handles parallel requests" do
+  def test_parallelism
     thing_body = {"foo" => "bar"}
     list_body = {"count" => 1, "results" => [{"value"=>{"a" => "b"}, "path" => {}, "reftime" => ""}] }
     client, stubs = make_client_and_artifacts(true)
@@ -30,7 +30,7 @@ describe Orchestrate::Client do
     assert_equal thing_body, responses[:thing].body
   end
 
-  it "handles ping request" do
+  def test_ping_request_success
     client, stubs = make_client_and_artifacts
     stubs.head("/v0") do |env|
       [ 200, response_headers, '' ]
@@ -38,7 +38,7 @@ describe Orchestrate::Client do
     client.ping
   end
 
-  it "handles ping with invalid api_key and raises Unauthorized" do
+  def test_ping_request_unauthorized
     client, stubs = make_client_and_artifacts
     headers = response_headers
     stubs.head("/v0") { [ 401, headers, '' ] }
