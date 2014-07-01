@@ -8,24 +8,26 @@ describe Orchestrate::Client do
   end
 
   it "handles parallel requests" do
-    client, stubs = make_client_and_artifacts
+    thing_body = {"foo" => "bar"}
+    list_body = {"count" => 1, "results" => [{"value"=>{"a" => "b"}, "path" => {}, "reftime" => ""}] }
+    client, stubs = make_client_and_artifacts(true)
     stubs.get("/v0/foo") do |env|
-      [ 200, response_headers, {}.to_json ]
+      [ 200, response_headers, list_body.to_json ]
     end
-    stubs.get("/v0/users/mattly") do |env|
-      [ 200, response_headers, {}.to_json ]
+    stubs.get("/v0/things/foo") do |env|
+      [ 200, response_headers, thing_body.to_json ]
     end
     responses = nil
-    capture_warnings do
-      responses = client.in_parallel do |r|
-        r[:list] = client.list(:foo)
-        r[:user] = client.get(:users, "mattly")
-      end
+    responses = client.in_parallel do |r|
+      r[:list] = client.list(:foo)
+      r[:thing] = client.get(:things, "foo")
     end
     assert responses[:list]
     assert_equal 200, responses[:list].status
-    assert responses[:user]
-    assert_equal 200, responses[:user].status
+    assert_equal list_body, responses[:list].body
+    assert responses[:thing]
+    assert_equal 200, responses[:thing].status
+    assert_equal thing_body, responses[:thing].body
   end
 
   it "handles ping request" do

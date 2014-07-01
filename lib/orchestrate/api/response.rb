@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'webrick'
+require 'json' unless defined?(::JSON)
 
 module Orchestrate::API
 
@@ -7,7 +8,7 @@ module Orchestrate::API
   class Response
 
     extend Forwardable
-    def_delegators :@response, :status, :body, :headers, :success?, :finished?, :on_complete
+    def_delegators :@response, :status, :headers, :success?, :finished?, :on_complete
     # @!attribute [r] status
     #   @return [Integer] The HTTP Status code of the response.
     # @!attribute [r] body
@@ -30,14 +31,25 @@ module Orchestrate::API
     # @return [Orchestrate::Client] The client used to generate the response.
     attr_reader :client
 
+    # @return [String, Hash] The response body from Orchestrate
+    attr_reader :body
+
     # Instantiate a new Respose
     # @param faraday_response [Faraday::Response] The Faraday response object.
     # @param client [Orchestrate::Client] The client used to generate the response.
     def initialize(faraday_response, client)
       @client = client
       @response = faraday_response
-      @request_id = headers['X-Orchestrate-Req-Id']
-      @request_time = Time.parse(headers['Date'])
+      @response.on_complete do
+        @request_id = headers['X-Orchestrate-Req-Id'] if headers['X-Orchestrate-Req-Id']
+        @request_time = Time.parse(headers['Date']) if headers['Date']
+        if headers['Content-Type'] =~ /json/ && !@response.body.strip.empty?
+          @body = JSON.parse(@response.body)
+        else
+          @body = @response.body
+        end
+        handle_error_response unless success?
+      end
     end
 
     # @!visibility private
@@ -45,6 +57,23 @@ module Orchestrate::API
       "#<#{self.class.name} status=#{status} request_id=#{request_id}>"
     end
     alias :inspect :to_s
+
+    private
+    def handle_error_response
+      err_type = if body && body['code']
+        ERRORS.find {|err| err.status == status && err.code == body['code'] }
+      else
+        errors = ERRORS.select {|err| err.status == status}
+        errors.length == 1 ? errors.first : nil
+      end
+      if err_type
+        raise err_type.new(self)
+      elsif status < 500
+        raise RequestError.new(self)
+      else
+        raise ServiceError.new(self)
+      end
+    end
 
   end
 
@@ -60,8 +89,10 @@ module Orchestrate::API
     # (see Orchestrate::API::Response#initialize)
     def initialize(faraday_response, client)
       super(faraday_response, client)
-      @location = headers['Content-Location'] || headers['Location']
-      @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
+      @response.on_complete do
+        @location = headers['Content-Location'] || headers['Location']
+        @ref = headers.fetch('Etag','').gsub('"','').sub(/-gzip$/,'')
+      end
     end
 
   end
@@ -87,11 +118,13 @@ module Orchestrate::API
     # (see Orchestrate::API::Response#initialize)
     def initialize(faraday_response, client)
       super(faraday_response, client)
-      @count = body['count']
-      @total_count = body['total_count']
-      @results = body['results']
-      @next_link = body['next']
-      @prev_link = body['prev']
+      @response.on_complete do
+        @count = body['count']
+        @total_count = body['total_count']
+        @results = body['results']
+        @next_link = body['next']
+        @prev_link = body['prev']
+      end
     end
 
     # Retrieves the next page of results, if available
