@@ -307,13 +307,26 @@ module Orchestrate
 
     # @!group Searching
     def search(query)
-      response = app.client.search(name, query)
-      response.results.map do |result|
-        kv = KeyValue.from_listing(self, result, response)
-        [ result['score'], kv ]
-      end
+      SearchResults.new(self, query)
     end
     # @!endgroup
+
+    class SearchResults
+      def initialize(collection, query)
+        response = collection.app.client.search(collection.name, query)
+        @results = response.results.map do |result|
+          kv = KeyValue.from_listing(collection, result, response)
+          [ result['score'], kv ]
+        end
+      end
+
+      include Enumerable
+
+      def each
+        return enum_for(:each) unless block_given?
+        @results.each {|result| yield result }
+      end
+    end
 
   end
 end
