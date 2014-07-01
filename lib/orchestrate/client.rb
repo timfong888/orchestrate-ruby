@@ -23,7 +23,7 @@ module Orchestrate
       @api_key = api_key
       @faraday_configuration = block
       @http = Faraday.new("https://api.orchestrate.io") do |faraday|
-        block = lambda{|f| f.adapter Faraday.default_adapter } unless block
+        block = lambda{|f| f.adapter :net_http_persistent } unless block
         block.call faraday
 
         # faraday seems to want you do specify these twice.
