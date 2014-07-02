@@ -10,8 +10,7 @@ module Orchestrate
     attr_reader :client
 
     # Instantiate a new Application
-    # @param client_or_api_key [#to_s] The API key for your Orchestrate Application.
-    # @param client_or_api_key [Orchestrate::Client] A client instantiated with an Application and Faraday setup.
+    # @param client_or_api_key [Orchestrate::Client, #to_s] A client instantiated with the API key and faraday setup, or the API key for your Orchestrate Application.
     # @yieldparam [Faraday::Connection] connection Setup for the Faraday connection.
     # @return Orchestrate::Application
     def initialize(client_or_api_key, &client_setup)
