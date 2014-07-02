@@ -319,13 +319,16 @@ module Orchestrate
         @collection = collection
         @query = query
         @limit = 100
+        @offset= nil
       end
 
       include Enumerable
 
       def each
         return enum_for(:each) unless block_given?
-        response = collection.app.client.search(collection.name, query, {limit:limit})
+        params = {limit:limit}
+        params[:offset] = offset if offset
+        response = collection.app.client.search(collection.name, query, params)
         loop do
           response.results.each do |listing|
             yield [ listing['score'], KeyValue.from_listing(collection, listing, response) ]
@@ -338,6 +341,15 @@ module Orchestrate
       def take(count)
         @limit = count > 100 ? 100 : count
         super(count)
+      end
+
+      def offset(count=nil)
+        if count
+          @offset = count
+          self
+        else
+          @offset
+        end
       end
     end
 

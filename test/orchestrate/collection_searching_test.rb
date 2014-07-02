@@ -18,6 +18,8 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
           "next" => "/v0/items?query=foo&offset=100&limit=100"}
       when "100"
         { "results" => 10.times.map{|i| make_listing.call(i+100)}, "count" => 10, "total_count" => total }
+      else
+        raise ArgumentError.new("unexpected offset: #{env.params['offset']}")
       end
       [ 200, response_headers, body.to_json ]
     end
@@ -32,24 +34,26 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
 
   def test_basic_as_needed
     total=50
+    offset=10
     @stubs.get("/v0/items") do |env|
       assert_equal "foo", env.params['query']
-      assert_equal "50", env.params['limit']
+      assert_equal "#{total}", env.params['limit']
+      assert_equal "#{offset}", env.params['offset']
       make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: total-i/total*5.0) }
       body = case env.params['offset']
-      when nil
-        { "results" => 50.times.map(&make_listing), "count" => 100, "total_count" => total,
-          "next" => "/v0/items?query=foo&offset=50&limit=50"}
+      when "10"
+        { "results" => 50.times.map{|i| make_listing.call(i+offset) }, "count" => total, "total_count" => 500,
+          "next" => "/v0/items?query=foo&offset=60&limit=50"}
       else
         raise ArgumentError.new("unexpected offset: #{env.params['offset']}")
       end
       [ 200, response_headers, body.to_json ]
     end
-    results = @items.search("foo").take(50)
+    results = @items.search("foo").offset(10).take(50)
     assert_equal 50, results.length
     results.each_with_index do |item, idx|
-      assert_in_delta (total-idx/total * 5.0), item[0], 0.005
-      assert_equal "item-#{idx}", item[1].key
+      assert_in_delta (total-(idx+10)/total * 5.0), item[0], 0.005
+      assert_equal "item-#{idx+10}", item[1].key
       assert_nil item[1].reftime
     end
   end
