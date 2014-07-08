@@ -33,15 +33,14 @@ module Orchestrate
         @client.delete_relation(coll, key, type, other_collection, other_key)
       end
 
+      def [](edge)
+        Traversal.new(kv_item, [type, edge])
+      end
+
       include Enumerable
       def each(&block)
         return enum_for(:each) unless block
-        response = @client.get_relations(kv_item.collection_name, kv_item.key, type)
-        raise ResultsNotReady.new if @client.http.parallel_manager
-        response.results.each do |listing|
-          listing_collection = kv_item.collection.app[listing['path']['collection']]
-          yield KeyValue.new(listing_collection, listing, response.request_time)
-        end
+        Traversal.new(kv_item, [type]).each(&block)
       end
 
       private
@@ -53,6 +52,31 @@ module Orchestrate
           collection = item_or_collection
         end
         [collection, key]
+      end
+
+      class Traversal
+        attr_accessor :kv_item
+        attr_accessor :edges
+
+        def initialize(kv_item, edge_names)
+          @kv_item = kv_item
+          @edges = edge_names
+          @client = kv_item.collection.app.client
+        end
+
+        def [](edge)
+          self.class.new(kv_item, [edges, edge].flatten)
+        end
+
+        include Enumerable
+        def each(&block)
+          return enum_for(:each) unless block
+          response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
+          response.results.each do |listing|
+            listing_collection = kv_item.collection.app[listing['path']['collection']]
+            yield KeyValue.new(listing_collection, listing, response.request_time)
+          end
+        end
       end
     end
 
