@@ -225,7 +225,15 @@ module Orchestrate
       true
     end
 
-    # @!engroup persistence
+    # @!endgroup persistence
+    #
+    # @!group relations
+
+    def relations
+      @relations ||= Graph.new(self)
+    end
+
+    # @!endgroup relations
 
     private
     def load_from_response(response)
