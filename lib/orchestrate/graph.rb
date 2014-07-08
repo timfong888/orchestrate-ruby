@@ -21,15 +21,28 @@ module Orchestrate
       end
 
       def <<(other_item_or_collection_name, other_key=nil)
-        if other_item_or_collection_name.kind_of?(KeyValue)
-          other_collection = other_item_or_collection_name.collection_name
-          other_key = other_item_or_collection_name.key
-        else
-          other_collection = other_item_or_collection_name
-        end
-        @client.put_relation(kv_item.collection_name, kv_item.key, type, other_collection, other_key)
+        coll, key = get_collection_and_key(kv_item, nil)
+        other_collection, other_key = get_collection_and_key(other_item_or_collection_name, other_key)
+        @client.put_relation(coll, key, type, other_collection, other_key)
       end
       alias :push :<<
+
+      def delete(other_item_or_collection_name, other_key=nil)
+        coll, key = get_collection_and_key(kv_item, nil)
+        other_collection, other_key = get_collection_and_key(other_item_or_collection_name, other_key)
+        @client.delete_relation(coll, key, type, other_collection, other_key)
+      end
+
+      private
+      def get_collection_and_key(item_or_collection, key)
+        if item_or_collection.kind_of?(KeyValue)
+          collection = item_or_collection.collection_name
+          key = item_or_collection.key
+        else
+          collection = item_or_collection
+        end
+        [collection, key]
+      end
     end
 
   end
