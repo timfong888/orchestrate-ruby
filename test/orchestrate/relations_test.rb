@@ -42,9 +42,11 @@ class RelationsTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerates_over_relation
+    colls = [@items, @app[:things], @app[:stuff]]
     @stubs.get("/v0/#{@kv.collection_name}/#{@kv.key}/relations/#{@relation_type}") do |env|
       body = 100.times.map do |i|
-        make_kv_listing(@items, {reftime:nil, key: "item-#{i}", body: {item: "item-#{i}"}})
+        type = colls[i % colls.length]
+        make_kv_listing(type, {reftime:nil, key: "#{type.name}-#{i}", body: {index: i}})
       end
       [200, response_headers, {results: body, count: 100}.to_json]
     end
@@ -52,7 +54,10 @@ class RelationsTest < MiniTest::Unit::TestCase
     assert_equal 100, related_stuff.size
     related_stuff.each do |item|
       assert_kind_of Orchestrate::KeyValue, item
-      assert_equal item.key, item[:item]
+      match = item.key.match(/(\w+)-(\d+)/)
+      assert_equal item[:index], match[2].to_i
+      assert_equal item.collection.name, match[1]
+      assert_equal item.collection, colls[match[2].to_i % colls.length]
     end
   end
 

@@ -39,8 +39,8 @@ module Orchestrate
         response = @client.get_relations(kv_item.collection_name, kv_item.key, type)
         raise ResultsNotReady.new if @client.http.parallel_manager
         response.results.each do |listing|
-          other_collection = listing['path']['collection']
-          yield KeyValue.new(kv_item.collection.app[other_collection], listing, response.request_time)
+          listing_collection = kv_item.collection.app[listing['path']['collection']]
+          yield KeyValue.new(listing_collection, listing, response.request_time)
         end
       end
 
