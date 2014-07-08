@@ -93,10 +93,13 @@ end
 def make_kv_listing(collection, opts={})
   key = opts[:key] || "item-#{rand(1_000_000)}"
   ref = opts[:ref] || make_ref
-  reftime = opts[:reftime] || Time.now.to_f - (rand(24) * 3600_000)
+  reftime = opts.fetch(:reftime, Time.now.to_f - (rand(24) * 3600_000))
+  score = opts[:score]
   body = opts[:body] || {"key" => key}
-  { "path" => { "collection" => collection, "key" => key, "ref" => ref },
-    "reftime" => reftime, "value" => body }
+  result = { "path" => { "collection" => collection, "key" => key, "ref" => ref }, "value" => body  }
+  result["reftime"] = reftime if reftime
+  result["score"] = score if score
+  result
 end
 
 def capture_warnings

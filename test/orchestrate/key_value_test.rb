@@ -62,18 +62,6 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert ! kv.loaded?
   end
 
-  def test_instantiates_from_collection_and_listing
-    app, stubs = make_application
-    listing = make_kv_listing('items', {key: "foo"})
-    kv = Orchestrate::KeyValue.new(app[:items], listing, Time.now)
-    assert_equal 'items', kv.collection_name
-    assert_equal "foo", kv.key
-    assert_equal listing['path']['ref'], kv.ref
-    assert_equal listing['value'], kv.value
-    assert_in_delta Time.at(listing['reftime'] / 1000), kv.reftime, 1.1
-    assert_in_delta Time.now.to_f, kv.last_request_time.to_f, 1.1
-  end
-
   def test_equality
     app, stubs = make_application
     app2, stubs = make_application

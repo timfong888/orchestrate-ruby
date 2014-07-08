@@ -26,6 +26,25 @@ module Orchestrate
       kv
     end
 
+    # Instantiate a KeyValue from a listing in a LIST or SEARCH result
+    # @param collection [Orchestrate::Collection] The collection to which the KeyValue belongs.
+    # @param listing [Hash] The entry in the LIST or SEARCH result
+    # @option listing [Hash] path **required** The path of the entry, with collection, key and ref keys.
+    # @option listing [Hash] value **required** The value for the entry
+    # @option listing [Time] reftime The time which the ref was created (only returned by LIST)
+    # @param response [Orchestrate::API::Response] The response which the listing came from
+    # @return Orchestrate::KeyValue The KeyValue item.
+    def self.from_listing(collection, listing, response)
+      path = listing.fetch('path')
+      key = path.fetch('key')
+      ref = path.fetch('ref')
+      kv = new(collection, key, response)
+      kv.instance_variable_set(:@ref, ref)
+      kv.instance_variable_set(:@reftime, listing['reftime']) if listing['reftime']
+      kv.value = listing.fetch('value')
+      kv
+    end
+
     # The collection this KeyValue belongs to.
     # @return [Orchestrate::Collection]
     attr_reader :collection
@@ -66,28 +85,17 @@ module Orchestrate
     # Instantiates a new KeyValue item.  You generally don't want to call this yourself, but rather use
     # the methods on Orchestrate::Collection to load a KeyValue.
     # @param coll [Orchestrate::Collection] The collection to which this KeyValue belongs.
-    # @param key_name_or_listing [Hash] A listing result from Client#list
-    # @param key_name_or_listing [#to_s] The name of the key
-    # @param response_or_request_time [nil, Time, Orchestrate::API::Response]
-    #   If key_name_or_listing is a listing, and this value is a Time, used to set last_request_time.
-    #   Otherwise if an API::Request, used to load attributes and value.
+    # @param key_name [#to_s] The name of the key
+    # @param associated_response [nil, Orchestrate::API::Response]
+    #   If an API::Request, used to load attributes and value.
     # @return Orchestrate::KeyValue
-    def initialize(coll, key_name_or_listing, response_or_request_time=nil)
+    def initialize(coll, key_name, associated_response=nil)
       @collection = coll
       @collection_name = coll.name
       @app = coll.app
-      if key_name_or_listing.kind_of?(Hash)
-        path = key_name_or_listing.fetch('path')
-        @key = path.fetch('key')
-        @ref = path.fetch('ref')
-        @reftime = Time.at(key_name_or_listing.fetch('reftime') / 1000.0)
-        @value = key_name_or_listing.fetch('value')
-        @last_request_time = response_or_request_time if response_or_request_time.kind_of?(Time)
-      else
-        @key = key_name_or_listing.to_s
-      end
+      @key = key_name.to_s
       @id = "#{collection_name}/#{key}"
-      load_from_response(response_or_request_time) if response_or_request_time.kind_of?(API::Response)
+      load_from_response(associated_response) if associated_response
     end
 
     # Equivalent to `String#==`.  Compares by key and collection.
@@ -222,7 +230,7 @@ module Orchestrate
     private
     def load_from_response(response)
       response.on_complete do
-        @ref = response.ref
+        @ref = response.ref if response.respond_to?(:ref)
         @value = response.body unless response.body.respond_to?(:strip) && response.body.strip.empty?
         @last_request_time = response.request_time
       end

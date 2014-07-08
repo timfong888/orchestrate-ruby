@@ -265,7 +265,7 @@ module Orchestrate
 
       include Enumerable
 
-      # Lazily iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
+      # Iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
       # Items are provided in lexicographically sorted order by key name.
       # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
       # @example
@@ -287,7 +287,7 @@ module Orchestrate
         raise ResultsNotReady.new if collection.app.client.http.parallel_manager
         loop do
           response.results.each do |doc|
-            yield KeyValue.new(collection, doc, response.request_time)
+            yield KeyValue.from_listing(collection, doc, response)
           end
           break unless response.next_link
           response = response.next_results
@@ -303,7 +303,88 @@ module Orchestrate
         range[:limit] = count > 100 ? 100 : count
         super(count)
       end
+    end
 
+    # @!group Searching
+    # [Search the items in a collection](http://orchestrate.io/docs/api/#search) using a Lucene
+    # Query Syntax.
+    # @param query [#to_s] The [Lucene Query
+    #   String](http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview)
+    #   to query the collection with.
+    # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
+    def search(query)
+      SearchResults.new(self, query)
+    end
+    # @!endgroup
+
+    # An enumerator with a query for searching an Orchestrate::Collection
+    class SearchResults
+      # @return [Collection] The collection this object will search.
+      attr_reader :collection
+
+      # @return [#to_s] The Lucene Query String given as the search query.
+      attr_reader :query
+
+      # @return [Integer] The number of results to fetch per request.
+      attr_reader :limit
+
+      # Initialize a new SearchResults object
+      # @param collection [Orchestrate::Collection] The collection to search.
+      # @param query [#to_s] The Lucene Query to perform.
+      def initialize(collection, query)
+        @collection = collection
+        @query = query
+        @limit = 100
+        @offset= nil
+      end
+
+      include Enumerable
+
+      # Iterates over each result from the Search.  Used as the basis for Enumerable methods.  Items are
+      # provided on the basis of score, with most relevant first.
+      # @yieldparam [Array<(Float, Orchestrate::KeyValue)>] score,key_value  The item's score and the item.
+      # @example
+      #   collection.search("trendy").take(5).each do |score, item|
+      #     puts "#{item.key} has a trend score of #{score}"
+      #   end
+      def each
+        return enum_for(:each) unless block_given?
+        params = {limit:limit}
+        params[:offset] = offset if offset
+        response = collection.app.client.search(collection.name, query, params)
+        loop do
+          response.results.each do |listing|
+            yield [ listing['score'], KeyValue.from_listing(collection, listing, response) ]
+          end
+          break unless response.next_link
+          response = response.next_results
+        end
+      end
+
+      # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
+      # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
+      # @param count [Integer] The number of items to limit to.
+      # @return [Array]
+      def take(count)
+        @limit = count > 100 ? 100 : count
+        super(count)
+      end
+
+      # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
+      # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
+      # @overload offset
+      #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
+      # @overload offset(conunt)
+      #   @param count [Integer] The number of items to skip.
+      #   @return [SearchResults] self.
+      def offset(count=nil)
+        if count
+          @offset = count
+          self
+        else
+          @offset
+        end
+      end
     end
 
   end
