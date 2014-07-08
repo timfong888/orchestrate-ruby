@@ -33,6 +33,17 @@ module Orchestrate
         @client.delete_relation(coll, key, type, other_collection, other_key)
       end
 
+      include Enumerable
+      def each(&block)
+        return enum_for(:each) unless block
+        response = @client.get_relations(kv_item.collection_name, kv_item.key, type)
+        raise ResultsNotReady.new if @client.http.parallel_manager
+        response.results.each do |listing|
+          other_collection = listing['path']['collection']
+          yield KeyValue.new(kv_item.collection.app[other_collection], listing, response.request_time)
+        end
+      end
+
       private
       def get_collection_and_key(item_or_collection, key)
         if item_or_collection.kind_of?(KeyValue)

@@ -41,5 +41,20 @@ class RelationsTest < MiniTest::Unit::TestCase
     @stubs.verify_stubbed_calls
   end
 
+  def test_enumerates_over_relation
+    @stubs.get("/v0/#{@kv.collection_name}/#{@kv.key}/relations/#{@relation_type}") do |env|
+      body = 100.times.map do |i|
+        make_kv_listing(@items, {reftime:nil, key: "item-#{i}", body: {item: "item-#{i}"}})
+      end
+      [200, response_headers, {results: body, count: 100}.to_json]
+    end
+    related_stuff = @kv.relations[@relation_type].to_a
+    assert_equal 100, related_stuff.size
+    related_stuff.each do |item|
+      assert_kind_of Orchestrate::KeyValue, item
+      assert_equal item.key, item[:item]
+    end
+  end
+
 end
 
