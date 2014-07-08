@@ -74,7 +74,7 @@ module Orchestrate
           response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
           response.results.each do |listing|
             listing_collection = kv_item.collection.app[listing['path']['collection']]
-            yield KeyValue.new(listing_collection, listing, response.request_time)
+            yield KeyValue.from_listing(listing_collection, listing, response)
           end
         end
       end
