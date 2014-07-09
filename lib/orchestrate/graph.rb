@@ -39,8 +39,11 @@ module Orchestrate
 
       include Enumerable
       def each(&block)
-        return enum_for(:each) unless block
         Traversal.new(kv_item, [type]).each(&block)
+      end
+
+      def lazy
+        each.lazy
       end
 
       private
@@ -70,13 +73,15 @@ module Orchestrate
 
         include Enumerable
         def each(&block)
+          @response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
           return enum_for(:each) unless block
-          response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
-          response.results.each do |listing|
+          raise ResultsNotReady if @client.http.parallel_manager
+          @response.results.each do |listing|
             listing_collection = kv_item.collection.app[listing['path']['collection']]
-            yield KeyValue.from_listing(listing_collection, listing, response)
+            yield KeyValue.from_listing(listing_collection, listing, @response)
           end
         end
+
       end
     end
 

@@ -80,5 +80,33 @@ class RelationsTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_prevents_parallel_enumeration
+    app, stubs = make_application({parallel: true})
+    one = make_kv_item(app[:items], stubs, {key: 'one'})
+    stubs.get("/v0/items/one/relations/siblings") do |env|
+      [200, response_headers, {results: make_results([app[:items]], 10), count:10}.to_json]
+    end
+    assert_raises Orchestrate::ResultsNotReady do
+      app.in_parallel { one.relations[:siblings].to_a }
+    end
+  end
+
+  def test_parallel_get_performs_call
+    called = false
+    siblings = nil
+    app, stubs = make_application({parallel: true})
+    one = make_kv_item(app[:items], stubs, {key: 'one'})
+    stubs.get("/v0/items/one/relations/siblings") do |env|
+      called = true
+      [200, response_headers, {results: make_results([app[:items]], 10), count:10}.to_json]
+    end
+    app.in_parallel do
+      siblings = one.relations[:siblings].lazy
+    end
+    assert called, "parallel block finished, API call not made yet for enumerable"
+    siblings = siblings.force
+    assert_equal 10, siblings.size
+  end
+
 end
 
