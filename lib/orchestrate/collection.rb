@@ -284,7 +284,7 @@ module Orchestrate
         end
         params[:limit] = range[:limit]
         response = collection.app.client.list(collection.name, params)
-        raise ResultsNotReady.new if collection.app.client.http.parallel_manager
+        # raise ResultsNotReady.new if collection.app.client.http.parallel_manager
         loop do
           response.results.each do |doc|
             yield KeyValue.from_listing(collection, doc, response)
@@ -374,7 +374,7 @@ module Orchestrate
       # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
       # @overload offset
       #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
-      # @overload offset(conunt)
+      # @overload offset(count)
       #   @param count [Integer] The number of items to skip.
       #   @return [SearchResults] self.
       def offset(count=nil)

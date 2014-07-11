@@ -109,7 +109,7 @@ module Orchestrate
         def each(&block)
           @response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
           return enum_for(:each) unless block
-          raise ResultsNotReady if @client.http.parallel_manager
+          # raise ResultsNotReady if @client.http.parallel_manager
           @response.results.each do |listing|
             listing_collection = kv_item.collection.app[listing['path']['collection']]
             yield KeyValue.from_listing(listing_collection, listing, @response)
