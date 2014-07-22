@@ -1,4 +1,5 @@
 require "test_helper"
+require "thread"
 
 class CollectionEnumerationTest < MiniTest::Unit::TestCase
 
@@ -43,12 +44,26 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       else
         raise ArgumentError.new("unexpected afterKey: #{env.params['afterKey']}")
       end
+      Thread.stop
       [ 200, response_headers, body.to_json ]
     end
     items=nil
-    assert_raises Orchestrate::ResultsNotReady do
-      app.in_parallel { app[:items].take(5) }
+    threads = []
+
+    parallel_getter = lambda do |client|
+      assert_raises Orchestrate::ResultsNotReady do
+        client.in_parallel { app[:items].take(5) }
+      end
     end
+    single_getter = lambda do |client|
+      these_items = client[:items].to_a
+      assert_equal 14, these_items.length
+    end
+    hold = Thread.new{ sleep 1 }
+    [parallel_getter, single_getter].map do |t|
+      Thread.new(app, &t)
+    end.each{|t| t.run.join }
+
     if app[:items].respond_to?(:lazy)
       app.in_parallel do
         items = app[:items].lazy.map {|item| item }
