@@ -72,10 +72,19 @@ module Orchestrate
       end
 
       include Enumerable
+
+      # [Retrieves the related items](http://orchestrate.io/api/graph), and
+      # iterates over each item in the result.  Used as the basis for
+      # Enumerable methods.
+      # @overload each
+      #   @return [Enumerator]
+      # @overload each(&block)
+      #   @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
       def each(&block)
         Traversal.new(kv_item, [type]).each(&block)
       end
 
+      # Returns a lazy enumerator.
       def lazy
         each.lazy
       end
@@ -91,21 +100,39 @@ module Orchestrate
         [collection, key]
       end
 
+      # Traverses from a single node in the graph across one or more edges.
+      # The workhorse for gathering results from a graph search.
       class Traversal
+
+        # The KeyValue item from which the graph query originates.
+        # @return [KeyValue]
         attr_accessor :kv_item
+
+        # The graph types and depth to traverse.
+        # @return [Array<#to_s>]
         attr_accessor :edges
 
+        # Instantiates a new Traversal.
+        # @param kv_item [KeyValue] The KeyValue item from which to traverse.
+        # @param edge_names [Array<#to_s>] The graph types and depth to traverse.
         def initialize(kv_item, edge_names)
           @kv_item = kv_item
           @edges = edge_names
           @client = kv_item.collection.app.client
         end
 
+        # Add a new type to the depth of the graph query.
+        # @param edge [#to_s] The type of relation to traverse.
+        # @return [Traversal]
         def [](edge)
           self.class.new(kv_item, [edges, edge].flatten)
         end
 
         include Enumerable
+
+        # [Retrieves the related items](http://orchestrate.io/api/graph), and
+        # iterates over each item in the result.  Used as the basis for
+        # Enumerable methods.
         def each(&block)
           @response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
           return enum_for(:each) unless block
