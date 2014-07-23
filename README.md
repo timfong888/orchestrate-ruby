@@ -109,9 +109,7 @@ end
 
 Attempting to access the values inside the parallel block will raise an `Orchestrate::ResultsNotReady` exception.
 
-Using `#lazy` without first creating the enumerator by calling `#each` will however NOT fire off the request to orchestrate until the enumerable is forced.
-
-Lazy Enumerators are not available by default in Ruby 1.9.
+Lazy enumerators are not available by default in Ruby 1.9.  Lazy enumerator results are not pre-fetched from orchestrate unless they are taken inside an `#in_parallel` block, otherwise results are fetched when needed.
 
 ### Using with Typhoeus
 
