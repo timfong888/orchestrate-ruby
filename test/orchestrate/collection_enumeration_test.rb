@@ -65,7 +65,7 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       end.each(&:join)
     else
       assert_raises NotImplementedError do
-        client.in_parallel { c[:items].take(5) }
+        app.in_parallel { app[:items].take(5) }
       end
     end
 

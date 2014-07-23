@@ -39,18 +39,24 @@ class KeyValueTest < MiniTest::Unit::TestCase
   def test_instantiates_from_parallel_request
     app, stubs = make_application({parallel: true})
     items = app[:items]
-    body = {"hello" => "foo"}
-    ref = make_ref
-    stubs.get("/v0/items/foo") { [200, response_headers(ref_headers(:items, :foo, ref)), body.to_json] }
-    stubs.put("/v0/items/bar") { [201, response_headers(ref_headers(:items, :bar, make_ref)), ''] }
-    results = app.in_parallel do |r|
-      r[:foo] = items[:foo]
-      r[:bar] = items.create(:bar, {})
+    if RUBY_VERSION.to_f < 2
+      assert_raises NotImplementedError do
+        app.in_parallel { items[:foo] }
+      end
+    else
+      body = {"hello" => "foo"}
+      ref = make_ref
+      stubs.get("/v0/items/foo") { [200, response_headers(ref_headers(:items, :foo, ref)), body.to_json] }
+      stubs.put("/v0/items/bar") { [201, response_headers(ref_headers(:items, :bar, make_ref)), ''] }
+      results = app.in_parallel do |r|
+        r[:foo] = items[:foo]
+        r[:bar] = items.create(:bar, {})
+      end
+      assert_equal 'foo', results[:foo].key
+      assert_equal ref, results[:foo].ref
+      assert_equal body, results[:foo].value
+      assert_equal 'bar', results[:bar].key
     end
-    assert_equal 'foo', results[:foo].key
-    assert_equal ref, results[:foo].ref
-    assert_equal body, results[:foo].value
-    assert_equal 'bar', results[:bar].key
   end
 
   def test_instantiates_without_loading
