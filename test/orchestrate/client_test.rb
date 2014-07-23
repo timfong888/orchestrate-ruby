@@ -19,9 +19,9 @@ class ClientTest < MiniTest::Unit::TestCase
       [ 200, response_headers, thing_body.to_json ]
     end
     responses = nil
-    responses = client.in_parallel do |r|
-      r[:list] = client.list(:foo)
-      r[:thing] = client.get(:things, "foo")
+    responses = client.in_parallel do |c, r|
+      r[:list] = c.list(:foo)
+      r[:thing] = c.get(:things, "foo")
     end
     assert responses[:list]
     assert_equal 200, responses[:list].status
@@ -38,9 +38,9 @@ class ClientTest < MiniTest::Unit::TestCase
       [ 200, response_headers, {"count" => 1, "results" => [{"value" => {"a" => "a"}}]}.to_json ]
     end
     parallel_getter = lambda do |c|
-      resp = c.in_parallel do |r|
+      resp = c.in_parallel do |d, r|
         sleep 1 if waiting
-        r[:list] = c.list(:foo)
+        r[:list] = d.list(:foo)
         assert_nil r[:list].body
       end
       assert resp[:list].body

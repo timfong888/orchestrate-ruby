@@ -24,10 +24,8 @@ module Orchestrate
       @api_key = api_key
       @faraday_configuration = block
       @http = Faraday.new("https://api.orchestrate.io") do |faraday|
-        block = lambda{|f| f.adapter :net_http_persistent } unless block
-        block.call faraday
-
-        # faraday seems to want you do specify these twice.
+        block = lambda{|f| f.adapter :net_http_persistent } unless block_given?
+        block.call(faraday)
         faraday.request :basic_auth, api_key, ''
         faraday.basic_auth api_key, ''
       end
@@ -360,8 +358,9 @@ module Orchestrate
     # @see README See the Readme for more examples.
     def in_parallel(&block)
       accumulator = {}
-      http.in_parallel do
-        block.call(accumulator)
+      new_client = self.class.new(api_key, &faraday_configuration)
+      new_client.http.in_parallel do
+        block.call(new_client, accumulator)
       end
       accumulator
     end
@@ -396,6 +395,7 @@ module Orchestrate
       response_class = options.fetch(:response, API::Response)
       response_class.new(http_response, self)
     end
+
   end
 
 end

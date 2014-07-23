@@ -41,7 +41,14 @@ module Orchestrate
     #   end
     # @see README See the Readme for more examples.
     def in_parallel(&block)
-      client.in_parallel(&block)
+      old_client = client
+      client.in_parallel do |parallel_client, accumulator|
+        @client = parallel_client
+        # the block provided to #in_parallel -should- return right away.
+        block.call(accumulator)
+        @client = old_client
+        # client.in_parallel will return when it's done.
+      end
     end
 
     # @return a pretty-printed representation of the application.

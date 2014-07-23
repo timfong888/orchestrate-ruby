@@ -44,7 +44,6 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       else
         raise ArgumentError.new("unexpected afterKey: #{env.params['afterKey']}")
       end
-      sleep 2
       [ 200, response_headers, body.to_json ]
     end
     items=nil
@@ -52,13 +51,11 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     parallel_getter = lambda do |client|
       assert_raises Orchestrate::ResultsNotReady do
         client.in_parallel do
-          sleep 1
           app[:items].take(5)
         end
       end
     end
     single_getter = lambda do |client|
-      # puts client.client.http.parallel_manager
       these_items = client[:items].to_a
       assert_equal 14, these_items.length
     end
