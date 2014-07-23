@@ -363,6 +363,9 @@ module Orchestrate
     #     r[:user_feed] = client.list_events(:users, current_user_key, :notices)
     #   end
     # @see README See the Readme for more examples.
+    # @note This method is not Thread-safe.  Requests generated from the same
+    #   client in different threads while #in_parallel is running will behave
+    #   unpredictably.  Use `#dup` to create per-thread clients.
     def in_parallel(&block)
       accumulator = {}
       http.in_parallel do
