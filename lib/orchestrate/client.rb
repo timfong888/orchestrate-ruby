@@ -1,4 +1,5 @@
 require 'faraday'
+require 'uri'
 
 module Orchestrate
 
@@ -377,7 +378,7 @@ module Orchestrate
     # @return API::Response
     # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] see http://orchestrate.io/docs/api/#errors
     def send_request(method, path, options={})
-      path = ['/v0'].concat(path).join('/')
+      path = ['/v0'].concat(path.map{|s| URI.escape(s.to_s).gsub('/','%2F') }).join('/')
       query_string = options.fetch(:query, {})
       body = options.fetch(:body, '')
       headers = options.fetch(:headers, {})

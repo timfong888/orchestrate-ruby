@@ -134,6 +134,16 @@ module Orchestrate
       end
     end
 
+    # Builds a new, unsaved KeyValue with the given key_name and value.
+    # @param key_name [#to_s] The key of the item
+    # @param value [#to_json] The value to store at the key.
+    # @return [KeyValue]
+    def build(key_name, value={})
+      kv = KeyValue.new(self, key_name)
+      kv.value = value
+      kv
+    end
+
     # [Deletes the value for a KeyValue
     # item](http://orchestrate.io/docs/api/#key/value/delete12).
     # @param key_name [#to_s] The name of the key

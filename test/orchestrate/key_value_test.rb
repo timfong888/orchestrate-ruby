@@ -59,6 +59,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     kv = Orchestrate::KeyValue.new(items, 'keyname')
     assert_equal 'keyname', kv.key
     assert_equal items, kv.collection
+    assert_equal Hash.new, kv.value
     assert ! kv.loaded?
   end
 

@@ -4,7 +4,7 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application
     @items = @app[:items]
-    @kv = make_kv_item(@items, @stubs, :loaded => Time.now - 60)
+    @kv = make_kv_item(@items, @stubs, :loaded => Time.now - 60, body: {"hello" => "world", "another" => "key"})
   end
 
   def test_save_performs_put_if_match_and_returns_true_on_success
@@ -107,6 +107,68 @@ class KeyValuePersistenceTest < MiniTest::Unit::TestCase
     assert_raises Orchestrate::API::ServiceError do
       @kv.save!
     end
+  end
+
+  def test_update_merges_values_and_saves
+    update = {hello: "there", 'two' => 2}
+    body = @kv.value
+    update.each_pair {|key, value| body[key.to_s] = value }
+    new_ref = make_ref
+    @stubs.put("/v0/items/#{@kv.key}") do |env|
+      assert_equal body, JSON.parse(env.body)
+      assert_header 'If-Match', "\"#{@kv.ref}\"", env
+      [201, response_headers({'Etag' => new_ref, "Location" => "/v0/items/#{@kv.key}/refs/#{new_ref}"}), '']
+    end
+    @kv.update(update)
+    assert_equal body, @kv.value
+    assert_equal new_ref, @kv.ref
+  end
+
+  def test_update_merges_values_and_returns_false_on_error
+    update = {hello: "there", 'two' => 2}
+    body = @kv.value
+    update.each_pair {|key, value| body[key.to_s] = value }
+    old_ref = @kv.ref
+    @stubs.put("/v0/items/#{@kv.key}") do |env|
+      assert_equal body, JSON.parse(env.body)
+      assert_header 'If-Match', "\"#{@kv.ref}\"", env
+      error_response(:service_error)
+    end
+    refute @kv.update(update)
+    assert_equal body, @kv.value
+    assert_equal old_ref, @kv.ref
+  end
+
+  def test_update_bang_merges_values_and_save_bangs
+    update = {hello: "there", 'two' => 2}
+    body = @kv.value
+    update.each_pair {|key, value| body[key.to_s] = value }
+    new_ref = make_ref
+    @stubs.put("/v0/items/#{@kv.key}") do |env|
+      assert_equal body, JSON.parse(env.body)
+      assert_header 'If-Match', "\"#{@kv.ref}\"", env
+      [201, response_headers({'Etag' => new_ref, "Location" => "/v0/items/#{@kv.key}/refs/#{new_ref}"}), '']
+    end
+    @kv.update!(update)
+    assert_equal body, @kv.value
+    assert_equal new_ref, @kv.ref
+  end
+
+  def test_update_bang_merges_values_and_save_bangs_raises_on_error
+    update = {hello: "there", 'two' => 2}
+    body = @kv.value
+    update.each_pair {|key, value| body[key.to_s] = value }
+    old_ref = @kv.ref
+    @stubs.put("/v0/items/#{@kv.key}") do |env|
+      assert_equal body, JSON.parse(env.body)
+      assert_header 'If-Match', "\"#{@kv.ref}\"", env
+      error_response(:service_error)
+    end
+    assert_raises Orchestrate::API::ServiceError do
+      @kv.update!(update)
+    end
+    assert_equal body, @kv.value
+    assert_equal old_ref, @kv.ref
   end
 
   def test_destroy_performs_delete_if_match_and_returns_true_on_success
