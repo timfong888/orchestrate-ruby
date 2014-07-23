@@ -151,6 +151,17 @@ end
 
 ## Release Notes
 
+### Unreleased, on master
+  - **BACKWARDS-INCOMPATIBLE** Fix #69, `Client` will url-escape path segments.  If you have keys with slashes or spaces or other
+    characters escaped by `URI.escape` the client will now behave as expected, however if you've used these keys with this client
+    before you may not be able to get to those old keys.
+  - Fix #78, KeyValues are given an empty hash value by default, instead of nil.
+  - Implement `KeyValue#update` and `#update!` to update the value and save in one go.
+  - Implement `Collection#build` to provide a factory for unsaved KV items in a collection.
+  - Revisited `#in_parallel` methods, improved documentation, tests for Enumerables on Object client, made sure behavior conforms.
+  - Implement `KeyValue#relation` for Graph / Relation queries on object client.
+  - Implement `Collection#search` for Lucene queries on Collections via the object client.
+
 ### July 1, 2014: release 0.7.0
   - Fix #66 to make parallel mode work properly
   - Switch the default Faraday adapter to the `net-http-persistent` gem, which in casual testing yields much better performance for sustained use.
