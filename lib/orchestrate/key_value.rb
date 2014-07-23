@@ -185,6 +185,19 @@ module Orchestrate
       end
     end
 
+    def update(merge)
+      begin
+        update!(merge)
+      rescue API::RequestError, API::ServiceError
+        false
+      end
+    end
+
+    def update!(merge)
+      merge.each_pair {|key, value| @value[key.to_s] = value }
+      save!
+    end
+
     # Deletes the KeyValue item from Orchestrate using 'If-Match' with the current ref.
     # Returns false if the item failed to delete because a new ref had been created since this KeyValue was loaded.
     # @return [true, false]
