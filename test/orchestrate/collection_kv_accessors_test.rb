@@ -22,6 +22,14 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_nil @items[:absent]
   end
 
+  def test_kv_builder
+    body = {"hello" => "nothing"}
+    kv = @items.build(:absent, body)
+    assert_equal 'absent', kv.key
+    assert_equal body, kv.value
+    assert_nil kv.ref
+  end
+
   def test_kv_setter
     body = { "hello" => "world" }
     ref = nil

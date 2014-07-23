@@ -80,6 +80,12 @@ module Orchestrate
       set(key_name, value)
     end
 
+    def build(key_name, value={})
+      kv = KeyValue.new(self, key_name)
+      kv.value = value
+      kv
+    end
+
     # [Sets a KeyValue item by key](http://orchestrate.io/docs/api/#key/value/put-\(create/update\)).
     # @param key_name [#to_s] The key of the item.
     # @param value [#to_json] The value to store at the key.
