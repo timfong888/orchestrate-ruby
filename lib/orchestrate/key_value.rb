@@ -95,6 +95,7 @@ module Orchestrate
       @app = coll.app
       @key = key_name.to_s
       @id = "#{collection_name}/#{key}"
+      @value = {}
       load_from_response(associated_response) if associated_response
     end
 
