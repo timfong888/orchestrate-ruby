@@ -96,6 +96,7 @@ def make_kv_listing(collection, opts={})
   reftime = opts.fetch(:reftime, Time.now.to_f - (rand(24) * 3600_000))
   score = opts[:score]
   body = opts[:body] || {"key" => key}
+  collection = collection.name if collection.kind_of?(Orchestrate::Collection)
   result = { "path" => { "collection" => collection, "key" => key, "ref" => ref }, "value" => body  }
   result["reftime"] = reftime if reftime
   result["score"] = score if score

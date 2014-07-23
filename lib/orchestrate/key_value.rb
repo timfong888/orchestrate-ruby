@@ -225,7 +225,17 @@ module Orchestrate
       true
     end
 
-    # @!engroup persistence
+    # @!endgroup persistence
+    #
+    # @!group relations
+
+    # Entry point for managing the graph relationships for this KeyValue item
+    # @return [Orchestrate::Graph] A graph instance bound to this item.
+    def relations
+      @relations ||= Graph.new(self)
+    end
+
+    # @!endgroup relations
 
     private
     def load_from_response(response)
