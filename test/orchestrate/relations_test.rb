@@ -109,6 +109,7 @@ class RelationsTest < MiniTest::Unit::TestCase
   end
 
   def test_lazy_does_not_perform_call
+    return unless [].respond_to?(:lazy)
     called = false
     app, stubs = make_application
     one = make_kv_item(app[:items], stubs, {key:'one'})
