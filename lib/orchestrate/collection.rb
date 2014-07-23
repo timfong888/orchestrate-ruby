@@ -419,5 +419,9 @@ module Orchestrate
       end
     end
 
+    def perform(api_method, *args)
+      app.perform(api_method, name, *args)
+    end
+
   end
 end

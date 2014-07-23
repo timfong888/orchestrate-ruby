@@ -55,6 +55,10 @@ module Orchestrate
       !! @inside_parallel
     end
 
+    def perform(api_method, *args)
+      client.send(api_method, *args)
+    end
+
     # @return a pretty-printed representation of the application.
     def to_s
       "#<Orchestrate::Application api_key=#{api_key[0..7]}...>"

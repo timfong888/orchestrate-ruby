@@ -136,6 +136,14 @@ module Orchestrate
       load_from_response(@app.client.get(collection_name, key))
     end
 
+    def archival?
+      false
+    end
+
+    def tombstone?
+      false
+    end
+
     # @!group Attribute accessors
 
     # Get an attribute from the KeyValue item's value.
@@ -249,6 +257,14 @@ module Orchestrate
 
     # @!endgroup persistence
     #
+    # @!group refs
+
+    def refs
+      @refs ||= RefList.new(self)
+    end
+
+    # @!endgroup refs
+    #
     # @!group relations
 
     # Entry point for managing the graph relationships for this KeyValue item
@@ -258,6 +274,10 @@ module Orchestrate
     end
 
     # @!endgroup relations
+
+    def perform(api_method, *args)
+      collection.perform(api_method, key, *args)
+    end
 
     private
     def load_from_response(response)
