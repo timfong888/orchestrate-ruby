@@ -4,7 +4,9 @@ Orchestrate API for Ruby
 
 Ruby client interface for the [Orchestrate.io](http://orchestrate.io) REST API.
 
-[rDoc Documentation](http://rdoc.info/github/orchestrate-io/orchestrate-ruby/master/frames)
+[rDoc Documentation][rdoc]
+
+[rdoc]: (http://rdoc.info/github/orchestrate-io/orchestrate-ruby/master/frames)
 
 ## Getting Started
 
@@ -52,6 +54,12 @@ jack = client.get(:users, :jack)            # GETs jack, returns API::ItemRespon
 client.delete(:users, :jack, jack.ref)      # DELETE-If-Match, returns API::Response
 client.list(:users)                         # LIST users, returns API::CollectionResposne
 ```
+
+### Examples and Documentation
+
+There are more examples at [Orchestrate's API Documentation][apidoc] and documentation in the [rdoc][].
+
+[apidoc]: http://orchestrate.io/api/version
 
 ## Swapping out the HTTP back end
 
