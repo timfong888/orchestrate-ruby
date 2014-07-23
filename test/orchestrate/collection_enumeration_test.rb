@@ -5,9 +5,10 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application({parallel: true})
     @called = false
+    @limit = "100"
     @stubs.get("/v0/items") do |env|
       @called = true
-      assert_equal "100", env.params['limit']
+      assert_equal @limit, env.params['limit']
       body = case env.params['afterKey']
       when nil
         { "results" => 100.times.map {|x| make_kv_listing(:items, key: "key-#{x}") },
@@ -36,7 +37,7 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_in_parallel_raises_not_ready_if_forced
-    return
+    @limit = "5"
     assert_raises Orchestrate::ResultsNotReady do
       @app.in_parallel { @app[:items].take(5) }
     end
@@ -62,13 +63,12 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_in_parallel_fetches_enums
-    return
     items = nil
     @app.in_parallel do
       items = @app[:items].each
     end
     assert @called, "enumerator wasn't prefetched inside of parallel"
-    assert_equal 14, items.size
+    assert_equal 104, items.to_a.size
     items.each_with_index do |item, index|
       assert_equal "key-#{index}", item.key
       assert item.ref
@@ -96,10 +96,9 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_prefetches_enums
-    return
     items = @app[:items].each
     assert @called, "enumerator was not prefetched"
-    assert_equal 14, items.length
+    assert_equal 104, items.to_a.size
     items.each_with_index do |item, index|
       assert_equal "key-#{index}", item.key
       assert item.ref

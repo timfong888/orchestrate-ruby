@@ -170,7 +170,7 @@ module Orchestrate
     end
 
     def lazy
-      each.lazy
+      KeyValueList.new(self).lazy
     end
 
     # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
@@ -286,11 +286,9 @@ module Orchestrate
         end
         params[:limit] = range[:limit]
         parallel_running = collection.app.inside_parallel?
-        if block_given? || parallel_running
-          @response ||= collection.app.client.list(collection.name, params)
-        end
+        @response ||= collection.app.client.list(collection.name, params)
         return enum_for(:each) unless block_given?
-        # raise ResultsNotReady.new if parallel_running
+        raise ResultsNotReady.new if parallel_running
         loop do
           @response.results.each do |doc|
             yield KeyValue.from_listing(collection, doc, @response)
@@ -299,6 +297,11 @@ module Orchestrate
           @response = @response.next_results
         end
         @response = nil
+      end
+
+      def lazy
+        return each.lazy if collection.app.inside_parallel?
+        super
       end
 
       # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
