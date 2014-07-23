@@ -185,6 +185,9 @@ module Orchestrate
       end
     end
 
+    # Merges a set of values into the item's existing value and saves.
+    # @param merge [#each_pair] The Hash-like to merge into #value. Keys will be stringified.
+    # @return [true, false]
     def update(merge)
       begin
         update!(merge)
@@ -193,6 +196,11 @@ module Orchestrate
       end
     end
 
+    # Merges a set of values into the item's existing value and saves.
+    # @param merge [#each_pair] The Hash-like to merge into #value.  Keys will be stringified.
+    # @return [true]
+    # @raise [Orchestrate::API::VersionMismatch] If the KeyValue item has been updated with a new ref since this KeyValue was loaded.
+    # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] If there was any other problem with saving.
     def update!(merge)
       merge.each_pair {|key, value| @value[key.to_s] = value }
       save!
