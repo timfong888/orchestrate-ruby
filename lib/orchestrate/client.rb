@@ -39,6 +39,11 @@ module Orchestrate
     end
     alias :inspect :to_s
 
+    # @!visibility private
+    def dup
+      self.class.new(api_key, &faraday_configuration)
+    end
+
     # Tests authentication with Orchestrate.
     # @return Orchestrate::API::Response
     # @raise Orchestrate::API::Unauthorized if the client could not authenticate.

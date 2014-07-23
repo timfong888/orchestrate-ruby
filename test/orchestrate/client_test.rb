@@ -47,4 +47,14 @@ class ClientTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_dup
+    client = Orchestrate::Client.new('8c3') do |f|
+      f.adapter :test
+    end
+    dup_client = client.dup
+    assert_equal client.api_key, dup_client.api_key
+    assert_equal client.faraday_configuration, dup_client.faraday_configuration
+    refute_equal client.http.object_id, dup_client.http.object_id
+  end
+
 end
