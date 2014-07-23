@@ -48,20 +48,26 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     end
     items=nil
 
-    parallel_getter = lambda do |client|
-      assert_raises Orchestrate::ResultsNotReady do
-        client.in_parallel do
-          app[:items].take(5)
+    if RUBY_VERSION.to_f >= 2
+      parallel_getter = lambda do |client|
+        assert_raises Orchestrate::ResultsNotReady do
+          client.in_parallel do
+            app[:items].take(5)
+          end
         end
       end
+      single_getter = lambda do |client|
+        these_items = client[:items].to_a
+        assert_equal 14, these_items.length
+      end
+      [parallel_getter, single_getter].map do |t|
+        Thread.new(app, &t)
+      end.each(&:join)
+    else
+      assert_raises NotImplementedError do
+        client.in_parallel { c[:items].take(5) }
+      end
     end
-    single_getter = lambda do |client|
-      these_items = client[:items].to_a
-      assert_equal 14, these_items.length
-    end
-    [parallel_getter, single_getter].map do |t|
-      Thread.new(app, &t)
-    end.each(&:join)
 
     if app[:items].respond_to?(:lazy)
       app.in_parallel do

@@ -41,6 +41,7 @@ module Orchestrate
     #   end
     # @see README See the Readme for more examples.
     def in_parallel(&block)
+      raise NotImplementedError if RUBY_VERSION.to_f < 2
       old_client = client
       client.in_parallel do |parallel_client, accumulator|
         @client = parallel_client
