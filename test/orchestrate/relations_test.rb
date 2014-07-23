@@ -101,10 +101,25 @@ class RelationsTest < MiniTest::Unit::TestCase
       [200, response_headers, {results: make_results([app[:items]], 10), count:10}.to_json]
     end
     app.in_parallel do
-      siblings = one.relations[:siblings].lazy
+      siblings = one.relations[:siblings].each
     end
     assert called, "parallel block finished, API call not made yet for enumerable"
-    siblings = siblings.force
+    siblings = siblings.to_a
+    assert_equal 10, siblings.size
+  end
+
+  def test_lazy_does_not_perform_call
+    called = false
+    app, stubs = make_application
+    one = make_kv_item(app[:items], stubs, {key:'one'})
+    stubs.get("/v0/items/one/relations/siblings") do |env|
+      called = true
+      [200, response_headers, {results: make_results([app[:items]], 10), count:10}.to_json]
+    end
+    siblings = one.relations[:siblings].lazy
+    refute called, "lazy enumerator not evauluated, but request called"
+    siblings = siblings.to_a
+    assert called, "lazy enumerator forced, but request not called"
     assert_equal 10, siblings.size
   end
 

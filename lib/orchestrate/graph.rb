@@ -84,12 +84,7 @@ module Orchestrate
         Traversal.new(kv_item, [type]).each(&block)
       end
 
-      # Returns a lazy enumerator.
-      def lazy
-        each.lazy
-      end
-
-      private
+     private
       def get_collection_and_key(item_or_collection, key)
         if item_or_collection.kind_of?(KeyValue)
           collection = item_or_collection.collection_name
