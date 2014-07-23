@@ -285,10 +285,9 @@ module Orchestrate
           params[end_key] = range[:end]
         end
         params[:limit] = range[:limit]
-        parallel_running = collection.app.inside_parallel?
         @response ||= collection.app.client.list(collection.name, params)
         return enum_for(:each) unless block_given?
-        raise ResultsNotReady.new if parallel_running
+        raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
           @response.results.each do |doc|
             yield KeyValue.from_listing(collection, doc, @response)
@@ -358,17 +357,24 @@ module Orchestrate
       #     puts "#{item.key} has a trend score of #{score}"
       #   end
       def each
-        return enum_for(:each) unless block_given?
         params = {limit:limit}
         params[:offset] = offset if offset
-        response = collection.app.client.search(collection.name, query, params)
+        @response ||= collection.app.client.search(collection.name, query, params)
+        return enum_for(:each) unless block_given?
+        raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
-          response.results.each do |listing|
-            yield [ listing['score'], KeyValue.from_listing(collection, listing, response) ]
+          @response.results.each do |listing|
+            yield [ listing['score'], KeyValue.from_listing(collection, listing, @response) ]
           end
-          break unless response.next_link
-          response = response.next_results
+          break unless @response.next_link
+          @response = @response.next_results
         end
+        @response = nil
+      end
+
+      def lazy
+        return each.lazy if collection.app.inside_parallel?
+        super
       end
 
       # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
