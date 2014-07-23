@@ -40,8 +40,19 @@ module Orchestrate
     #     r[:user_feed]  = app.client.list_events(:users, current_user_key, :notices)
     #   end
     # @see README See the Readme for more examples.
+    # @note This method is not Thread-safe.  Requests generated from the same
+    #   application instance in different threads while #in_parallel is running
+    #   will behave unpredictably.  Use `#dup` to create per-thread application
+    #   instances.
     def in_parallel(&block)
-      client.in_parallel(&block)
+      @inside_parallel = true
+      results = client.in_parallel(&block)
+      @inside_parallel = nil
+      results
+    end
+
+    def inside_parallel?
+      !! @inside_parallel
     end
 
     # @return a pretty-printed representation of the application.

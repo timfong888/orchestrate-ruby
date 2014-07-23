@@ -2,10 +2,13 @@ require "test_helper"
 
 class CollectionEnumerationTest < MiniTest::Unit::TestCase
 
-  def test_enumerates_over_all
-    app, stubs = make_application
-    stubs.get("/v0/items") do |env|
-      assert_equal "100", env.params['limit']
+  def setup
+    @app, @stubs = make_application({parallel: true})
+    @called = false
+    @limit = "100"
+    @stubs.get("/v0/items") do |env|
+      @called = true
+      assert_equal @limit, env.params['limit']
       body = case env.params['afterKey']
       when nil
         { "results" => 100.times.map {|x| make_kv_listing(:items, key: "key-#{x}") },
@@ -18,7 +21,10 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
       end
       [ 200, response_headers, body.to_json ]
     end
-    items = app[:items].map {|item| item }
+  end
+
+  def test_enumerates_over_all
+    items = @app[:items].map {|item| item }
     assert_equal 104, items.length
     items.each_with_index do |item, index|
       assert_equal "key-#{index}", item.key
@@ -30,39 +36,76 @@ class CollectionEnumerationTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_enumerator_in_parallel
-    app, stubs = make_application({parallel:true})
-    stubs.get("/v0/items") do |env|
-      body = case env.params['afterKey']
-      when nil
-        { "results" => 10.times.map {|x| make_kv_listing(:items, key: "key-#{x}") },
-          "next" => "/v0/items?afterKey=key-9", "count" => 10 }
-      when 'key-9'
-        { "results" => 4.times.map {|x| make_kv_listing(:items, key: "key-#{10+x}")},
-          "count" => 4 }
-      else
-        raise ArgumentError.new("unexpected afterKey: #{env.params['afterKey']}")
-      end
-      [ 200, response_headers, body.to_json ]
-    end
-    items=nil
+  def test_enumerator_in_parallel_raises_not_ready_if_forced
+    @limit = "5"
     assert_raises Orchestrate::ResultsNotReady do
-      app.in_parallel { app[:items].take(5) }
+      @app.in_parallel { @app[:items].take(5) }
     end
-    if app[:items].respond_to?(:lazy)
-      app.in_parallel do
-        items = app[:items].lazy.map {|item| item }
-      end
-      items = items.force
-      assert_equal 14, items.length
-      items.each_with_index do |item, index|
-        assert_equal "key-#{index}", item.key
-        assert item.ref
-        assert item.reftime
-        assert item.value
-        assert_equal "key-#{index}", item[:key]
-        assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
-      end
+  end
+
+  def test_enumerator_in_parallel_prefetches_lazy_enums
+    return unless [].respond_to?(:lazy)
+    items = nil
+    @app.in_parallel do
+      items = @app[:items].lazy.map {|item| item }
+    end
+    assert @called, "lazy enumerator in parallel was not prefetched"
+    items = items.force
+    assert_equal 104, items.length
+    items.each_with_index do |item, index|
+      assert_equal "key-#{index}", item.key
+      assert item.ref
+      assert item.reftime
+      assert item.value
+      assert_equal "key-#{index}", item[:key]
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
+    end
+  end
+
+  def test_enumerator_in_parallel_fetches_enums
+    items = nil
+    @app.in_parallel do
+      items = @app[:items].each
+    end
+    assert @called, "enumerator wasn't prefetched inside of parallel"
+    assert_equal 104, items.to_a.size
+    items.each_with_index do |item, index|
+      assert_equal "key-#{index}", item.key
+      assert item.ref
+      assert item.reftime
+      assert item.value
+      assert_equal "key-#{index}", item[:key]
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
+    end
+  end
+
+  def test_enumerator_doesnt_prefetch_lazy_enums
+    return unless [].respond_to?(:lazy)
+    items = @app[:items].lazy.map {|item| item }
+    refute @called, "lazy enumerator was prefetched outside of parallel"
+    items = items.force
+    assert_equal 104, items.length
+    items.each_with_index do |item, index|
+      assert_equal "key-#{index}", item.key
+      assert item.ref
+      assert item.reftime
+      assert item.value
+      assert_equal "key-#{index}", item[:key]
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
+    end
+  end
+
+  def test_enumerator_prefetches_enums
+    items = @app[:items].each
+    assert @called, "enumerator was not prefetched"
+    assert_equal 104, items.to_a.size
+    items.each_with_index do |item, index|
+      assert_equal "key-#{index}", item.key
+      assert item.ref
+      assert item.reftime
+      assert item.value
+      assert_equal "key-#{index}", item[:key]
+      assert_in_delta Time.now.to_f, item.last_request_time.to_f, 1.1
     end
   end
 

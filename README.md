@@ -68,6 +68,8 @@ You may use Faraday's `test` adapter to stub out calls to the Orchestrate API in
 
 If you're using a Faraday back end that enables parallelization, such as Typhoeus, EM-HTTP-Request, or EM-Synchrony you can use `Orchestrate::Client#in_parallel` to fire off multiple requests at once.  If your Faraday back end does not support this, the method will still work as expected, but Faraday will output a warning to STDERR and the requests will be performed in series.
 
+Note that these parallel modes are not thread-safe.  If you are using the client in a threaded environment, you should use `#dup` on your `Orchestrate::Client` or `Orchestrate::Application` to create per-thread instances.
+
 #### method client
 ``` ruby
 client = Orchestrate::Client.new(api_key) {|f| f.adapter :typhoeus }
@@ -87,14 +89,27 @@ responses[:user] = #<Orchestrate::API::ItemResponse:0x00...>
 app = Orchestrate::Application.new(api_key) {|f| f.adapter :typhoeus }
 
 app.in_parallel do
-  @items = app[:my_collection].lazy.take(100)
+  @items = app[:my_collection].each
   @user = app[:users][current_user_id]
 end
+@items.take(5)
 ```
 
-Note that values are not available inside of the `in_parallel` block.  The `r[:list]` or `@items` objects are placeholders for their future values and will be available after the `in_parallel` block returns.  Since `take` and other enumerable methods normally attempt to access the value when called, you **must** convert the `app[:my_collection]` enumerator to a lazy enumerator with #lazy.  Attempting to access the enumerator's values (for example, without using `#lazy` or by using `#any?` or `#find`) while inside the `in_parallel` block will raise an `Orchestrate::ResultsNotReady` exception.
+Note that values are not available inside of the `in_parallel` block.  The `r[:list]` or `@items` objects are placeholders for their future values and will be available after the `in_parallel` block returns.  Since `take` and other enumerable methods normally attempt to access the value when called, you **must** convert the `app[:my_collection]` to an `Enumerator` with `#each` and access them outside the parallel block.
 
-Lazy Enumerators are not available by default in Ruby 1.9.
+You can, inside the parallel block, construct further iteration over your collection with `Enumerable#lazy` like so:
+
+```ruby
+app.in_parallel do
+  @items = app[:my_collection].each.lazy.take(5)
+  ...
+end
+@items.force
+```
+
+Attempting to access the values inside the parallel block will raise an `Orchestrate::ResultsNotReady` exception.
+
+Lazy enumerators are not available by default in Ruby 1.9.  Lazy enumerator results are not pre-fetched from orchestrate unless they are taken inside an `#in_parallel` block, otherwise results are fetched when needed.
 
 ### Using with Typhoeus
 

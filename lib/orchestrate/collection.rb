@@ -176,8 +176,13 @@ module Orchestrate
     #   keys = collection.take(20).map(&:key)
     #   # returns the first 20 keys in the collection.
     def each(&block)
-      return enum_for(:each) unless block
       KeyValueList.new(self).each(&block)
+    end
+
+    # Creates a Lazy Enumerator for the Collection's KeyValue List.  If called inside the app's
+    # `#in_parallel` block, pre-fetches results.
+    def lazy
+      KeyValueList.new(self).lazy
     end
 
     # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
@@ -282,7 +287,6 @@ module Orchestrate
       #   keys = collection.after(:foo).take(20).map(&:key)
       #   # returns the first 20 keys in the collection that occur after "foo"
       def each
-        return enum_for(:each) unless block_given?
         params = {}
         if range[:begin]
           begin_key = range[:begin_inclusive] ? :start : :after
@@ -293,15 +297,24 @@ module Orchestrate
           params[end_key] = range[:end]
         end
         params[:limit] = range[:limit]
-        response = collection.app.client.list(collection.name, params)
-        raise ResultsNotReady.new if collection.app.client.http.parallel_manager
+        @response ||= collection.app.client.list(collection.name, params)
+        return enum_for(:each) unless block_given?
+        raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
-          response.results.each do |doc|
-            yield KeyValue.from_listing(collection, doc, response)
+          @response.results.each do |doc|
+            yield KeyValue.from_listing(collection, doc, @response)
           end
-          break unless response.next_link
-          response = response.next_results
+          break unless @response.next_link
+          @response = @response.next_results
         end
+        @response = nil
+      end
+
+      # Creates a Lazy Enumerator for the KeyValue list.  If called inside the
+      # app's `#in_parallel` block, will prefetch results.
+      def lazy
+        return each.lazy if collection.app.inside_parallel?
+        super
       end
 
       # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
@@ -358,17 +371,26 @@ module Orchestrate
       #     puts "#{item.key} has a trend score of #{score}"
       #   end
       def each
-        return enum_for(:each) unless block_given?
         params = {limit:limit}
         params[:offset] = offset if offset
-        response = collection.app.client.search(collection.name, query, params)
+        @response ||= collection.app.client.search(collection.name, query, params)
+        return enum_for(:each) unless block_given?
+        raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
-          response.results.each do |listing|
-            yield [ listing['score'], KeyValue.from_listing(collection, listing, response) ]
+          @response.results.each do |listing|
+            yield [ listing['score'], KeyValue.from_listing(collection, listing, @response) ]
           end
-          break unless response.next_link
-          response = response.next_results
+          break unless @response.next_link
+          @response = @response.next_results
         end
+        @response = nil
+      end
+
+      # Creates a Lazy Enumerator for the Search Results.  If called inside its
+      # app's `in_parallel` block, will pre-fetch results.
+      def lazy
+        return each.lazy if collection.app.inside_parallel?
+        super
       end
 
       # Returns the first n items.  Equivalent to Enumerable#take.  Sets the

@@ -41,4 +41,14 @@ class ApplicationTest < MiniTest::Unit::TestCase
     assert_equal 'users', users.name
   end
 
+  def dup_generates_new_client
+    client, stubs = make_client_and_artifacts
+    app = Orchestrate::Application.new(client)
+    duped_app = app.dup
+    assert_equal app.api_key, duped_app.api_key
+    assert_equal client.faraday_configuration, duped_app.client.faraday_configuration
+    refute_equal client.object_id, duped_app.client.object_id
+    refute_equal client.http.object_id, duped_app.client.http.object_id
+  end
+
 end
