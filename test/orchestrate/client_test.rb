@@ -47,4 +47,11 @@ class ClientTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_escapes_url_segments
+    client, stubs = make_client_and_artifacts
+    stubs.get('/v0/foo%2Fbars/(bar%20baz)') { [200, response_headers, {}.to_json] }
+    client.get("foo/bars", "(bar baz)")
+    stubs.verify_stubbed_calls
+  end
+
 end
