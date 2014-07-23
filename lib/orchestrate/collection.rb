@@ -169,6 +169,8 @@ module Orchestrate
       KeyValueList.new(self).each(&block)
     end
 
+    # Creates a Lazy Enumerator for the Collection's KeyValue List.  If called inside the app's
+    # `#in_parallel` block, pre-fetches results.
     def lazy
       KeyValueList.new(self).lazy
     end
@@ -298,6 +300,8 @@ module Orchestrate
         @response = nil
       end
 
+      # Creates a Lazy Enumerator for the KeyValue list.  If called inside the
+      # app's `#in_parallel` block, will prefetch results.
       def lazy
         return each.lazy if collection.app.inside_parallel?
         super
@@ -372,6 +376,8 @@ module Orchestrate
         @response = nil
       end
 
+      # Creates a Lazy Enumerator for the Search Results.  If called inside its
+      # app's `in_parallel` block, will pre-fetch results.
       def lazy
         return each.lazy if collection.app.inside_parallel?
         super
