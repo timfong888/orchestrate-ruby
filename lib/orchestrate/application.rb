@@ -45,7 +45,14 @@ module Orchestrate
     #   will behave unpredictably.  Use `#dup` to create per-thread application
     #   instances.
     def in_parallel(&block)
-      client.in_parallel(&block)
+      @inside_parallel = true
+      results = client.in_parallel(&block)
+      @inside_parallel = nil
+      results
+    end
+
+    def inside_parallel?
+      !! @inside_parallel
     end
 
     # @return a pretty-printed representation of the application.

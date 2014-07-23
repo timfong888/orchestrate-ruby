@@ -166,8 +166,11 @@ module Orchestrate
     #   keys = collection.take(20).map(&:key)
     #   # returns the first 20 keys in the collection.
     def each(&block)
-      return enum_for(:each) unless block
       KeyValueList.new(self).each(&block)
+    end
+
+    def lazy
+      each.lazy
     end
 
     # Sets the inclusive start key for enumeration over the KeyValue items in the collection.
@@ -272,7 +275,6 @@ module Orchestrate
       #   keys = collection.after(:foo).take(20).map(&:key)
       #   # returns the first 20 keys in the collection that occur after "foo"
       def each
-        return enum_for(:each) unless block_given?
         params = {}
         if range[:begin]
           begin_key = range[:begin_inclusive] ? :start : :after
@@ -283,15 +285,20 @@ module Orchestrate
           params[end_key] = range[:end]
         end
         params[:limit] = range[:limit]
-        response = collection.app.client.list(collection.name, params)
-        raise ResultsNotReady.new if collection.app.client.http.parallel_manager
-        loop do
-          response.results.each do |doc|
-            yield KeyValue.from_listing(collection, doc, response)
-          end
-          break unless response.next_link
-          response = response.next_results
+        parallel_running = collection.app.inside_parallel?
+        if block_given? || parallel_running
+          @response ||= collection.app.client.list(collection.name, params)
         end
+        return enum_for(:each) unless block_given?
+        # raise ResultsNotReady.new if parallel_running
+        loop do
+          @response.results.each do |doc|
+            yield KeyValue.from_listing(collection, doc, @response)
+          end
+          break unless @response.next_link
+          @response = @response.next_results
+        end
+        @response = nil
       end
 
       # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
