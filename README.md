@@ -159,14 +159,16 @@ end
 
 ## Release Notes
 
-### Unreleased, on master
+### July 24, 2014: release 0.8.0
   - **BACKWARDS-INCOMPATIBLE** Fix #69, `Client` will url-escape path segments.  If you have keys with slashes or spaces or other
     characters escaped by `URI.escape` the client will now behave as expected, however if you've used these keys with this client
     before you may not be able to get to those old keys.
   - Fix #78, KeyValues are given an empty hash value by default, instead of nil.
-  - Implement `KeyValue#update` and `#update!` to update the value and save in one go.
-  - Implement `Collection#build` to provide a factory for unsaved KV items in a collection.
+  - Change default value for `KeyValue#ref` to be false.  On save, this will send an `If-None-Match` header instead of omitting the condition.
   - Revisited `#in_parallel` methods, improved documentation, tests for Enumerables on Object client, made sure behavior conforms.
+  - Implement `KeyValue#update` and `#update!` to update the value and save in one go.
+  - Implement `Collection#stub` to instantiate a KeyValue without loading it, for access to Relations, Refs, Events, etc.
+  - Implement `Collection#build` to provide a factory for unsaved KV items in a collection.
   - Implement `KeyValue#relation` for Graph / Relation queries on object client.
   - Implement `Collection#search` for Lucene queries on Collections via the object client.
 
