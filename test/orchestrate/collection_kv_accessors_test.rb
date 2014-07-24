@@ -27,7 +27,15 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     kv = @items.build(:absent, body)
     assert_equal 'absent', kv.key
     assert_equal body, kv.value
+    assert_equal false, kv.ref
+  end
+
+  def test_kv_stubber
+    kv = @items.stub(:hello)
+    assert_equal 'hello', kv.key
     assert_nil kv.ref
+    assert_nil kv.value
+    refute kv.loaded?
   end
 
   def test_kv_setter

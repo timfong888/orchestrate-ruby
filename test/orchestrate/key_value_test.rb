@@ -60,6 +60,7 @@ class KeyValueTest < MiniTest::Unit::TestCase
     assert_equal 'keyname', kv.key
     assert_equal items, kv.collection
     assert_equal Hash.new, kv.value
+    assert_equal false, kv.ref
     assert ! kv.loaded?
   end
 
