@@ -144,6 +144,10 @@ module Orchestrate
       kv
     end
 
+    # Returns an unloaded KeyValue object with the given key_name, if you need
+    # to access Refs, Relations or Events without loading the KeyValue's value.
+    # @param key_name [#to_s] The key of the item.
+    # @return [KeyValue]
     def stub(key_name)
       kv = KeyValue.new(self, key_name)
       kv.value = nil
