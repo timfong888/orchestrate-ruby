@@ -144,6 +144,12 @@ module Orchestrate
       kv
     end
 
+    def stub(key_name)
+      kv = KeyValue.new(self, key_name)
+      kv.value = nil
+      kv
+    end
+
     # [Deletes the value for a KeyValue
     # item](http://orchestrate.io/docs/api/#key/value/delete12).
     # @param key_name [#to_s] The name of the key

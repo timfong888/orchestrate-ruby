@@ -30,6 +30,14 @@ class Collection_KV_Accessors_Test < MiniTest::Unit::TestCase
     assert_nil kv.ref
   end
 
+  def test_kv_stubber
+    kv = @items.stub(:hello)
+    assert_equal 'hello', kv.key
+    assert_nil kv.ref
+    assert_nil kv.value
+    refute kv.loaded?
+  end
+
   def test_kv_setter
     body = { "hello" => "world" }
     ref = nil
