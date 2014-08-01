@@ -17,7 +17,7 @@ class RefTest < MiniTest::Unit::TestCase
                          ref: "#{i}", tombstone: i % 6 == 0,
                          reftime: Time.now.to_f - i * 3600_00})
       end
-      body = {results: list, count: range.size}
+      body = {results: list, count: range.respond_to?(:size) ? range.size : range.end - range.begin}
       body['next'] = "/v0/items/#{@kv.key}/refs?offset=100&limit=100" unless env.params['offset']
       [200, response_headers, body.to_json]
     end
@@ -79,9 +79,19 @@ class RefTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_doesnt_prefetch_lazy_enums
+    return unless [].respond_to?(:lazy)
+    refs = @kv.refs.lazy.map {|r| r }
+    refute @called, "lazy enumerator was prefetched outside of parallel"
+    refs = refs.force
+    assert_equal 150, refs.length
+    refs.each(&@assert_ref_listing)
   end
 
   def test_enumerator_prefetches_enums
+    refs = @kv.refs.each
+    assert @called, "enumerator was not prefetched"
+    assert_equal 150, refs.to_a.size
+    refs.each(&@assert_ref_listing)
   end
 
   def test_enumerates_as_needed

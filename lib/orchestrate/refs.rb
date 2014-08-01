@@ -21,7 +21,7 @@ module Orchestrate
     end
 
     def lazy
-      each.lazy
+      Fetcher.new(self).lazy
     end
 
     # @!endgroup
@@ -48,6 +48,11 @@ module Orchestrate
           @response = @response.next_results
         end
         @response = nil
+      end
+
+      def lazy
+        return each.lazy if key_value.collection.app.inside_parallel?
+        super
       end
 
     end
