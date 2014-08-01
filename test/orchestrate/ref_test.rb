@@ -6,19 +6,27 @@ class RefTest < MiniTest::Unit::TestCase
     @kv = make_kv_item(@app[:items], @stubs)
     @limit_to_assert = "100"
     @called = false
+    @wants_values = false
     @stubs.get("/v0/items/#{@kv.key}/refs") do |env|
       @called = true
+      if @wants_values
+        assert_equal("true", env.params['values'])
+      else
+        assert_nil env.params['values']
+      end
       assert_equal @limit_to_assert.to_s, env.params['limit']
       assert_includes [nil, "100"], env.params['offset']
       range = env.params['offset'] ? 101..150 : 1..100
       list = range.map do |i|
         make_kv_listing(@kv.collection,
-                        {value: false, key: @kv.key,
+                        {value: @wants_values, key: @kv.key,
                          ref: "#{i}", tombstone: i % 6 == 0,
                          reftime: Time.now.to_f - i * 3600_00})
       end
       body = {results: list, count: range.respond_to?(:size) ? range.size : range.end - range.begin}
-      body['next'] = "/v0/items/#{@kv.key}/refs?offset=100&limit=100" unless env.params['offset']
+      next_link = "/v0/items/#{@kv.key}/refs?offset=100&limit=100"
+      next_link += "&values=true" if @wants_values
+      body['next'] = next_link unless env.params['offset']
       [200, response_headers, body.to_json]
     end
     @assert_ref_listing = lambda do |ref|
@@ -29,7 +37,11 @@ class RefTest < MiniTest::Unit::TestCase
         assert_nil ref.value
       else
         refute ref.tombstone?, "Ref #{ref.ref} should not be tombstone, is"
-        assert_equal Hash.new, ref.value
+        if @wants_values
+          assert_kind_of Hash, ref.value
+        else
+          assert_equal Hash.new, ref.value
+        end
       end
     end
   end
@@ -98,14 +110,20 @@ class RefTest < MiniTest::Unit::TestCase
     @limit_to_assert = 5
     refs = @kv.refs.take(5).to_a
     assert_equal 5, refs.length
+    refs.each(&@assert_ref_listing)
   end
 
   def test_offset_sets_offset
     refs = @kv.refs.offset(100).to_a
     assert_equal 50, refs.size
+    refs.each(&@assert_ref_listing)
   end
 
   def test_enumerates_with_values
+    @wants_values = true
+    refs = @kv.refs.with_values.to_a
+    assert_equal 150, refs.size
+    refs.each(&@assert_ref_listing)
   end
 
 end

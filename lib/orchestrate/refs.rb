@@ -32,10 +32,15 @@ module Orchestrate
       Fetcher.new(self).offset(count)
     end
 
+    def with_values
+      Fetcher.new(self).with_values
+    end
+
     # @!endgroup
     class Fetcher
       attr_accessor :key_value
       attr_accessor :limit
+      attr_accessor :values
 
       def initialize(reflist)
         @key_value = reflist.key_value
@@ -47,6 +52,7 @@ module Orchestrate
       def each
         params = {limit: limit}
         params[:offset] = offset if offset
+        params[:values] = true if values
         @response ||= key_value.perform(:list_refs, params)
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if key_value.collection.app.inside_parallel?
@@ -80,6 +86,11 @@ module Orchestrate
         else
           @offset
         end
+      end
+
+      def with_values
+        @values = true
+        self
       end
 
     end
