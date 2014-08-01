@@ -41,7 +41,8 @@ module Orchestrate
       kv = new(collection, key, response)
       kv.instance_variable_set(:@ref, ref)
       kv.instance_variable_set(:@reftime, listing['reftime']) if listing['reftime']
-      kv.value = listing.fetch('value')
+      kv.instance_variable_set(:@tombstone, path['tombstone'])
+      kv.value = listing.fetch('value', nil)
       kv
     end
 
@@ -141,7 +142,7 @@ module Orchestrate
     end
 
     def tombstone?
-      false
+      !! @tombstone
     end
 
     # @!group Attribute accessors
