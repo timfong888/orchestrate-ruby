@@ -54,7 +54,7 @@ class RefTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerates_in_parallel_raises_not_ready_if_forced
-    @limit = "5"
+    @limit_to_assert = "5"
     assert_raises Orchestrate::ResultsNotReady do
       @app.in_parallel { @kv.refs.take(5) }
     end
@@ -94,12 +94,18 @@ class RefTest < MiniTest::Unit::TestCase
     refs.each(&@assert_ref_listing)
   end
 
-  def test_enumerates_as_needed
+  def test_take_sets_limit
+    @limit_to_assert = 5
+    refs = @kv.refs.take(5).to_a
+    assert_equal 5, refs.length
+  end
+
+  def test_offset_sets_offset
+    refs = @kv.refs.offset(100).to_a
+    assert_equal 50, refs.size
   end
 
   def test_enumerates_with_values
   end
 
-  def test_tombstones
-  end
 end
