@@ -32,8 +32,11 @@ module Orchestrate
       # @param type_name [#to_s] the type of relation this RelationStem interacts with.
       def initialize(kv_item, type_name)
         @kv_item = kv_item
-        @client = kv_item.collection.app.client
         @type = type_name.to_s
+      end
+
+      def perform(api_method, *args)
+        kv_item.perform(api_method, type, *args)
       end
 
       # [Creates a relationship between two objects](http://orchestrate.io/docs/api/#graph/put).
@@ -47,7 +50,7 @@ module Orchestrate
       def <<(other_item_or_collection_name, other_key=nil)
         coll, key = get_collection_and_key(kv_item, nil)
         other_collection, other_key = get_collection_and_key(other_item_or_collection_name, other_key)
-        @client.put_relation(coll, key, type, other_collection, other_key)
+        perform(:put_relation, other_collection, other_key)
       end
       alias :push :<<
 
@@ -61,7 +64,7 @@ module Orchestrate
       def delete(other_item_or_collection_name, other_key=nil)
         coll, key = get_collection_and_key(kv_item, nil)
         other_collection, other_key = get_collection_and_key(other_item_or_collection_name, other_key)
-        @client.delete_relation(coll, key, type, other_collection, other_key)
+        perform(:delete_relation, other_collection, other_key)
       end
 
       # Adds depth to the retrieval of related items.
@@ -113,7 +116,6 @@ module Orchestrate
         def initialize(kv_item, edge_names)
           @kv_item = kv_item
           @edges = edge_names
-          @client = kv_item.collection.app.client
         end
 
         # Add a new type to the depth of the graph query.
@@ -129,13 +131,14 @@ module Orchestrate
         # iterates over each item in the result.  Used as the basis for
         # Enumerable methods.
         def each(&block)
-          @response = @client.get_relations(kv_item.collection_name, kv_item.key, *edges)
+          @response ||= kv_item.perform(:get_relations, *edges)
           return enum_for(:each) unless block
-          raise ResultsNotReady if @client.http.parallel_manager
+          raise ResultsNotReady if kv_item.collection.app.inside_parallel?
           @response.results.each do |listing|
             listing_collection = kv_item.collection.app[listing['path']['collection']]
             yield KeyValue.from_listing(listing_collection, listing, @response)
           end
+          @response = nil
         end
 
       end
