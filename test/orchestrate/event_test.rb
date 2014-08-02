@@ -82,13 +82,28 @@ class EventTest < MiniTest::Unit::TestCase
     assert_nil @kv.events[@type][@time][@ord]
   end
 
-  # def test_save_on_success_returns_true_and_updates
-  #   fail
-  # end
+  def test_save_on_success_returns_true_and_updates
+    event = make_event
+    new_body = @body.merge({'foo' => 'bar'})
+    event[:foo] = "bar"
+    assert_equal new_body, event.value
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal new_body, JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      @ref = make_ref
+      [ 204, response_headers({"Etag" => %|"#{@ref}"|}), '' ]
+    end
+    assert_equal true, event.save
+    assert_equal @ref, event.ref
+  end
 
-  # def test_save_on_error_returns_false
-  #   fail
-  # end
+  def test_save_on_error_returns_false
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do
+      error_response(:version_mismatch)
+    end
+    event = make_event
+    assert_equal false, event.save
+  end
 
   def test_save_bang_on_success_returns_true_and_updates
     event = make_event

@@ -39,14 +39,22 @@ module Orchestrate
       value[attr_name.to_s] = attr_val
     end
 
+    def save
+      begin
+        save!
+      rescue API::RequestError, API::ServiceError
+        false
+      end
+    end
+
     def save!
-      perform(:put_event, value, ref)
+      response = perform(:put_event, value, ref)
+      load_from_response(response)
+      true
     end
 
     def perform(api_method, *args)
-      response = type.perform(api_method, timestamp, ordinal, *args)
-      load_from_response(response)
-      true
+      type.perform(api_method, timestamp, ordinal, *args)
     end
 
     private
