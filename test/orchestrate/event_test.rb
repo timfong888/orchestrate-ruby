@@ -13,6 +13,15 @@ class EventTest < MiniTest::Unit::TestCase
     @ref = nil
   end
 
+  def make_event
+    @stubs.get("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do
+      @ref = make_ref
+      body = {value: @body, timestamp: @timestamp, ordinal: @ord}
+      [200, response_headers({"Etag" => %|"#{@ref}"|}), body.to_json]
+    end
+    @kv.events[@type][@timestamp][@ord]
+  end
+
   def assert_event_data(event)
     assert_kind_of Orchestrate::Event, event
     assert_equal @kv.key, event.key_name
@@ -26,6 +35,9 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal @ord, event.ordinal
     assert_equal "/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}", event.path
     assert_equal @body, event.value
+    @body.each do |key, value|
+      assert_equal value, event[key]
+    end
     assert_in_delta Time.now.to_f, event.last_request_time.to_f, 1.1
   end
 
@@ -69,4 +81,45 @@ class EventTest < MiniTest::Unit::TestCase
     end
     assert_nil @kv.events[@type][@time][@ord]
   end
+
+  # def test_save_on_success_returns_true_and_updates
+  #   fail
+  # end
+
+  # def test_save_on_error_returns_false
+  #   fail
+  # end
+
+  def test_save_bang_on_success_returns_true_and_updates
+    event = make_event
+    new_body = @body.merge({'foo' => 'bar'})
+    event[:foo] = "bar"
+    assert_equal new_body, event.value
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal new_body, JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      @ref = make_ref
+      [ 204, response_headers({"Etag" => %|"#{@ref}"|}), '' ]
+    end
+    assert_equal true, event.save!
+    assert_equal @ref, event.ref
+  end
+
+  def test_save_bang_on_error_raises
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do
+      error_response(:version_mismatch)
+    end
+    event = make_event
+    assert_raises Orchestrate::API::VersionMismatch do
+      event.save!
+    end
+  end
+
+  # def test_update_modifies_values_and_saves
+  #   fail
+  # end
+
+  # def test_update_bang_modifies_values_and_raises
+  #   fail
+  # end
 end

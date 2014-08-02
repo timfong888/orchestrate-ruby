@@ -18,6 +18,10 @@ module Orchestrate
       @type = event_type.to_s
     end
 
+    def perform(api_method, *args)
+      kv_item.perform(api_method, type, *args)
+    end
+
     def <<(body)
       Range.new(self).push(body)
     end
@@ -44,7 +48,7 @@ module Orchestrate
       end
 
       def perform(api_method, *args)
-        kv_item.perform(api_method, type_name, *args)
+        type.perform(api_method, *args)
       end
 
       def <<(body)

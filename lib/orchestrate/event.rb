@@ -31,6 +31,24 @@ module Orchestrate
       "/#{key.path}/events/#{URI.escape(type_name)}/#{timestamp}/#{ordinal}"
     end
 
+    def [](attr_name)
+      value[attr_name.to_s]
+    end
+
+    def []=(attr_name, attr_val)
+      value[attr_name.to_s] = attr_val
+    end
+
+    def save!
+      perform(:put_event, value, ref)
+    end
+
+    def perform(api_method, *args)
+      response = type.perform(api_method, timestamp, ordinal, *args)
+      load_from_response(response)
+      true
+    end
+
     private
     def load_from_response(response)
       response.on_complete do
