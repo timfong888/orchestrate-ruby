@@ -159,6 +159,9 @@ end
 
 ## Release Notes
 
+### Unreleased Changes on Master
+  - Implement `KeyValue#refs`, `RefList` and `Ref` to access a KeyValue's Refs.
+
 ### July 24, 2014: release 0.8.0
   - **BACKWARDS-INCOMPATIBLE** Fix #69, `Client` will url-escape path segments.  If you have keys with slashes or spaces or other
     characters escaped by `URI.escape` the client will now behave as expected, however if you've used these keys with this client
