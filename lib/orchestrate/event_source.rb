@@ -54,8 +54,12 @@ module Orchestrate
       alias :push :<<
 
       def [](ordinal)
-        response = perform(:get_event, @bounds[:start], ordinal)
-        Event.new(type, response)
+        begin
+          response = perform(:get_event, @bounds[:start], ordinal)
+          Event.new(type, response)
+        rescue API::NotFound
+          nil
+        end
       end
     end
   end

@@ -62,4 +62,11 @@ class EventTest < MiniTest::Unit::TestCase
     event = @kv.events[:checkins][@time][@ord]
     assert_event_data(event)
   end
+
+  def test_retrieves_single_event_returns_nil_on_not_found
+    @stubs.get("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      [404, response_headers, response_not_found('')]
+    end
+    assert_nil @kv.events[@type][@time][@ord]
+  end
 end
