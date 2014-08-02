@@ -135,7 +135,7 @@ module Orchestrate
     # Reload this KeyValue item from Orchestrate.
     # @raise Orchestrate::API::NotFound if the KeyValue no longer exists.
     def reload
-      load_from_response(@app.client.get(collection_name, key))
+      load_from_response(perform(:get))
     end
 
     # Is this the "Current" value for this KeyValue?  False for non-Ref objects.
@@ -194,7 +194,7 @@ module Orchestrate
     # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] If there are any other problems with saving.
     def save!
       begin
-        load_from_response(@app.client.put(collection_name, key, value, ref))
+        load_from_response(perform(:put, value, ref))
         true
       rescue API::IndexingConflict => e
         @ref = e.response.headers['Location'].split('/').last
@@ -238,7 +238,7 @@ module Orchestrate
     # Deletes a KeyValue item from Orchestrate using 'If-Match' with the current ref.
     # @raise [Orchestrate::API::VersionMismatch] If the KeyValue item has been updated with a new ref since this KeyValue was loaded.
     def destroy!
-      response = @app.client.delete(collection_name, key, ref)
+      response = perform(:delete, ref)
       @ref = nil
       @last_request_time = response.request_time
       true
@@ -258,7 +258,7 @@ module Orchestrate
     # Deletes a KeyValue item and its entire Ref history from Orchestrate using 'If-Match' with the current ref.
     # @raise [Orchestrate::API::VersionMismatch] If the KeyValue item has been updated with a new ref since this KeyValue was loaded.
     def purge!
-      response = @app.client.purge(collection_name, key, ref)
+      response = perform(:purge, ref)
       @ref = nil
       @last_request_time = response.request_time
       true
