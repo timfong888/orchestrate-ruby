@@ -137,10 +137,17 @@ module Orchestrate
       load_from_response(@app.client.get(collection_name, key))
     end
 
+    # Is this the "Current" value for this KeyValue?  False for non-Ref objects.
+    # Use this instead of `#is_a?` or `#kind_of?`.
+    # @return [true, false]
     def archival?
       false
     end
 
+    # Is this a Ref that represents a null value (created through `#destroy` or
+    # similar)?  False for most cases -- The only way to retrieve a Ref for which
+    # this will return true is by enumerating trhough values from a RefList.
+    # @return [true, false]
     def tombstone?
       !! @tombstone
     end
@@ -260,6 +267,8 @@ module Orchestrate
     #
     # @!group refs
 
+    # Entry point for retrieving Refs associated with this KeyValue.
+    # @return [Orchestrate::RefList] A RefList instance bound to this KeyValue.
     def refs
       @refs ||= RefList.new(self)
     end
@@ -276,6 +285,11 @@ module Orchestrate
 
     # @!endgroup relations
 
+    # Calls a method on the Collection's Application's client, providing the
+    # Collection's name and KeyValue's key.
+    # @param api_method [Symbol] The method on the client to call.
+    # @param args [#to_s, #to_json, Hash] The arguments for the method.
+    # @return API::Response
     def perform(api_method, *args)
       collection.perform(api_method, key, *args)
     end

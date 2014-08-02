@@ -51,10 +51,16 @@ module Orchestrate
       results
     end
 
+    # is the Application currently inside a block from `#in_parallel?`?
+    # @return [true, false]
     def inside_parallel?
       !! @inside_parallel
     end
 
+    # Perform a request against the client.
+    # @param api_method [Symbol] The method on the client to call
+    # @param args [#to_s, #to_json, Hash] The arguments for the method being called.
+    # @return Orchestrate::API::Response
     def perform(api_method, *args)
       client.send(api_method, *args)
     end
