@@ -97,7 +97,12 @@ def make_kv_listing(collection, opts={})
   score = opts[:score]
   body = opts[:body] || {"key" => key}
   collection = collection.name if collection.kind_of?(Orchestrate::Collection)
-  result = { "path" => { "collection" => collection, "key" => key, "ref" => ref }, "value" => body  }
+  result = { "path" => { "collection" => collection, "key" => key, "ref" => ref }}
+  if opts[:tombstone]
+    result["path"]["tombstone"] = true
+  else
+    result["value"] = opts.fetch(:value, true) ? body : {}
+  end
   result["reftime"] = reftime if reftime
   result["score"] = score if score
   result

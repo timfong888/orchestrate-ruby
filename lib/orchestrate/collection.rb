@@ -180,7 +180,10 @@ module Orchestrate
 
     # Iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
     # Items are provided in lexicographically sorted order by key name.
-    # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
+    # @overload each
+    #   @return [Enumerator]
+    # @overload each(&block)
+    #   @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
     # @see KeyValueList#each
     # @example
     #   keys = collection.take(20).map(&:key)
@@ -190,7 +193,8 @@ module Orchestrate
     end
 
     # Creates a Lazy Enumerator for the Collection's KeyValue List.  If called inside the app's
-    # `#in_parallel` block, pre-fetches results.
+    # `#in_parallel` block, pre-fetches the first page of results.
+    # @return [Enumerator::Lazy]
     def lazy
       KeyValueList.new(self).lazy
     end
@@ -226,7 +230,7 @@ module Orchestrate
     # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
     # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
     # @param count [Integer] The number of items to limit to.
-    # @return [Array]
+    # @return [Array<KeyValue>]
     def take(count)
       KeyValueList.new(self).take(count)
     end
@@ -292,7 +296,10 @@ module Orchestrate
 
       # Iterates over each KeyValue item in the collection.  Used as the basis for Enumerable methods.
       # Items are provided in lexicographically sorted order by key name.
-      # @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
+      # @overload each
+      #   @return Enumerator
+      # @overload each(&block)
+      #   @yieldparam [Orchestrate::KeyValue] key_value The KeyValue item
       # @example
       #   keys = collection.after(:foo).take(20).map(&:key)
       #   # returns the first 20 keys in the collection that occur after "foo"
@@ -375,7 +382,10 @@ module Orchestrate
 
       # Iterates over each result from the Search.  Used as the basis for Enumerable methods.  Items are
       # provided on the basis of score, with most relevant first.
-      # @yieldparam [Array<(Float, Orchestrate::KeyValue)>] score,key_value  The item's score and the item.
+      # @overload each
+      #   @return Enumerator
+      # @overload each(&block)
+      #   @yieldparam [Array<(Float, Orchestrate::KeyValue)>] score,key_value  The item's score and the item.
       # @example
       #   collection.search("trendy").take(5).each do |score, item|
       #     puts "#{item.key} has a trend score of #{score}"
@@ -427,6 +437,15 @@ module Orchestrate
           @offset
         end
       end
+    end
+
+    # Tells the Applicaiton to perform a request on its client, automatically
+    # providing the collection name.
+    # @param api_method [Symbol] The method on the client to call.
+    # @param args [#to_s, #to_json, Hash] The arguments for the method.
+    # @return API::Response
+    def perform(api_method, *args)
+      app.perform(api_method, name, *args)
     end
 
   end

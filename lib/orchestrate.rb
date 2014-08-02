@@ -3,6 +3,7 @@ require "orchestrate/client"
 require "orchestrate/application"
 require "orchestrate/collection"
 require "orchestrate/key_value"
+require "orchestrate/refs"
 require "orchestrate/graph"
 require "orchestrate/version"
 #
