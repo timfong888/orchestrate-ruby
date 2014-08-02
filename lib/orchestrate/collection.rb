@@ -51,7 +51,7 @@ module Orchestrate
     # Deletes the collection.
     # @return Orchestrate::API::Response
     def destroy!
-      app.client.delete_collection(name)
+      perform :delete_collection
     end
 
     # @!endgroup
@@ -90,7 +90,7 @@ module Orchestrate
     # @raise Orchestrate::API::AlreadyPresent a false condition was provided, but a value already exists for this key
     # @see #[]=
     def set(key_name, value, condition=nil)
-      response = app.client.put(name, key_name, value, condition)
+      response = perform(:put, key_name, value, condition)
       KeyValue.from_bodyless_response(self, key_name, value, response)
     end
 
@@ -101,7 +101,7 @@ module Orchestrate
     # @note If the create is considered a success but the client is unable to parse the key
     #   from the location header, an API::ServiceError is raised.
     def <<(value)
-      response = app.client.post(name, value)
+      response = perform(:post, value)
       match_data = response.location.match(%r{#{name}/([^/]+)})
       raise API::ServiceError.new(response) unless match_data
       KeyValue.from_bodyless_response(self, match_data[1], value, response)
@@ -159,7 +159,7 @@ module Orchestrate
     # @param key_name [#to_s] The name of the key
     # @return [true] If the request suceeds.
     def delete(key_name)
-      app.client.delete(name, key_name)
+      perform(:delete, key_name)
       true
     end
 
@@ -168,7 +168,7 @@ module Orchestrate
     # @param key_name [#to_s] The name of the key
     # @return [true] If the request suceeds.
     def purge(key_name)
-      app.client.purge(name, key_name)
+      perform(:purge, key_name)
       true
     end
 
@@ -314,7 +314,7 @@ module Orchestrate
           params[end_key] = range[:end]
         end
         params[:limit] = range[:limit]
-        @response ||= collection.app.client.list(collection.name, params)
+        @response ||= collection.perform(:list, params)
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
@@ -393,7 +393,7 @@ module Orchestrate
       def each
         params = {limit:limit}
         params[:offset] = offset if offset
-        @response ||= collection.app.client.search(collection.name, query, params)
+        @response ||= collection.perform(:search, query, params)
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
