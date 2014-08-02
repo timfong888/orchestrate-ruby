@@ -161,6 +161,7 @@ end
 
 ### Unreleased Changes on Master
   - Implement `KeyValue#refs`, `RefList` and `Ref` to access a KeyValue's Refs.
+  - Refactor `Client` api accessors on Object client to internal `#perform` methods.
 
 ### July 24, 2014: release 0.8.0
   - **BACKWARDS-INCOMPATIBLE** Fix #69, `Client` will url-escape path segments.  If you have keys with slashes or spaces or other
