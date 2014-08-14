@@ -144,7 +144,19 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal @ref, event.ref
   end
 
-  def test_update_bang_modifies_values_and_raises
+  def test_update_modifies_values_and_returns_false_on_error
+    event = make_event
+    update = {'foo' => 'bar'}
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal @body.update(update), JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      error_response(:version_mismatch)
+    end
+    assert_equal false, event.update(update)
+    assert_equal @body.update(update), event.value
+  end
+
+  def test_update_bang_modifies_values_and_saves
     event = make_event
     update = {'foo' => 'bar'}
     @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
@@ -156,5 +168,19 @@ class EventTest < MiniTest::Unit::TestCase
     assert_equal true, event.update!(update)
     assert_equal @body.update(update), event.value
     assert_equal @ref, event.ref
+  end
+
+  def test_update_bang_modifies_value_and_raises_on_error
+    event = make_event
+    update = {'foo' => 'bar'}
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal @body.update(update), JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      error_response(:version_mismatch)
+    end
+    assert_raises Orchestrate::API::VersionMismatch do
+      event.update!(update)
+    end
+    assert_equal @body.update(update), event.value
   end
 end
