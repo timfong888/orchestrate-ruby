@@ -183,4 +183,36 @@ class EventTest < MiniTest::Unit::TestCase
     end
     assert_equal @body.update(update), event.value
   end
+
+  def test_purge_performs_delete_if_match_returns_true_on_success
+    event = make_event
+    @stubs.delete("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      [204, response_headers, '']
+    end
+    assert_equal true, event.purge
+    assert_nil event.ref
+  end
+
+  def test_purge_performs_delete_if_match_returns_false_on_error
+    event = make_event
+    @stubs.delete("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      error_response(:version_mismatch)
+    end
+    assert_equal false, event.purge
+    assert_equal @ref, event.ref
+  end
+
+  def test_purge_bang_performs_delete_if_match_raises_on_error
+    event = make_event
+    @stubs.delete("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      error_response(:version_mismatch)
+    end
+    assert_raises Orchestrate::API::VersionMismatch do
+      event.purge!
+    end
+    assert_equal @ref, event.ref
+  end
 end

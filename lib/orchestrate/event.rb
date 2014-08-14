@@ -66,6 +66,21 @@ module Orchestrate
       save!
     end
 
+    def purge
+      begin
+        purge!
+      rescue API::RequestError
+        false
+      end
+    end
+
+    def purge!
+      response = perform(:purge_event, ref)
+      @ref = nil
+      @last_request_time = response.request_time
+      true
+    end
+
     def perform(api_method, *args)
       type.perform(api_method, timestamp, ordinal, *args)
     end
