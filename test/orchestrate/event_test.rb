@@ -130,11 +130,31 @@ class EventTest < MiniTest::Unit::TestCase
     end
   end
 
-  # def test_update_modifies_values_and_saves
-  #   fail
-  # end
+  def test_update_modifies_values_and_saves
+    event = make_event
+    update = {'foo' => 'bar'}
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal @body.update(update), JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      @ref = make_ref
+      [ 204, response_headers({"Etag" => %|"#{@ref}"|}), '' ]
+    end
+    assert_equal true, event.update(update)
+    assert_equal @body.update(update), event.value
+    assert_equal @ref, event.ref
+  end
 
-  # def test_update_bang_modifies_values_and_raises
-  #   fail
-  # end
+  def test_update_bang_modifies_values_and_raises
+    event = make_event
+    update = {'foo' => 'bar'}
+    @stubs.put("/v0/items/#{@kv.key}/events/#{@type}/#{@timestamp}/#{@ord}") do |env|
+      assert_equal @body.update(update), JSON.parse(env.body)
+      assert_header 'If-Match', %|"#{event.ref}"|, env
+      @ref = make_ref
+      [ 204, response_headers({"Etag" => %|"#{@ref}"|}), '' ]
+    end
+    assert_equal true, event.update!(update)
+    assert_equal @body.update(update), event.value
+    assert_equal @ref, event.ref
+  end
 end

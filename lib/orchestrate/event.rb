@@ -53,6 +53,19 @@ module Orchestrate
       true
     end
 
+    def update(merge)
+      begin
+        update!(merge)
+      rescue API::RequestError, API::ServiceError
+        false
+      end
+    end
+
+    def update!(merge)
+      merge.each_pair {|key, value| @value[key.to_s] = value }
+      save!
+    end
+
     def perform(api_method, *args)
       type.perform(api_method, timestamp, ordinal, *args)
     end
