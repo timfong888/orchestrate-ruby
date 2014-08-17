@@ -60,6 +60,12 @@ class EventEnumerationTest < MiniTest::Unit::TestCase
     # assert false
   end
 
+  def test_enumerator_sets_limit_from_limit
+    @limit = "5"
+    events = @kv.events[@type].take(5)
+    assert_equal 5, events.length
+  end
+
   def test_enumerator_in_parallel_raises_not_ready_if_forced
     assert_raises Orchestrate::ResultsNotReady do
       @app.in_parallel { @kv.events[@type].to_a }
@@ -132,7 +138,4 @@ class EventEnumerationTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_enumerator_sets_limit_from_limit
-    # assert false
-  end
 end

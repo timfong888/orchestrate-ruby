@@ -41,6 +41,10 @@ module Orchestrate
       Range.new(self).lazy
     end
 
+    def take(count)
+      Range.new(self).take(count)
+    end
+
     class Range
       attr_reader :type
       attr_reader :type_name
@@ -95,6 +99,12 @@ module Orchestrate
       def lazy
         return each.lazy if type.kv_item.collection.app.inside_parallel?
         super
+      end
+
+      def take(count)
+        count = 1 if count < 1
+        @bounds[:limit] = count > 100 ? 100 : count
+        super(count)
       end
     end
   end
