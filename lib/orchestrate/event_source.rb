@@ -45,6 +45,22 @@ module Orchestrate
       List.new(self).take(count)
     end
 
+    def start(bound)
+      List.new(self).start(bound)
+    end
+
+    def after(bound)
+      List.new(self).after(bound)
+    end
+
+    def before(bound)
+      List.new(self).before(bound)
+    end
+
+    def end(bound)
+      List.new(self).start(bound)
+    end
+
     class List
       attr_reader :type
       attr_reader :type_name
@@ -105,6 +121,38 @@ module Orchestrate
         count = 1 if count < 1
         @bounds[:limit] = count > 100 ? 100 : count
         super(count)
+      end
+
+      def start(bound)
+        @bounds[:start] = extract_bound_from(bound)
+        @bounds.delete(:after)
+        self
+      end
+
+      def after(bound)
+        @bounds[:after] = extract_bound_from(bound)
+        @bounds.delete(:start)
+        self
+      end
+
+      def before(bound)
+        @bounds[:before] = extract_bound_from(bound)
+        @bounds.delete(:end)
+        self
+      end
+
+      def end(bound)
+        @bounds[:end] = extract_bound_from(bound)
+        @bounds.delete(:before)
+        self
+      end
+
+      private
+      def extract_bound_from(bound)
+        if bound.kind_of?(Event)
+          "#{bound.timestamp}/#{bound.ordinal}"
+        else bound
+        end
       end
     end
   end

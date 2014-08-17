@@ -53,11 +53,35 @@ class EventEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerates_over_range_from_start_end
-    # assert false
+    app, stubs = make_application
+    kv = make_kv_item(app[:items], stubs)
+    start_event = Orchestrate::Event.new(kv.events[@type])
+    start_event.instance_variable_set(:@timestamp, @start_time - 1000)
+    start_event.instance_variable_set(:@ordinal, 5)
+    end_event = @start_time
+    stubs.get("/v0/items/#{@kv.key}/events/#{@type}") do |env|
+      assert_equal "#{start_event.timestamp}/#{start_event.ordinal}", env.params['startEvent']
+      assert_equal "#{end_event}", env.params['endEvent']
+      [200, response_headers, {"count" => 0, "results" => []}.to_json]
+    end
+    response = kv.events[@type].start(start_event).end(end_event).to_a
+    assert_equal [], response
   end
 
   def test_enumerates_over_range_from_after_before
-    # assert false
+    app, stubs = make_application
+    kv = make_kv_item(app[:items], stubs)
+    after_event = Orchestrate::Event.new(kv.events[@type])
+    after_event.instance_variable_set(:@timestamp, @start_time - 1000)
+    after_event.instance_variable_set(:@ordinal, 5)
+    before_event = Time.at(@start_time)
+    stubs.get("/v0/items/#{@kv.key}/events/#{@type}") do |env|
+      assert_equal "#{after_event.timestamp}/#{after_event.ordinal}", env.params['afterEvent']
+      assert_equal "#{(before_event.to_f * 1000).to_i}", env.params['beforeEvent']
+      [200, response_headers, {"count" => 0, "results" => []}.to_json]
+    end
+    response = kv.events[@type].before(before_event).after(after_event).to_a
+    assert_equal [], response
   end
 
   def test_enumerator_sets_limit_from_limit
