@@ -2,7 +2,7 @@ require "test_helper"
 
 class EventEnumerationTest < MiniTest::Unit::TestCase
   def setup
-    @app, @stubs = make_application
+    @app, @stubs = make_application({parallel: true})
     @kv = make_kv_item(@app[:items], @stubs)
     @type = :events
     @limit = "100"
@@ -61,23 +61,74 @@ class EventEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_in_parallel_raises_not_ready_if_forced
-    # assert false
+    assert_raises Orchestrate::ResultsNotReady do
+      @app.in_parallel { @kv.events[@type].to_a }
+    end
   end
 
   def test_enumerator_in_parallel_prefetches_lazy_enums
-    # assert false
+    return unless [].respond_to?(:lazy)
+    events = nil
+    @app.in_parallel { events = @kv.events[@type].lazy.map{|e| e } }
+    assert @called, "lazy enumerator wasn't prefetched inside of parallel"
+    events = events.force
+    assert_equal 110, events.to_a.size
+    events.each_with_index do |event, index|
+      assert_equal @kv, event.key
+      assert_equal @type.to_s, event.type_name
+      assert_equal @start_time - index, event.timestamp
+      assert_equal 1, event.ordinal
+      assert event.ref
+      assert event.value
+      assert_in_delta Time.now.to_f, event.last_request_time.to_f, 1.1
+    end
   end
 
   def test_enumerator_in_parallel_prefetches_enums
-    # assert false
+    events = nil
+    @app.in_parallel { events = @kv.events[@type].each }
+    assert @called, "enumerator wasn't prefetched inside of parallel"
+    assert_equal 110, events.to_a.size
+    events.each_with_index do |event, index|
+      assert_equal @kv, event.key
+      assert_equal @type.to_s, event.type_name
+      assert_equal @start_time - index, event.timestamp
+      assert_equal 1, event.ordinal
+      assert event.ref
+      assert event.value
+      assert_in_delta Time.now.to_f, event.last_request_time.to_f, 1.1
+    end
   end
 
   def test_enumerator_doesnt_prefetch_lazy_enums
-    # assert false
+    events = @kv.events[@type].lazy.map{|e| e }
+    refute @called, "lazy enumerator was prefetched"
+    events = events.force
+    assert_equal 110, events.to_a.size
+    events.each_with_index do |event, index|
+      assert_equal @kv, event.key
+      assert_equal @type.to_s, event.type_name
+      assert_equal @start_time - index, event.timestamp
+      assert_equal 1, event.ordinal
+      assert event.ref
+      assert event.value
+      assert_in_delta Time.now.to_f, event.last_request_time.to_f, 1.1
+    end
   end
 
   def test_enumerator_prefetches_enums
-    # assert false
+    events = @kv.events[@type].each
+    assert @called, "enumerator wasn't prefetched"
+    assert_equal 110, events.to_a.size
+    events.each_with_index do |event, index|
+      assert_equal @kv, event.key
+      assert_equal @type.to_s, event.type_name
+      assert_equal @start_time - index, event.timestamp
+      assert_equal 1, event.ordinal
+      assert event.ref
+      assert event.value
+      assert_in_delta Time.now.to_f, event.last_request_time.to_f, 1.1
+    end
   end
 
   def test_enumerator_sets_limit_from_limit

@@ -37,6 +37,10 @@ module Orchestrate
       Range.new(self).each(&block)
     end
 
+    def lazy
+      Range.new(self).lazy
+    end
+
     class Range
       attr_reader :type
       attr_reader :type_name
@@ -76,6 +80,8 @@ module Orchestrate
 
       def each(&block)
         @response = perform(:list_events, @bounds)
+        return enum_for(:each) unless block_given?
+        raise ResultsNotReady.new if type.kv_item.collection.app.inside_parallel?
         loop do
           @response.results.each do |listing|
             yield Event.from_listing(type, listing, @response)
@@ -84,6 +90,11 @@ module Orchestrate
           @response = @response.next_results
         end
         @response = nil
+      end
+
+      def lazy
+        return each.lazy if type.kv_item.collection.app.inside_parallel?
+        super
       end
     end
   end
