@@ -101,6 +101,7 @@ class EventEnumerationTest < MiniTest::Unit::TestCase
   end
 
   def test_enumerator_doesnt_prefetch_lazy_enums
+    return unless [].respond_to?(:lazy)
     events = @kv.events[@type].lazy.map{|e| e }
     refute @called, "lazy enumerator was prefetched"
     events = events.force
