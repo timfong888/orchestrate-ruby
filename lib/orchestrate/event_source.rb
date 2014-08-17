@@ -31,6 +31,12 @@ module Orchestrate
       Range.new(self, bounds)
     end
 
+    include Enumerable
+
+    def each(&block)
+      Range.new(self).each(&block)
+    end
+
     class Range
       attr_reader :type
       attr_reader :type_name
@@ -43,7 +49,7 @@ module Orchestrate
           @bounds = bounds
         else
           @bounds = {limit: 100}
-          @bounds[:start] = bounds
+          @bounds[:start] = bounds if bounds
         end
       end
 
@@ -64,6 +70,20 @@ module Orchestrate
         rescue API::NotFound
           nil
         end
+      end
+
+      include Enumerable
+
+      def each(&block)
+        @response = perform(:list_events, @bounds)
+        loop do
+          @response.results.each do |listing|
+            yield Event.from_listing(type, listing, @response)
+          end
+          break unless @response.next_link
+          @response = @response.next_results
+        end
+        @response = nil
       end
     end
   end

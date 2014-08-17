@@ -7,18 +7,27 @@ module Orchestrate
       event
     end
 
+    def self.from_listing(stem, listing, response)
+      event = new(stem)
+      event.value = listing['value']
+      event.instance_variable_set(:@timestamp, listing['timestamp'])
+      event.instance_variable_set(:@ordinal, listing['ordinal'])
+      event.instance_variable_set(:@ref, listing['path']['ref'])
+      event.instance_variable_set(:@last_request_time, response.request_time)
+      event
+    end
+
     attr_reader :type
     attr_reader :type_name
     attr_reader :key
     attr_reader :key_name
     attr_reader :ref
     attr_reader :timestamp
-    attr_reader :time
     attr_reader :ordinal
     attr_reader :last_request_time
     attr_accessor :value
 
-    def initialize(stem, response)
+    def initialize(stem, response=nil)
       @type = stem
       @type_name = type.type
       @key = stem.kv_item
@@ -29,6 +38,10 @@ module Orchestrate
 
     def path
       "/#{key.path}/events/#{URI.escape(type_name)}/#{timestamp}/#{ordinal}"
+    end
+
+    def time
+      @time ||= Time.at(@timestamp / 1000.0)
     end
 
     def [](attr_name)
@@ -98,7 +111,6 @@ module Orchestrate
           @timestamp = response.body['timestamp']
           @ordinal = response.body['ordinal']
         end
-        @time = Time.at(@timestamp / 1000.0)
         @last_request_time = response.request_time
       end
     end
