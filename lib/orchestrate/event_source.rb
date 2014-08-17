@@ -23,29 +23,29 @@ module Orchestrate
     end
 
     def <<(body)
-      Range.new(self).push(body)
+      List.new(self).push(body)
     end
     alias :push :<<
 
     def [](bounds)
-      Range.new(self, bounds)
+      List.new(self, bounds)
     end
 
     include Enumerable
 
     def each(&block)
-      Range.new(self).each(&block)
+      List.new(self).each(&block)
     end
 
     def lazy
-      Range.new(self).lazy
+      List.new(self).lazy
     end
 
     def take(count)
-      Range.new(self).take(count)
+      List.new(self).take(count)
     end
 
-    class Range
+    class List
       attr_reader :type
       attr_reader :type_name
       attr_reader :kv_item
