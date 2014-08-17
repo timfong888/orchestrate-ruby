@@ -47,7 +47,7 @@ module Orchestrate
     # @param body [#to_json] The value for the event.
     # @return [Orchestrate::Event] The event that was created.
     def <<(body)
-      List.new(self).push(body)
+      TimeSlice.new(self).push(body)
     end
     alias :push :<<
 
@@ -64,7 +64,7 @@ module Orchestrate
     #   # equivalent to:
     #   # kv.events[:checkins].before(Time.now - 3600).after(Time.now - 24 * 3600).to_a
     def [](bounds)
-      List.new(self, bounds)
+      TimeSlice.new(self, bounds)
     end
 
     include Enumerable
@@ -77,14 +77,14 @@ module Orchestrate
     # @overload each(&block)
     #   @yieldparam [Orchestrate::Event] event The Event item
     def each(&block)
-      List.new(self).each(&block)
+      TimeSlice.new(self).each(&block)
     end
 
     # Creates a Lazy Enumerator for the EventList.  If called inside the app's
     # `#in_parallel` block, will prefetch results.
     # @return Enumerator::Lazy
     def lazy
-      List.new(self).lazy
+      TimeSlice.new(self).lazy
     end
 
     # Returns the first n items.  Equivalent to Enumerable#take.  Sets the `limit`
@@ -92,45 +92,64 @@ module Orchestrate
     # @param count [Integer] The number of events to limit to.
     # @return [Array]
     def take(count)
-      List.new(self).take(count)
+      TimeSlice.new(self).take(count)
     end
 
     # Sets the inclusive start boundary for enumeration over events.
     # Overwrites any value given to #before.
     # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The inclusive start of the event range.
-    # @return [EventType::List]
+    # @return [EventType::TimeSlice]
     def start(bound)
-      List.new(self).start(bound)
+      TimeSlice.new(self).start(bound)
     end
 
     # Sets the exclusive start boundary for enumeration over events.
     # Overwrites any value given to #start
     # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The exclusive start of the event range.
-    # @return [EventType::List]
+    # @return [EventType::TimeSlice]
     def after(bound)
-      List.new(self).after(bound)
+      TimeSlice.new(self).after(bound)
     end
 
     # Sets the exclusive end boundary for enumeration over events.
     # Overwrites any value given to #end
     # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The exclusive end of the event range.
-    # @return [EventType::List]
+    # @return [EventType::TimeSlice]
     def before(bound)
-      List.new(self).before(bound)
+      TimeSlice.new(self).before(bound)
     end
 
     # Sets the inclusive end boundary for enumeration over events.
     # Overwrites any value given to #before
     # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The inclusive end of the event range.
-    # @return [EventType::List]
+    # @return [EventType::TimeSlice]
     def end(bound)
-      List.new(self).start(bound)
+      TimeSlice.new(self).start(bound)
     end
 
-    class List
+    # Manages events in a specified duration of time.
+    class TimeSlice
+
+      # @return [EventType] The associated EventType
       attr_reader :type
+
+      # @return [String] The associated event type name
       attr_reader :type_name
+
+      # @return [KeyValue] The associated KeyValue
       attr_reader :kv_item
+
+      # Instantiates a new TimeSlice
+      # @param type [EventType] The associated EventType
+      # @param bounds [nil, String, Integer, Time, Date, Hash] Boundaries for the Time
+      #   If `nil`, no boundaries are set.  Used to enumerate over all events.
+      #   If `String`, `Integer`, `Time`, `Date`, used as `:start` option, below.
+      #   If `Hash`, see options.
+      # @option bounds [nil, String, Integer, Time, Date] :start Used as the 'startEvent' key.
+      # @option bounds [nil, String, Integer, Time, Date] :after Used as the 'afterEvent' key.
+      # @option bounds [nil, String, Integer, Time, Date] :before Used as the 'beforeEvent' key.
+      # @option bounds [nil, String, Integer, Time, Date] :end Used as the 'endEvent' key.
+      # @option bounds [Integer] :limit (100) The number of results to return.
       def initialize(type, bounds=nil)
         @type = type
         @type_name = type.type
@@ -138,24 +157,39 @@ module Orchestrate
         if bounds.kind_of?(Hash)
           @bounds = bounds
         else
-          @bounds = {limit: 100}
+          @bounds = {}
           @bounds[:start] = bounds if bounds
         end
+        @bounds[:limit] ||= 100
       end
 
+      # Calls a method on the associated API Client, with collection, key and
+      # event_type being provided by EventType.
+      # @param api_method [Symbol] The method to call
+      # @param args [#to_s, #to_json, Hash] The arguments for the method being called.
+      # @return [API::Response]
       def perform(api_method, *args)
         type.perform(api_method, *args)
       end
 
+      # Creates a new Event of the given type for the associated KeyValue.
+      # @param body [#to_json] The value for the event.
+      # @return [Orchestrate::Event] The event that was created.
       def <<(body)
         response = perform(:post_event, body, @bounds[:start])
         Event.from_bodyless_response(type, body, response)
       end
       alias :push :<<
 
+      # Retrieves a single ID by timestamp and ordinal.  Uses the timestamp
+      # value from the associated bounds, by `start`, `before`, `after`, or
+      # `end` in that order.
+      # @param ordinal [Integer, #to_s] The ordinal value for the event to retrieve.
+      # @return [Orchestrate::Event]
       def [](ordinal)
         begin
-          response = perform(:get_event, @bounds[:start], ordinal)
+          timestamp = @bounds[:start] || @bounds[:before] || @bounds[:after] || @bounds[:end]
+          response = perform(:get_event, timestamp, ordinal)
           Event.new(type, response)
         rescue API::NotFound
           nil
@@ -164,6 +198,14 @@ module Orchestrate
 
       include Enumerable
 
+      # Iterates over events belonging to the KeyValue of the specified Type
+      # within the given bounds.  Used as the basis for enumerable methods.
+      # Events are provided in reverse chronological order by timestamp and
+      # ordinal value.
+      # @overlaod each
+      #   @return Enumerator
+      # @overload each(&block)
+      #   @yieldparam [Orchestrate::Event] event The Event item
       def each(&block)
         @response = perform(:list_events, @bounds)
         return enum_for(:each) unless block_given?
@@ -178,35 +220,58 @@ module Orchestrate
         @response = nil
       end
 
+      # Creates a Lazy Enumerator for the EventList.  If called inside the app's
+      # `#in_parallel` block, will prefetch results.
+      # @return Enumerator::Lazy
       def lazy
         return each.lazy if type.kv_item.collection.app.inside_parallel?
         super
       end
 
+      # Returns the first n items.  Equivalent to Enumerable#take.  Sets the `limit`
+      # parameter on the query to Orchestrate, so we don't ask for more than is needed.
+      # @param count [Integer] The number of events to limit to.
+      # @return [Array]
       def take(count)
         count = 1 if count < 1
         @bounds[:limit] = count > 100 ? 100 : count
         super(count)
       end
 
+      # Sets the inclusive start boundary for enumeration over events.
+      # Overwrites any value given to #before.
+      # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The inclusive start of the event range.
+      # @return [EventType::TimeSlice]
       def start(bound)
         @bounds[:start] = extract_bound_from(bound)
         @bounds.delete(:after)
         self
       end
 
+      # Sets the exclusive start boundary for enumeration over events.
+      # Overwrites any value given to #start
+      # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The exclusive start of the event range.
+      # @return [EventType::TimeSlice]
       def after(bound)
         @bounds[:after] = extract_bound_from(bound)
         @bounds.delete(:start)
         self
       end
 
+      # Sets the exclusive end boundary for enumeration over events.
+      # Overwrites any value given to #end
+      # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The exclusive end of the event range.
+      # @return [EventType::TimeSlice]
       def before(bound)
         @bounds[:before] = extract_bound_from(bound)
         @bounds.delete(:end)
         self
       end
 
+      # Sets the inclusive end boundary for enumeration over events.
+      # Overwrites any value given to #before
+      # @param bound [Orchestrate::Event, Time, Date, Integer, #to_s] The inclusive end of the event range.
+      # @return [EventType::TimeSlice]
       def end(bound)
         @bounds[:end] = extract_bound_from(bound)
         @bounds.delete(:before)
