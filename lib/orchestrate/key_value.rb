@@ -93,7 +93,7 @@ module Orchestrate
     # @param coll [Orchestrate::Collection] The collection to which this KeyValue belongs.
     # @param key_name [#to_s] The name of the key
     # @param associated_response [nil, Orchestrate::API::Response]
-    #   If an API::Request, used to load attributes and value.
+    #   If an API::Response, used to load attributes and value.
     # @return Orchestrate::KeyValue
     def initialize(coll, key_name, associated_response=nil)
       @collection = coll
@@ -293,6 +293,8 @@ module Orchestrate
     # @!endgroup relations
     # @!group events
 
+    # Entry point for managing events associated with this KeyValue item.
+    # @return [Orchestrate::EventSource]
     def events
       @events ||= EventSource.new(self)
     end
