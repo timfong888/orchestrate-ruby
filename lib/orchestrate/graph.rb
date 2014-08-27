@@ -35,6 +35,10 @@ module Orchestrate
         @type = type_name.to_s
       end
 
+      # Calls a method on the KeyValue's Collection's API Client, providing the relation type.
+      # @param api_method [Symbol] The method on the client to call.
+      # @param args [#to_s, #to_json, Hash] The remaining arguments for the specified method.
+      # @return [API::Response]
       def perform(api_method, *args)
         kv_item.perform(api_method, type, *args)
       end

@@ -1,3 +1,4 @@
+require 'uri'
 module Orchestrate
   # Key/Value pairs are pieces of data identified by a unique key for
   # a collection and have corresponding value.
@@ -58,6 +59,10 @@ module Orchestrate
     # @return [String]
     attr_reader :key
 
+    # The 'address' of this KeyValue item, representated as #[collection_name]/#[key]
+    # @return [String]
+    attr_reader :path
+
     # For comparison purposes only, the 'address' of this KeyValue item.
     # Represented as "[collection_name]/[key]"
     # @return [String]
@@ -88,7 +93,7 @@ module Orchestrate
     # @param coll [Orchestrate::Collection] The collection to which this KeyValue belongs.
     # @param key_name [#to_s] The name of the key
     # @param associated_response [nil, Orchestrate::API::Response]
-    #   If an API::Request, used to load attributes and value.
+    #   If an API::Response, used to load attributes and value.
     # @return Orchestrate::KeyValue
     def initialize(coll, key_name, associated_response=nil)
       @collection = coll
@@ -96,6 +101,7 @@ module Orchestrate
       @app = coll.app
       @key = key_name.to_s
       @id = "#{collection_name}/#{key}"
+      @path = "#{URI.escape(collection_name)}/#{URI.escape(key)}"
       @value = {}
       @ref = false
       load_from_response(associated_response) if associated_response
@@ -285,6 +291,15 @@ module Orchestrate
     end
 
     # @!endgroup relations
+    # @!group events
+
+    # Entry point for managing events associated with this KeyValue item.
+    # @return [Orchestrate::EventSource]
+    def events
+      @events ||= EventSource.new(self)
+    end
+
+    # @!endgroup events
 
     # Calls a method on the Collection's Application's client, providing the
     # Collection's name and KeyValue's key.

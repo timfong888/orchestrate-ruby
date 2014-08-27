@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class EventTest < MiniTest::Unit::TestCase
+class EventAPITest < MiniTest::Unit::TestCase
 
   def setup
     @collection = 'tests'
