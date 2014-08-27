@@ -159,6 +159,9 @@ end
 
 ## Release Notes
 
+### Unreleased Changes on Master:
+  - Implement `KeyValue#events`, `EventList` and `Events` to access events associated with a KeyValue.
+
 ### August 6, 2014: release 0.8.1
   - Implement `KeyValue#refs`, `RefList` and `Ref` to access a KeyValue's Refs.
   - Refactor `Client` api accessors on Object client to internal `#perform` methods.
