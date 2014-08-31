@@ -215,4 +215,28 @@ class EventTest < MiniTest::Unit::TestCase
     end
     assert_equal @ref, event.ref
   end
+
+  def test_equality_and_comparison
+    app, stubs = make_application
+    items = app[:items]
+
+    foo = Orchestrate::KeyValue.new(items, :foo)
+    bar = Orchestrate::KeyValue.new(items, :bar)
+    assert_equal foo.events, Orchestrate::KeyValue.new(items, :foo).events
+    assert foo.events.eql?(Orchestrate::KeyValue.new(items, :foo).events)
+    refute_equal foo.events, bar.events
+    refute foo.events.eql?(bar.events)
+
+    tweets = foo.events[:tweets]
+    assert_equal tweets, Orchestrate::KeyValue.new(items, :foo).events['tweets']
+    assert tweets.eql?(Orchestrate::KeyValue.new(items, :foo).events['tweets'])
+    refute_equal tweets, foo.events[:checkins]
+    refute tweets.eql?(foo.events[:checkins])
+    assert_equal(1, foo.events[:checkins] <=> tweets)
+    assert_equal(0, tweets <=> foo.events[:tweets])
+    assert_equal(-1, tweets <=> foo.events[:checkins])
+    refute_equal tweets, bar.events['tweets']
+    refute tweets.eql?(bar.events['tweets'])
+    assert_nil tweets <=> bar.events['tweets']
+  end
 end

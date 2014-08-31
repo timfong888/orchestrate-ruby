@@ -3,6 +3,9 @@ module Orchestrate
   # Manages Event Types for a KeyValue item.
   class EventSource
 
+    # @return [Orchestrate::KeyValue] The KeyValue to which the sourced events belong.
+    attr_reader :kv_item
+
     # Instantiages a new EventSource manager.
     # @param kv_item [Orchestrate::KeyValue] The KeyValue item to which events belong.
     def initialize(kv_item)
@@ -15,6 +18,19 @@ module Orchestrate
     # @return [EventType]
     def [](event_type)
       @types[event_type.to_s] ||= EventType.new(@kv_item, event_type)
+    end
+
+    # Equivalent to `String#==`.  Compares by kv_item.
+    # @param other [Orchestrate::EventSource] the EventSource to compare against.
+    # @return [true, false]
+    def ==(other)
+      other.kind_of?(Orchestrate::EventSource) && other.kv_item == kv_item
+    end
+    alias :eql? :==
+
+    # @return Pretty-Printed string representation
+    def to_s
+      "#<Orchestrate::EventSource key_value=#{kv_item}>"
     end
   end
 
@@ -33,6 +49,30 @@ module Orchestrate
     def initialize(kv_item, event_type)
       @kv_item = kv_item
       @type = event_type.to_s
+    end
+
+    # Equivalent to `String#==`.  Compares by KeyValue and Type.
+    # @param other [Orchestrate::EventType] The EventType to compare against.
+    # @return [true, false]
+    def ==(other)
+      other.kind_of?(Orchestrate::EventType) && \
+        other.kv_item == kv_item && \
+        other.type == type
+    end
+    alias :eql? :==
+
+    # Equivalent to `String#<=>`.  Comapres by key_value and type.
+    # @param other [Orchestrate::EventType] The EventType to compare against.
+    # @return [nil, -1, 0, 1]
+    def <=>(other)
+      return nil unless other.kind_of?(Orchestrate::EventType)
+      return nil unless other.kv_item == kv_item
+      other.type <=> type
+    end
+
+    # @return A pretty-printed string representation of the EventType
+    def to_s
+      "#<Orchestrate::EventType key_value=#{kv_item} type=#{type}>"
     end
 
     # Calls a method on the KeyValue's Collection's API Client, providing the event type.
