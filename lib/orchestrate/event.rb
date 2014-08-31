@@ -20,13 +20,13 @@ module Orchestrate
     # @param listing [Hash] The entry in the LIST result
     # @param response [API::Response] The associated response for the list query.
     # @return [Event]
-    def self.from_listing(stem, listing, response)
+    def self.from_listing(stem, listing, response=nil)
       event = new(stem)
       event.value = listing['value']
       event.instance_variable_set(:@timestamp, listing['timestamp'])
       event.instance_variable_set(:@ordinal, listing['ordinal'])
       event.instance_variable_set(:@ref, listing['path']['ref'])
-      event.instance_variable_set(:@last_request_time, response.request_time)
+      event.instance_variable_set(:@last_request_time, response.request_time) if response
       event
     end
 
@@ -73,11 +73,43 @@ module Orchestrate
       load_from_response(response) if response
     end
 
+    # Equivalent to `String#==`.  Compares by KeyValue, Type, Timestamp and Ordinal.
+    # @param other [Orchestrate::Event] the Event to compare against.
+    # @return [true, false]
+    def ==(other)
+      other.kind_of?(Orchestrate::Event) && \
+        other.type == type && \
+        other.timestamp == timestamp && \
+        other.ordinal == ordinal
+    end
+    alias :eql? :==
+
+    # Equivalent to `String#<=>`.  Compares by KeyValue, Type, Timestamp and
+    # Ordinal.  Sorts newer timestamps before older timestamps.  If timestamps
+    # are equivalent, sorts by ordinal.  This behavior emulates the order which
+    # events are returned in a list events query from the Orchestrate API.
+    # @param other [Orchestrate::Event] the Event to compare against.
+    # @return [nil, -1, 0, 1]
+    def <=>(other)
+      return nil unless other.kind_of?(Orchestrate::Event)
+      return nil unless other.type == type
+      if other.timestamp == timestamp
+        other.ordinal <=> ordinal
+      else
+        other.timestamp > timestamp ? -1 : 1
+      end
+    end
+
+    # @return [String] A pretty-printed representation of the event.
+    def to_s
+      "#<Orchestrate::Event collection=#{key.collection_name} key=#{key_name} type=#{type_name} time=#{time} ordinal=#{ordinal} ref=#{ref} last_request_time=#{last_request_time}>"
+    end
+
     # @group Attributes
 
     # @return [String] The full path of the event.
     def path
-      "/#{key.path}/events/#{URI.escape(type_name)}/#{timestamp}/#{ordinal}"
+      @path ||= "/#{key.path}/events/#{URI.escape(type_name)}/#{timestamp}/#{ordinal}"
     end
 
     # @return [Time] The timestamp of the event as a Time object.
