@@ -80,10 +80,6 @@ module Orchestrate
     # @return [#to_json]
     attr_accessor :value
 
-    # Whether the KeyValue has been loaded from Orchestrate or not.
-    # @return boolean
-    attr_reader :loaded
-
     # When the KeyValue was last loaded from Orchestrate.
     # @return [Time]
     attr_reader :last_request_time
