@@ -159,8 +159,9 @@ end
 
 ## Release Notes
 
-### Unreleased Changes on Master:
+### September 1, 2014: release 0.9.0
   - Implement `KeyValue#events`, `EventList` and `Events` to access events associated with a KeyValue.
+  - Removed `KeyValue#loaded` attr reader, it pointed to an instance variable no longer in use.  Use `#loaded?` instead.
 
 ### August 6, 2014: release 0.8.1
   - Implement `KeyValue#refs`, `RefList` and `Ref` to access a KeyValue's Refs.
