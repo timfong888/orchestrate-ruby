@@ -4,9 +4,7 @@ Orchestrate API for Ruby
 
 Ruby client interface for the [Orchestrate.io](http://orchestrate.io) REST API.
 
-[rDoc Documentation][rdoc]
-
-[rdoc]: (http://rdoc.info/github/orchestrate-io/orchestrate-ruby/master/frames)
+[rDoc Documentation](http://rdoc.info/gems/orchestrate/frames)
 
 ## Getting Started
 
@@ -24,7 +22,7 @@ users = app[:users]
 ```ruby
 users[:joe] = { "name" => "Joe" }           # PUTs joe, returns the input, as per Ruby convention on #[]=
 users.set(:jack, { "name" => "Jack" })      # PUTs jack, returns a KeyValue
-users.create(:jill, { "name" => "Jill" })   # PUT-If-Absent hill, returns a KeyValue
+users.create(:jill, { "name" => "Jill" })   # PUT-If-Absent jill, returns a KeyValue
 users << { "name" => "Unknown" }            # POSTs the body, returns a KeyValue
 users.map {|user| [user.key, user.ref]}     # enumerates over ALL items in collection
 ```
