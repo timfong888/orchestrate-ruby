@@ -63,6 +63,7 @@ module Orchestrate
     # @param options [Hash] Parameters for the query
     # @option options [Integer] :limit (10) The number of results to return. Maximum 100.
     # @option options [Integer] :offset (0) The starting position of the results.
+    # @option options [String]  :sort The field and direction to sort by. Ex: `value.name:asc`
     # @return Orchestrate::API::CollectionResponse
     # @raise Orchestrate::API::InvalidSearchParam The :limit/:offset values are not valid.
     # @raise Orchestrate::API::SearchQueryMalformed if query isn't a valid Lucene query.
