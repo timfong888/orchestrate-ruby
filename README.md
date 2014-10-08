@@ -157,6 +157,9 @@ end
 
 ## Release Notes
 
+### October 8, 2014: release 0.9.1
+  - Improvements to documentation.
+
 ### September 1, 2014: release 0.9.0
   - Implement `KeyValue#events`, `EventList` and `Events` to access events associated with a KeyValue.
   - Removed `KeyValue#loaded` attr reader, it pointed to an instance variable no longer in use.  Use `#loaded?` instead.
@@ -213,4 +216,3 @@ end
   Initial Port from @jimcar
   - Uses Faraday HTTP Library as backend, with examples of alternate adapters
   - Cleanup client method signatures
-
