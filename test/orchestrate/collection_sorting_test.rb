@@ -8,10 +8,8 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
     @query = "foo"
     @limit = 100
     @total = 110
-    @sort_asc = "score:asc"
-    @sort_desc = "score:desc"
 
-    @make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: @total-i/@total*5.0) }
+    @make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: @total-i/@total*5.0, rank: @total-i/@total*2.0 )}
     @handle_offset = lambda do |offset|
       case offset
       when nil
@@ -35,7 +33,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_sort_ascending
-    results = @items.search("foo").order(@sort_asc).map{|i| i }
+    results = @items.search("foo").order(:score, :asc).map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -45,13 +43,37 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_basic_sort_ascending
-    results = @items.search("foo").order(@sort_desc).map{|i| i }
+  def test_basic_sort_descending
+    results = @items.search("foo").order(:score, :desc).map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
       assert_equal "item-#{idx}", item[1].key
       assert_equal @total-idx/@total*5.0, item["score".to_i]
+      assert_nil item[1].reftime
+    end
+  end
+
+  def test_basic_multiple_fields_sort_ascending
+    results = @items.search("foo").order(:score, :asc, :rank, :asc).map{|i| i }
+    assert_equal 110, results.length
+    results.each_with_index do |item, idx|
+      assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
+      assert_equal "item-#{idx}", item[1].key
+      assert_equal @total-idx/@total*5.0, item["score".to_i]
+      assert_equal @total-idx/@total*2.0, item["rank".to_i]
+      assert_nil item[1].reftime
+    end
+  end
+
+  def test_basic_multiple_fields_sort_descending
+    results = @items.search("foo").order(:score, :asc, :rank, :desc).map{|i| i }
+    assert_equal 110, results.length
+    results.each_with_index do |item, idx|
+      assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
+      assert_equal "item-#{idx}", item[1].key
+      assert_equal @total-idx/@total*5.0, item["score".to_i]
+      assert_equal @total-idx/@total*2.0, item["rank".to_i]
       assert_nil item[1].reftime
     end
   end

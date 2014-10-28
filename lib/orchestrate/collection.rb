@@ -364,7 +364,8 @@ module Orchestrate
 
       # @return [#to_s] The Lucene Query String given as the search query.
       attr_reader :query
-
+      
+      # @return [#to_s] The sorting parameters.
       attr_reader :sort
 
       # @return [Integer] The number of results to fetch per request.
@@ -380,9 +381,16 @@ module Orchestrate
         @limit = 100
         @offset= nil
       end
-
-      def order(args)
-        self.class.new(collection, query, args)
+      
+      # Sets the sorting parameters for enumeration over the SearchResults items in the collection.
+      # #order takes multiple arguments, but each even numbered argument must be either :asc or :desc
+      # When given a single argument #order defaults to :asc
+      # @example
+      #  @app[:items].search("location: Portland").order(:name, :asc, :rank, :desc, :created_at)
+      # the :created_at parameter will default to :asc
+      def order(*args)
+        sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(",")
+        self.class.new(collection, query, sort)
       end
 
       include Enumerable
