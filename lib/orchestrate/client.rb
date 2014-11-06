@@ -10,6 +10,9 @@ module Orchestrate
     # @return [String] The API key provided
     attr_reader :api_key
 
+    # @return [String] The Orchestrate data center URL
+    attr_reader :host
+
     # @return [Faraday::Connection] The Faraday HTTP connection.
     attr_reader :http
 
@@ -18,13 +21,15 @@ module Orchestrate
 
     # Instantiate a new Client for an Orchestrate application.
     # @param api_key [#to_s] The API Key for your Orchestrate application.
+    # @param host [#to_s] The host datacenter for your Orchestrate application.
     # @yieldparam [Faraday::Connection] The setup for the faraday connection.
     # @return Orchestrate::Client
     # @todo api_key -> app_url, parse api_key from auth section of url
-    def initialize(api_key, &block)
+    def initialize(api_key, host="https://api.orchestrate.io", &block)
       @api_key = api_key
+      @host = host
       @faraday_configuration = block
-      @http = Faraday.new("https://api.orchestrate.io") do |faraday|
+      @http = Faraday.new(@host) do |faraday|
         block = lambda{|f| f.adapter :net_http_persistent } unless block
         block.call faraday
 
@@ -131,7 +136,7 @@ module Orchestrate
     # @param collection [#to_s] The name of the collection.
     # @param key [#to_s] The name of the key.
     # @param body [#to_json] The value for the key.
-    # @param condition [String, false, nil] Conditions for setting the value. 
+    # @param condition [String, false, nil] Conditions for setting the value.
     #   If `String`, value used as `If-Match`, value will only be updated if key's current value's ref matches.
     #   If `false`, uses `If-None-Match` the value will only be set if there is no existent value for the key.
     #   If `nil` (default), value is set regardless.

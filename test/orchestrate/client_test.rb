@@ -3,6 +3,9 @@ require "test_helper"
 class ClientTest < MiniTest::Unit::TestCase
 
   def test_initialization
+    host = 'https://example.com'
+    client = Orchestrate::Client.new('8c3', host)
+    assert_equal host, client.host
     client = Orchestrate::Client.new('8c3')
     assert_equal '8c3', client.api_key
   end

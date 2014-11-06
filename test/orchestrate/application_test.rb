@@ -19,6 +19,24 @@ class ApplicationTest < MiniTest::Unit::TestCase
     assert pinged, "API wasn't pinged"
   end
 
+  def test_instantianes_with_api_key_and_host
+    stubs = Faraday::Adapter::Test::Stubs.new
+    pinged = false
+    stubs.head('/v0') do |env|
+      pinged = true
+      [200, response_headers, '']
+    end
+    host = "https://example.com"
+    app = Orchestrate::Application.new("api_key", host) do |conn|
+      conn.adapter :test, stubs
+    end
+
+    assert_equal host, app.host
+    assert_equal "api_key", app.api_key
+    assert_kind_of Orchestrate::Client, app.client
+    assert pinged, "API wasn't pinged"
+  end
+
   def test_instantiates_with_client
     client, stubs = make_client_and_artifacts
     pinged = false
@@ -28,6 +46,21 @@ class ApplicationTest < MiniTest::Unit::TestCase
     end
 
     app = Orchestrate::Application.new(client)
+    assert_equal client.api_key, app.api_key
+    assert_equal client, app.client
+    assert pinged, "API wasn't pinged"
+  end
+
+  def test_instantiates_with_client_and_host
+    client, stubs = make_client_and_artifacts
+    pinged = false
+    stubs.head('/v0') do |env|
+      pinged = true
+      [ 200, response_headers, '' ]
+    end
+    host = 'https://example.com'
+    app = Orchestrate::Application.new(client, host)
+    assert_equal client.host, app.host
     assert_equal client.api_key, app.api_key
     assert_equal client, app.client
     assert pinged, "API wasn't pinged"

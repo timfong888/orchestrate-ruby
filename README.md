@@ -18,6 +18,15 @@ app = Orchestrate::Application.new(api_key)
 users = app[:users]
 ```
 
+#### Changing Data centers
+
+By default, the host data center is AWS US East (https://api.orchestrate.io). To use another data center, such as AWS EU West, then you must initialize the client with the host URL http://api.aws-eu-west-1.orchestrate.io/.
+
+```ruby
+host = "https://api.aws-eu-west-1.orchestrate.io/"
+app = Orchestrate::Application.new(api_key, host)
+```
+
 #### Store some KeyValues, List them
 ```ruby
 users[:joe] = { "name" => "Joe" }           # PUTs joe, returns the input, as per Ruby convention on #[]=
@@ -60,6 +69,10 @@ users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at)
 ``` ruby
 # method client
 client = Orchestrate::Client.new(api_key)
+
+# EU data center
+host = "https://api.aws-eu-west-1.orchestrate.io/"
+client = Orchestrate::Client.new(api_key, host)
 ```
 
 #### Query Collections, Keys and Values
