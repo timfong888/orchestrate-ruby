@@ -36,6 +36,24 @@ jill.value                                  # { "name" => "Jill", "location" => 
 jill.save                                   # PUT-If-Match, updates ref
 ```
 
+#### Searching, Sorting for KeyValues
+```ruby
+users.search("name:Jill")                    # returns users with name "Jill"
+users.search("name:Jill").order(:created_at) # returns users with name "Jill" in ascending order
+```
+
+The `order` method accepts multiple arguments, allowing you to sort search results based multiple parameters. When providing multiple field names to sort by each even-numbered argument must be either `:asc` or `:desc`.
+
+```ruby
+users.search("location: Portland").order(:name, :asc, :rank, :desc)
+```
+
+By default, odd-numbered arguments will be sorted in ascending order.
+```ruby
+users.search("location: Portland").order(:name) # returns users in ascending order by name
+users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at) # :created_at argument defaults to :asc
+```
+
 ### Method Client use
 
 #### Create a Client
@@ -51,6 +69,18 @@ client.put(:users, :jane, {"name"=>"Jane"}) # PUTs jane, returns API::ItemRespon
 jack = client.get(:users, :jack)            # GETs jack, returns API::ItemResponse
 client.delete(:users, :jack, jack.ref)      # DELETE-If-Match, returns API::Response
 client.list(:users)                         # LIST users, returns API::CollectionResposne
+```
+
+#### Search Collections
+```ruby
+client.search(:users, "location:Portland") # search 'users' collection for items with a location of 'Portland'
+```
+
+#### Sorting Collections
+```ruby
+client.search(:users, "location:Portland", { sort: "value.name:desc" }) # returns items sorted by a field name in descending order
+client.search(:users, "location:Portland", { sort: "value.name:asc" }) # returns items sorted by a field name in ascending order
+client.search(:users, "location:Portland", { sort: "value.name.last:asc,value.name.first:asc" }) # returns items sorted primarily by last name, but whenever two users have an identical last name, the results will be sorted by first name as well.
 ```
 
 ### Examples and Documentation

@@ -364,6 +364,9 @@ module Orchestrate
 
       # @return [#to_s] The Lucene Query String given as the search query.
       attr_reader :query
+      
+      # @return [#to_s] The sorting parameters.
+      attr_reader :sort
 
       # @return [Integer] The number of results to fetch per request.
       attr_reader :limit
@@ -371,11 +374,23 @@ module Orchestrate
       # Initialize a new SearchResults object
       # @param collection [Orchestrate::Collection] The collection to search.
       # @param query [#to_s] The Lucene Query to perform.
-      def initialize(collection, query)
+      def initialize(collection, query, sort=nil)
         @collection = collection
         @query = query
+        @sort = sort
         @limit = 100
         @offset= nil
+      end
+      
+      # Sets the sorting parameters for enumeration over the SearchResults items in the collection.
+      # #order takes multiple arguments, but each even numbered argument must be either :asc or :desc
+      # When given a single argument #order defaults to :asc
+      # @example
+      #  @app[:items].search("location: Portland").order(:name, :asc, :rank, :desc, :created_at)
+      # the :created_at parameter will default to :asc
+      def order(*args)
+        sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(",")
+        self.class.new(collection, query, sort)
       end
 
       include Enumerable
@@ -393,6 +408,7 @@ module Orchestrate
       def each
         params = {limit:limit}
         params[:offset] = offset if offset
+        params[:sort] = sort if sort
         @response ||= collection.perform(:search, query, params)
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if collection.app.inside_parallel?
