@@ -6,6 +6,9 @@ module Orchestrate
     # @return [String] The API key provided
     attr_reader :api_key
 
+    # @return [String] The Orchestrate data center URL
+    attr_reader :host
+
     # @return [Orchestrate::Client] The client tied to this application.
     attr_reader :client
 
@@ -13,13 +16,15 @@ module Orchestrate
     # @param client_or_api_key [Orchestrate::Client, #to_s] A client instantiated with the API key and faraday setup, or the API key for your Orchestrate Application.
     # @yieldparam [Faraday::Connection] connection Setup for the Faraday connection.
     # @return Orchestrate::Application
-    def initialize(client_or_api_key, &client_setup)
+    def initialize(client_or_api_key, host="https://api.orchestrate.io", &client_setup)
       if client_or_api_key.kind_of?(Orchestrate::Client)
         @client = client_or_api_key
         @api_key = client.api_key
+        @host = client.host
       else
         @api_key = client_or_api_key
-        @client = Client.new(api_key, &client_setup)
+        @host = host
+        @client = Client.new(api_key, host, &client_setup)
       end
       client.ping
     end
