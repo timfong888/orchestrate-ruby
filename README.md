@@ -200,6 +200,10 @@ end
 
 ## Release Notes
 
+### November 19, 2014: release 0.9.2
+  - Implement `SearchResults#order`, allowing `Collection` object results to be sorted.
+  - Implement Data Center choice on `Orchestrate::Client` and `Orchestrate::Application`.
+
 ### October 8, 2014: release 0.9.1
   - Improvements to documentation.
 
