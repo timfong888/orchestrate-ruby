@@ -357,6 +357,37 @@ module Orchestrate
     end
     # @!endgroup
 
+    # @!group Geo Queries
+    # Performs a search for items near a specified geographic point in a collection.
+    # [Search for items near a geographic point](http://orchestrate.io/docs/apiref#geo-queries-near)
+    # @param field [#to_s] The field containing location data (latitude & longitude)
+    # @param latitude [Float] The number representing latitude of a geographic point
+    # @param longitude [Float] The number representing longitude of a geographic point
+    # @param distance [Integer] The number of distance units.
+    # @param units [#to_s] Unit of measurement for distance, default to kilometers (km),
+    # supported units: km, m, cm, mm, mi, yd, ft, in, nmi
+    # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
+    def near(field, latitude, longitude, distance, units=nil)
+        units ||= 'km'
+        query = "#{field}:NEAR:{lat:#{latitude} lon:#{longitude} dist:#{distance}#{units}}"
+        SearchResults.new(self, query)
+    end
+
+    # Performs a search for items within a particular area, 
+    # using a specified bounding box
+    # [Search for items in a geographic bounding box](https://orchestrate.io/docs/apiref#geo-queries-bounding)
+    # @param field [#to_s] The field containing location data (latitude & longitude)
+    # @param box [#to_json] The values to create the bounding box,
+    # @example
+    #   collection.in(:field, {north: 12.5, south: 15, east: 14, west: 3})
+    # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
+    def in(field, box={})
+      box = box.flatten.each_slice(2).map {|dir, val| "#{dir}:#{val}" }.join(" ")
+      query = "#{field}:IN:{#{box}}"
+      SearchResults.new(self, query)
+    end
+    # @!endgroup
+
     # An enumerator with a query for searching an Orchestrate::Collection
     class SearchResults
       # @return [Collection] The collection this object will search.
