@@ -34,6 +34,7 @@ users.set(:jack, { "name" => "Jack" })      # PUTs jack, returns a KeyValue
 users.create(:jill, { "name" => "Jill" })   # PUT-If-Absent jill, returns a KeyValue
 users << { "name" => "Unknown" }            # POSTs the body, returns a KeyValue
 users.map {|user| [user.key, user.ref]}     # enumerates over ALL items in collection
+users.after(:jill).take(5).map {|user| [user.key, user.ref]} # enumerates over first 5 keys after 'jill'
 ```
 
 #### Manipulate KeyValues
@@ -47,8 +48,10 @@ jill.save                                   # PUT-If-Match, updates ref
 
 #### Searching, Sorting for KeyValues
 ```ruby
-users.search("name:Jill")                    # returns users with name "Jill"
-users.search("name:Jill").order(:created_at) # returns users with name "Jill" in ascending order
+users.search("location: Portland")                    # returns users with location 'Portland'
+users.search("location: Portland").take(3)            # returns first 3 users with location 'Portland'
+users.search("location: Portland").offset(2)          # returns users but skips the first 2 results
+users.search("location: Portland").order(:created_at) # returns users with location 'Portland' in ascending order
 ```
 
 The `order` method accepts multiple arguments, allowing you to sort search results based multiple parameters. When providing multiple field names to sort by each even-numbered argument must be either `:asc` or `:desc`.
@@ -86,7 +89,14 @@ client.list(:users)                         # LIST users, returns API::Collectio
 
 #### Search Collections
 ```ruby
-client.search(:users, "location:Portland") # search 'users' collection for items with a location of 'Portland'
+client.search(:users, "location:Portland") # search users collection for items with a location of 'Portland'
+
+options = {
+  offset: 2,  # set starting position of results, will skip first 2
+  limit: 20   # number of results to return, limit 100
+}
+
+client.searc(:users, "location:Portland", options) # returns 20 users, skipping the first 2 results.
 ```
 
 #### Sorting Collections
