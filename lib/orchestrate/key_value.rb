@@ -208,9 +208,9 @@ module Orchestrate
     # Merges a set of values into the item's existing value and saves.
     # @param merge [#each_pair] The Hash-like to merge into #value. Keys will be stringified.
     # @return [true, false]
-    def update(merge)
+    def set(merge)
       begin
-        update!(merge)
+        set!(merge)
       rescue API::RequestError, API::ServiceError
         false
       end
@@ -221,10 +221,167 @@ module Orchestrate
     # @return [true]
     # @raise [Orchestrate::API::VersionMismatch] If the KeyValue item has been updated with a new ref since this KeyValue was loaded.
     # @raise [Orchestrate::API::RequestError, Orchestrate::API::ServiceError] If there was any other problem with saving.
-    def update!(merge)
+    def set!(merge)
       merge.each_pair {|key, value| @value[key.to_s] = value }
       save!
     end
+
+    # @!group patch-merge
+
+    # Merges the given value into a KeyValue item using a patch request,
+    # enabling merges to be peformed without retrieving the KeyValue item.
+    # @param value [#to_json] Hash of partial values, to be converted to json,
+    # and merged into the KeyValue item.
+    # @param ref [String] optional condition, provide ref for 'If-Match' header
+    def merge(value, ref=nil)
+      self.perform(:patch_merge, value, ref)
+    end
+
+    # @!endgroup patch-merge
+    # @!group patch-operations
+
+    # Manipulate a KeyValue item with a set of operations.
+    # Chain a series of operation methods (#add, #remove, etc) to build the set,
+    # operations will be executed by Orchestrate in sequential order.
+    # @param ref [String] optional condition, provide ref for 'If-Match' header
+    # To perform singular operations or a set, add #update to the end of the method chain.
+    # @example
+    #   users['jon-snow'].add(:beard, true).remove(:some_field).update()
+    # @raise Orchestrate::API::NotFound if key does not exist
+    def update(ref=nil)
+      OperationSet.new(self).update(ref)
+    end
+
+    # Adds a new field/value pair to a KeyValue at the designated path (field name).
+    # @param path [#to_s] The location of the field to add.
+    # @param value [#to_json] The value to assign to the specified field.
+    # @return Orchestrate::KeyValue::OperationSet
+    def add(path, value)
+      OperationSet.new(self).add(path, value)
+    end
+
+    # Removes a field/value pair from a KeyValue item
+    # @param path [#to_s] The field to remove.
+    # @raise Orchestrate::API::RequestError if field does not exist
+    def remove(path)
+      OperationSet.new(self).remove(path)
+    end
+
+    # Replaces an existing field's value
+    # @param path [#to_s] The field whose value to replace.
+    # @param value [#to_json] The value to assign to the specified field.
+    # @raise Orchestrate::API::RequestError if field does not exist
+    # @return Orchestrate::KeyValue::OperationSet
+    def replace(path, value)
+      OperationSet.new(self).replace(path, value)
+    end
+
+    # Moves a KeyValue item's field/value pair to a new field (path)
+    # @param from_path [#to_s] The field to move.
+    # @param to_path [#to_s] The new location of the moved field.
+    # @raise Orchestrate::API::RequestError if field does not exist
+    # @return Orchestrate::KeyValue::OperationSet
+    def move(from_path, to_path)
+      OperationSet.new(self).move(from_path, to_path)
+    end
+
+    # Copies a KeyValue item's field value to another field (path)
+    # @param from_path [#to_s] The field to copy.
+    # @param to_path [#to_s] The target location to copy field/value to.
+    # @raise Orchestrate::API::RequestError if field does not exist
+    # @return Orchestrate::KeyValue::OperationSet
+    def copy(from_path, to_path)
+      OperationSet.new(self).copy(from_path, to_path)
+    end
+
+    # Increases a KeyValue item's field number value by given amount
+    # @param path [#to_s] The field (with a number value) to increment.
+    # @param amount [Integer] The amount to increment the field's value by.
+    # @raise Orchestrate::API::RequestError if field does not exist or 
+    # if existing value is not a number type
+    # @return Orchestrate::KeyValue::OperationSet
+    def increment(path, amount)
+      OperationSet.new(self).increment(path, amount)
+    end
+    alias :inc :increment
+
+    # Decreases a KeyValue item's field number value by given amount
+    # @param path [#to_s] The field (with a number value) to decrement.
+    # @param amount [Integer] The amount to decrement the field's value by.
+    # @raise Orchestrate::API::RequestError if field does not exist or 
+    # if existing value is not a number type
+    # @return Orchestrate::KeyValue::OperationSet
+    def decrement(path, amount)
+      OperationSet.new(self).decrement(path, amount)
+    end
+    alias :dec :decrement
+
+    # Tests equality of a KeyValue's existing field/value pair
+    # @param path [#to_s] The field to check equality of.
+    # @param value [#to_json] The expected value of the field.
+    # @raise Orchestrate::API::RequestError if field does not exist
+    # @raise Orchestrate::API::IndexingError if equality check fails
+    # @return Orchestrate::KeyValue::OperationSet
+    def test(path, value)
+      OperationSet.new(self).test(path, value)
+    end
+
+    # An object which builds a set of operations for manipulating an Orchestrate::KeyValue
+    class OperationSet
+
+      # @return [KeyValue] The keyvalue this object will manipulate.
+      attr_reader :key_value
+
+      # @return operations to be performed.
+      attr_reader :operations
+
+      # Initialize a new OperationSet object
+      # @param key_value [Orchestrate::KeyValue] The keyvalue to manipulate.
+      def initialize(key_value, operations=[])
+        @key_value = key_value
+        @operations = operations
+      end
+
+      def update(ref=nil)
+        key_value.perform(:patch, operations, ref)
+      end
+
+      def add(path, value)
+        self.class.new(key_value, operations.push({op: "add", path: "#{path}", value: value}))
+      end
+
+      def remove(path)
+        self.class.new(key_value, operations.push({op: "remove", path: "#{path}"}))
+      end
+
+      def replace(path, value)
+        self.class.new(key_value, operations.push({op: "replace", path: "#{path}", value: value}))
+      end
+
+      def move(from_path, to_path)
+        self.class.new(key_value, operations.push({op: "move", from: "#{from_path}", path: "#{to_path}"}))
+      end
+
+      def copy(from_path, to_path)
+        self.class.new(key_value, operations.push({op: "copy", from: "#{from_path}", path: "#{to_path}"}))
+      end
+
+      def increment(path, amount)
+        self.class.new(key_value, operations.push({op: "inc", path: "#{path}", value: amount}))
+      end
+      alias :inc :increment
+
+      def decrement(path, amount)
+        self.class.new(key_value, operations.push({op: "inc", path: "#{path}", value: -amount}))
+      end
+      alias :dec :decrement
+
+      def test(path, value)
+        self.class.new(key_value, operations.push({op: "test", path: "#{path}", value: value}))
+      end
+    end
+
+    # @!endgroup patch-operations
 
     # Deletes the KeyValue item from Orchestrate using 'If-Match' with the current ref.
     # Returns false if the item failed to delete because a new ref had been created since this KeyValue was loaded.
