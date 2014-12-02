@@ -166,6 +166,52 @@ module Orchestrate
       put collection, key, body, false
     end
 
+    # Manipulate values associated with a key, without retrieving the key object.
+    # Array of operations passed as body, will execute operations on the key sequentially.
+    # [Patch](http://orchestrate.io/docs/apiref#keyvalue-patch).
+    # If the key does not exist, it will create the key.
+    # If the key does not currently have a value, will create the value.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param body [#to_json] The value for the key.
+    # @param condition [String, false, nil] Conditions for setting the value.
+    #   If `String`, value used as `If-Match`, value will only be updated if key's current value's ref matches.
+    #   If `false`, uses `If-None-Match` the value will only be set if there is no existent value for the key.
+    #   If `nil` (default), value is set regardless.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::API::BadRequest the body is not valid JSON.
+    # @raise Orchestrate::API::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
+    def patch(collection, key, body, condition=nil)
+      headers = {'Content-Type' => 'application/json-patch+json'}
+      if condition.is_a?(String)
+        headers['If-Match'] = API::Helpers.format_ref(condition)
+      end
+      send_request :patch, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
+    end
+
+    # Merge field/value pairs into existing key, without retrieving the key object.
+    # [Patch](http://orchestrate.io/docs/apiref#keyvalue-patch-merge).
+    # If the key does not exist, it will create the key.
+    # If the existing key does not have a field, will create the field with give value.
+    # If a given field's value is nil, will remove field from existing key on merge.
+    # @param collection [#to_s] The name of the collection.
+    # @param key [#to_s] The name of the key.
+    # @param body [#to_json] The value for the key.
+    # @param condition [String, false, nil] Conditions for setting the value.
+    #   If `String`, value used as `If-Match`, value will only be updated if key's current value's ref matches.
+    #   If `false`, uses `If-None-Match` the value will only be set if there is no existent value for the key.
+    #   If `nil` (default), value is set regardless.
+    # @return Orchestrate::API::ItemResponse
+    # @raise Orchestrate::API::BadRequest the body is not valid JSON.
+    # @raise Orchestrate::API::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
+    def patch_merge(collection, key, body, condition=nil)
+      headers = {'Content-Type' => 'application/merge-patch+json'}
+      if condition.is_a?(String)
+        headers['If-Match'] = API::Helpers.format_ref(condition)
+      end
+      send_request :patch, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
+    end
+
     # [Sets the current value of a key to a null
     # object](http://orchestrate.io/docs/api/#key/value/delete11).
     # @param collection [#to_s] The name of the collection.
@@ -404,6 +450,8 @@ module Orchestrate
         if [:put, :post].include?(method)
           headers['Content-Type'] = 'application/json'
           request.body = body.to_json
+        elsif [:patch].include?(method)
+          request.body = body.to_json    
         end
         headers.each {|header, value| request[header] = value }
       end

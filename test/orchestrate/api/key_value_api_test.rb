@@ -64,7 +64,7 @@ class KeyValueAPITest < MiniTest::Unit::TestCase
   end
 
   def test_puts_key_value_without_ref
-    body={"foo" => "bar"}
+    body = {"foo" => "bar"}
     ref = "12345"
     base_location = "/v0/#{@collection}/#{@key}"
     @stubs.put(base_location) do |env|
@@ -141,6 +141,76 @@ class KeyValueAPITest < MiniTest::Unit::TestCase
 
     response = @client.put_if_absent(@collection, @key, body)
     assert_equal 200, response.status
+  end
+
+  def test_patches_key_value_without_ref
+    body =[ {"op" => "add", "path" => "foo", "value" => "bar"} ]
+    ref = "12345"
+    base_location = "/v0/#{@collection}/#{@key}"
+    @stubs.patch(base_location) do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'Content-Type', 'application/json-patch+json', env
+      assert_equal body.to_json, env.body
+      headers = { "Location" => "#{base_location}/refs/#{ref}", 
+                  "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
+    end
+
+    response = @client.patch(@collection, @key, body)
+    assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "#{base_location}/refs/#{ref}", response.location
+  end
+
+  def test_patches_key_value_with_specific_ref
+    body = [ {"op" => "add", "path" => "foo", "value" => "bar"} ]
+    ref = '123456'
+
+    @stubs.patch("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      assert_header 'Content-Type', 'application/json-patch+json', env
+      assert_equal body.to_json, env.body
+      [ 201, response_headers, '' ]
+    end
+
+    response = @client.patch(@collection, @key, body, ref)
+    assert_equal 201, response.status
+  end
+
+  def test_patch_merges_key_value_without_ref
+    body = {"foo" => "bar"}
+    ref = "12345"
+    base_location = "/v0/#{@collection}/#{@key}"
+    @stubs.patch(base_location) do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'Content-Type', 'application/merge-patch+json', env
+      assert_equal body.to_json, env.body
+      headers = { "Location" => "#{base_location}/refs/#{ref}", 
+                  "Etag" => "\"#{ref}\"" }
+      [ 201, response_headers(headers), '' ]
+    end
+
+    response = @client.patch_merge(@collection, @key, body)
+    assert_equal 201, response.status
+    assert_equal ref, response.ref
+    assert_equal "#{base_location}/refs/#{ref}", response.location
+  end
+
+  def test_patch_merges_key_value_with_specific_ref
+    body = {"foo" => "bar"}
+    ref = '123456'
+
+    @stubs.patch("/v0/#{@collection}/#{@key}") do |env|
+      assert_authorization @basic_auth, env
+      assert_header 'If-Match', "\"#{ref}\"", env
+      assert_header 'Content-Type', 'application/merge-patch+json', env
+      assert_equal body.to_json, env.body
+      [ 201, response_headers, '' ]
+    end
+
+    response = @client.patch_merge(@collection, @key, body, ref)
+    assert_equal 201, response.status
   end
 
   def test_delete_key_value
