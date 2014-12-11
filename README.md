@@ -81,6 +81,21 @@ users.search("location: Portland").order(:name) # returns users in ascending ord
 users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at) # :created_at argument defaults to :asc
 ```
 
+### Geo Queries
+```ruby
+# Create a Collection object
+cafes = app[:cafes]
+
+# Find cafes near a given geographic point
+cafes.near(:location, 12.56, 19.443, 4, 'mi')   # returns cafes in a 4 mile radius of given latitude, longitude
+
+# Sort nearby cafes by distance
+cafes.near(:location, 12.56, 19.443, 4, 'mi').order(:distance)  # returns nearby cafes in ascending order (closest to farthest)
+
+# Find cafes in a given area using a bounding box
+cafes.in(:location, {north:12.5, east:57, south:12, west:56})   # returns all cafes within specified bounding box
+```
+
 ### Method Client use
 
 #### Create a Client
@@ -133,6 +148,29 @@ client.search(:users, "location:Portland") # search 'users' collection for items
 client.search(:users, "location:Portland", { sort: "value.name:desc" }) # returns items sorted by a field name in descending order
 client.search(:users, "location:Portland", { sort: "value.name:asc" }) # returns items sorted by a field name in ascending order
 client.search(:users, "location:Portland", { sort: "value.name.last:asc,value.name.first:asc" }) # returns items sorted primarily by last name, but whenever two users have an identical last name, the results will be sorted by first name as well.
+```
+
+### Geo Queries
+```ruby
+# Find cafes near a given geographic point
+
+coords = {
+  lat: 12.56,
+  lon: 19.443,
+  dist: '4mi' # Define size of search radius for NEAR query
+}
+query = "value.location:NEAR:{lat:#{coords.lat} lon:#{coords.lon} dist:#{coords.dist}}"
+client.search(:cafes, query)    # returns cafes in a 4 mile radius of given latitude, longitude
+
+# Using the previous coords & query,
+# sort results by distance
+client.search(:cafes, query, {
+  sort: 'value.location:distance:asc'
+})
+
+# Find cafes in a given area using a bounding box
+query = "value:IN:{ north:12.5 east:57 south:12 west:56 }"
+client.search(:cafes, query)
 ```
 
 ### Examples and Documentation
