@@ -45,6 +45,24 @@ jill.value                                  # { "name" => "Jill", "location" => 
 jill.save                                   # PUT-If-Match, updates ref
 ```
 
+#### Manipulate KeyValues with PATCH
+```ruby
+jill.merge({location: "Under the Hill"})        # Updates jill by merging given partial value into existing value
+
+# Patch Operations
+jill.add('favorite_sibling', 'Jack').update     # adds new field/value pair to jill
+jill.remove('favorite_sibling').update          # removes given field/value pair from jill
+jill.replace('on_the_hill', false).update       # replaces given field with given value
+jill.move('name', 'first_name').update          # moves given field's value to new field
+jill.copy('first_name', 'full_name').update     # copies given field's value to another field
+jill.increment('age', 1).update                 # increments given field (must have numeric value) by provided amount
+jill.decrement('years_to_live', 1).update       # decrements given field (must have numeric value) by provided amount
+jill.test('full_name', 'Jill').update           # tests equality of existing field/value pair with given field/value
+
+# Patch Operations can be chained together to perform multiple updates to a KeyValue item
+jill.add('favorite_food', 'Pizza').remove('years_to_live').update()
+```
+
 #### Searching, Sorting for KeyValues
 ```ruby
 users.search("name:Jill")                    # returns users with name "Jill"
@@ -82,6 +100,27 @@ client.put(:users, :jane, {"name"=>"Jane"}) # PUTs jane, returns API::ItemRespon
 jack = client.get(:users, :jack)            # GETs jack, returns API::ItemResponse
 client.delete(:users, :jack, jack.ref)      # DELETE-If-Match, returns API::Response
 client.list(:users)                         # LIST users, returns API::CollectionResposne
+```
+
+#### Manipulate KeyValues with PATCH
+```ruby
+# Give a set of operations to manipulate a given key
+# Operations are executed in sequential order
+ops = [
+  { "op" => "add", "path" => "nimble", "value" => true }, # adds new field/value pair
+  { "op" => "remove", "path" => "nimble" }, # removes given field/value pair
+  { "op" => "replace", "path" => "quick", "value" => true }, # replaces given field with given value
+  { "op" => "move", "from" => "name", "path" => "first_name" }, # moves given field's value to new field
+  { "op" => "copy", "from" => "city", "path" => "home_town" }, # copies given field's value to another field
+  { "op" => "inc", "path" => "age", "value" => 1 }, # increment a numeric value at a given path
+  { "op" => "inc", "path" => "age", "value" => -1 }, # pass a negative number to decrement a numeric value
+  { "op" => "test", "path" => "first_name", "value" => "Jack" }, # tests equality of existing field/value pair with given field/value
+]
+
+client.patch(:users, :jack, ops)
+
+# Merge partial values into existing key
+client.patch_merge(:users, :jack, { favorite_food: "Donuts" })
 ```
 
 #### Search Collections
