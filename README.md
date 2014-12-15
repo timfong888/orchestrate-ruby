@@ -280,7 +280,7 @@ end
 ### December 11, 2014: release 0.10.0
   - **BACKWARDS-INCOMPATIBLE** Prior `KeyValue#update` & `KeyValue#update!` renamed to `KeyValue#set` & `KeyValue#set!`. `KeyValue#update` now used after `PATCH` operations to fire the request.
   - Implement `Collection#near` & `Collection#in`, allowing `Collection` to perform geo queries.
-  - Implement `Client#patch`, `Client#patch_merge`, allowing `Client` to perform subdocument updates through `PATCH` requests.
+  - Implement `Client#patch`, `Client#patch_merge`, allowing `Client` to perform partial updates through `PATCH` requests.
   - Implement `KeyValue::OperationSet`, allowing a set of `PATCH` operations to be built by `KeyValue` through `KeyValue#add`, `KeyValue#remove`, `KeyValue#replace`, `KeyValue#move`, `KeyValue#copy`, `KeyValue#increment`, `KeyValue#decrement`, & `KeyValue#test`. The `KeyValue::OperationSet` is fired by ending the chain with `KeyValue#update`.
   - Implement `KeyValue#merge`, allowing `KeyValue` to merge partial values into existing keys through `PATCH` requests.
 
