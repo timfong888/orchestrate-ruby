@@ -395,6 +395,8 @@ module Orchestrate
 
       # @return [#to_s] The Lucene Query String given as the search query.
       attr_reader :query
+
+      attr_reader :aggregate
       
       # @return [#to_s] The sorting parameters.
       attr_reader :sort
@@ -409,6 +411,7 @@ module Orchestrate
         @collection = collection
         @query = query
         @sort = sort
+        @aggregate = nil
         @limit = 100
         @offset= nil
       end
@@ -483,6 +486,33 @@ module Orchestrate
         else
           @offset
         end
+      end
+
+      def aggregates()
+        params = {limit:0}
+        params[:aggregate] = aggregate if aggregate
+        @response ||= collection.perform(:search, query, params)
+        @reponse.aggregates
+      end
+
+      def stats(field_name)
+        stats = "#{field_name}:stats"
+        @aggregate = @aggregate ? @aggregate << "," + stats : stats
+        self
+      end
+
+      def range(field_name, *args)
+        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
+        range = "#{field_name}:range:#{nums}"
+        @aggregate = @aggregate ? @aggregate << "," + range : range
+        self
+      end
+
+      def distance(field_name, *args)
+        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
+        distance = "#{field_name}:distance:#{nums}"
+        @aggregate = @aggregate ? @aggregate << "," + distance : distance
+        self
       end
     end
 
