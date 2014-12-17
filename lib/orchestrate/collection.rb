@@ -345,46 +345,148 @@ module Orchestrate
       end
     end
 
-    # @!group Searching
-    # [Search the items in a collection](http://orchestrate.io/docs/api/#search) using a Lucene
-    # Query Syntax.
     # @param query [#to_s] The [Lucene Query
     #   String](http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview)
     #   to query the collection with.
-    # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
-    def search(query)
-      SearchResults.new(self, query)
+    def query(query)
+      SearchBuilder.new(query)
     end
-    # @!endgroup
 
-    # @!group Geo Queries
-    # Performs a search for items near a specified geographic point in a collection.
-    # [Search for items near a geographic point](http://orchestrate.io/docs/apiref#geo-queries-near)
-    # @param field [#to_s] The field containing location data (latitude & longitude)
-    # @param latitude [Float] The number representing latitude of a geographic point
-    # @param longitude [Float] The number representing longitude of a geographic point
-    # @param distance [Integer] The number of distance units.
-    # @param units [#to_s] Unit of measurement for distance, default to kilometers (km),
-    # supported units: km, m, cm, mm, mi, yd, ft, in, nmi
-    # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
-    def near(field, latitude, longitude, distance, units=nil)
+    # Object for constructing search queries to be passed to #search
+    class SearchBuilder
+      # @return [#to_s] The Lucene Query String given as the search query.
+      attr_reader :query
+
+      attr_reader :options
+
+      # @return [Hash] The aggregate functions to insert as params into the search query.
+      attr_reader :aggregate
+
+      # @return [#to_s] The geospatial query.
+      attr_reader :geo_query
+      
+      # @return [#to_s] The sorting parameters.
+      attr_reader :sort
+
+      # @return [Integer] The number of results to fetch per request.
+      attr_reader :limit
+
+      # @return [Integer] The number of results to fetch per request.
+      attr_reader :offset
+
+      # Initialize a new SearchBuilder object
+      # @param query [#to_s] The Lucene Query to perform.
+      def initialize(query)
+        @query = query
+        @options = {}
+        @geo_query = nil
+      end
+
+      # @!group Geo Queries
+      # Performs a search for items near a specified geographic point in a collection.
+      # [Search for items near a geographic point](http://orchestrate.io/docs/apiref#geo-queries-near)
+      # @param latitude [Float] The number representing latitude of a geographic point
+      # @param longitude [Float] The number representing longitude of a geographic point
+      # @param distance [Integer] The number of distance units.
+      # @param units [#to_s] Unit of measurement for distance, default to kilometers (km),
+      # supported units: km, m, cm, mm, mi, yd, ft, in, nmi
+      # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
+      def near(latitude, longitude, distance, units=nil)
         units ||= 'km'
-        query = "#{field}:NEAR:{lat:#{latitude} lon:#{longitude} dist:#{distance}#{units}}"
-        SearchResults.new(self, query)
-    end
+        @geo_query = "#{@query}:NEAR:{lat:#{latitude} lon:#{longitude} dist:#{distance}#{units}}"
+        self
+      end
 
-    # Performs a search for items within a particular area, 
-    # using a specified bounding box
-    # [Search for items in a geographic bounding box](https://orchestrate.io/docs/apiref#geo-queries-bounding)
-    # @param field [#to_s] The field containing location data (latitude & longitude)
-    # @param box [#to_json] The values to create the bounding box,
-    # @example
-    #   collection.in(:field, {north: 12.5, south: 15, east: 14, west: 3})
+      # Performs a search for items within a particular area, 
+      # using a specified bounding box
+      # [Search for items in a geographic bounding box](https://orchestrate.io/docs/apiref#geo-queries-bounding)
+      # @param bounding_box [#to_json] The values to create the bounding box,
+      # @example
+      #   collection.in({north: 12.5, south: 15, east: 14, west: 3})
+      # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
+      def in(bounding_box={})
+        bounding_box = bounding_box.flatten.each_slice(2).map {|dir, val| "#{dir}:#{val}" }.join(" ")
+        @geo_query = "#{@query}:IN:{#{bounding_box}}"
+        self
+      end
+      # @!endgroup
+
+      # @!group Aggregate Queries
+      def stats(field_name)
+        stats = "#{field_name}:stats"
+        @options['aggregate'] = @options['aggregate'] ? @options['aggregate'] << "," + stats : stats
+        self
+      end
+
+      def range(field_name, *args)
+        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
+        range = "#{field_name}:range:#{nums}"
+        @options['aggregate'] = @options['aggregate'] ? @options['aggregate'] << "," + range : range
+        self
+      end
+
+      def distance(field_name, *args)
+        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
+        distance = "#{field_name}:distance:#{nums}"
+        @options['aggregate'] = @options['aggregate'] ? @options['aggregate'] << "," + distance : distance
+        self
+      end
+
+      # @param interval [#to_s] The value measure chronological data by.
+      # Accepted intervals are 'year', 'quarter', 'month', 'week', 'day', and 'hour'
+      def time_series(field_name, interval)
+        time = "#{field_name}:time_series:#{interval}"
+        @options['aggregate'] = @options['aggregate'] ? @options['aggregate'] << "," + time : time
+        self
+      end
+      # @!endgroup
+
+      # Sets the sorting parameters for a query's Search Results.
+      # #order takes multiple arguments, but each even numbered argument must be either :asc or :desc
+      # Odd-numbered arguments defaults to :asc
+      # @example
+      #   search = SearchBuilder.new("some_query")
+      #   search.order(:name, :asc, :rank, :desc, :created_at)
+      #   @app[:items].search(search)
+      def order(*args)
+        @options['sort'] = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(",")
+        self
+      end
+
+      # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
+      # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
+      # @param count [Integer] The number of items to limit to.
+      # @return [Array]
+      def take(count)
+        @options['limit'] = count > 100 ? 100 : count
+        super(count)
+      end
+
+      # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
+      # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
+      # @overload offset
+      #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
+      # @overload offset(conunt)
+      #   @param count [Integer] The number of items to skip.
+      #   @return [SearchResults] self.
+      def offset(count=nil)
+        if count
+          @options['offset'] = count
+          self
+        else
+          @options['offset']
+        end
+      end
+    end
+    # @!group Searching
+    # [Search the items in a collection](http://orchestrate.io/docs/api/#search) using a Lucene
+    # Query Syntax.
+    # @param query [Object] A SearchBuilder Object containing the constructed query.
     # @return [SearchResults] A loaded SearchResults object ready to enumerate over.
-    def in(field, box={})
-      box = box.flatten.each_slice(2).map {|dir, val| "#{dir}:#{val}" }.join(" ")
-      query = "#{field}:IN:{#{box}}"
-      SearchResults.new(self, query)
+    def search(query_object)
+      query = query_object.geo_query ? query_object.geo_query : query_object.query
+      params = query_object.options
+      response = self.perform(:search, query, params)
     end
     # @!endgroup
 
@@ -396,7 +498,8 @@ module Orchestrate
       # @return [#to_s] The Lucene Query String given as the search query.
       attr_reader :query
 
-      attr_reader :aggregate
+      # @return [#to_json] The aggregate results returned (if aggregate functions given in query)
+      attr_reader :aggregates
       
       # @return [#to_s] The sorting parameters.
       attr_reader :sort
@@ -415,16 +518,12 @@ module Orchestrate
         @limit = 100
         @offset= nil
       end
-      
-      # Sets the sorting parameters for enumeration over the SearchResults items in the collection.
-      # #order takes multiple arguments, but each even numbered argument must be either :asc or :desc
-      # When given a single argument #order defaults to :asc
-      # @example
-      #  @app[:items].search("location: Portland").order(:name, :asc, :rank, :desc, :created_at)
-      # the :created_at parameter will default to :asc
-      def order(*args)
-        sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(",")
-        self.class.new(collection, query, sort)
+
+      def aggregates
+        params = {limit:0}
+        params[:aggregate] = aggregate if aggregate
+        @response ||= collection.perform(:search, query, params)
+        @reponse.aggregates
       end
 
       include Enumerable
@@ -461,58 +560,6 @@ module Orchestrate
       def lazy
         return each.lazy if collection.app.inside_parallel?
         super
-      end
-
-      # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
-      # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
-      # @param count [Integer] The number of items to limit to.
-      # @return [Array]
-      def take(count)
-        @limit = count > 100 ? 100 : count
-        super(count)
-      end
-
-      # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
-      # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
-      # @overload offset
-      #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
-      # @overload offset(conunt)
-      #   @param count [Integer] The number of items to skip.
-      #   @return [SearchResults] self.
-      def offset(count=nil)
-        if count
-          @offset = count
-          self
-        else
-          @offset
-        end
-      end
-
-      def aggregates()
-        params = {limit:0}
-        params[:aggregate] = aggregate if aggregate
-        @response ||= collection.perform(:search, query, params)
-        @reponse.aggregates
-      end
-
-      def stats(field_name)
-        stats = "#{field_name}:stats"
-        @aggregate = @aggregate ? @aggregate << "," + stats : stats
-        self
-      end
-
-      def range(field_name, *args)
-        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
-        range = "#{field_name}:range:#{nums}"
-        @aggregate = @aggregate ? @aggregate << "," + range : range
-        self
-      end
-
-      def distance(field_name, *args)
-        nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
-        distance = "#{field_name}:distance:#{nums}"
-        @aggregate = @aggregate ? @aggregate << "," + distance : distance
-        self
       end
     end
 
