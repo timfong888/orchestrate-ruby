@@ -345,9 +345,6 @@ module Orchestrate
       end
     end
 
-    # @!group Searching
-    # [Search the items in a collection](http://orchestrate.io/docs/api/#search) using a Lucene
-    # Query Syntax.
     # @param query [#to_s] The [Lucene Query
     #   String](http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview)
     #   to query the collection with.
@@ -355,7 +352,6 @@ module Orchestrate
     def search(query)
       Search.new(self, query)
     end
-    # @!endgroup
 
     # @!group Geo Queries
     # Performs a search for items near a specified geographic point in a collection.
