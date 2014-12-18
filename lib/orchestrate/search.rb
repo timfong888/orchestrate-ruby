@@ -115,7 +115,7 @@ module Orchestrate
       params
     end
 
-    # An enumerator with a query for searching an Orchestrate::Collection
+    # An enumerator for searching an Orchestrate::Collection
     class SearchResults
       # @return [Collection] The collection this object will search.
       attr_reader :collection
@@ -126,16 +126,13 @@ module Orchestrate
       # @return [Hash] The query paramaters.
       attr_reader :options
 
-      attr_reader :response
-
       # Initialize a new SearchResults object
       # @param collection [Orchestrate::Collection] The collection to search.
       # @param query [#to_s] The Lucene Query to perform.
-      def initialize(collection, query, options, response=nil)
+      def initialize(collection, query, options)
         @collection = collection
         @query = query
         @options = options
-        @response = response
       end
 
       include Enumerable
@@ -182,16 +179,13 @@ module Orchestrate
       # @return [Hash] The query paramaters.
       attr_reader :options
 
-      attr_reader :response
-
       # Initialize a new SearchResults object
       # @param collection [Orchestrate::Collection] The collection to search.
       # @param query [#to_s] The Lucene Query to perform.
-      def initialize(collection, query, options, response=nil)
+      def initialize(collection, query, options)
         @collection = collection
         @query = query
         @options = options
-        @response = response
       end
 
       include Enumerable
@@ -211,7 +205,16 @@ module Orchestrate
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if collection.app.inside_parallel?
         @response.aggregates.each do |listing|
-          yield Aggregate.new(collection, listing)
+          case listing['aggregate_kind']
+          when 'stats'
+            yield StatsAggregate.new(collection, listing)
+          when 'range'
+            yield RangeAggregate.new(collection, listing)
+          when 'distance'
+            yield DistanceAggregate.new(collection, listing)
+          when 'time_series'
+            yield TimeSeriesAggregate.new(collection, listing)
+          end
         end
         @response = nil
       end
@@ -224,15 +227,71 @@ module Orchestrate
       end
     end
 
-    class Aggregate
-      # @return [#to_s] The sorting parameters.
+    class StatsAggregate
+      
       attr_reader :collection
+
+      attr_reader :kind
+
+      attr_reader :field
+
+      attr_reader :count
+
+      attr_reader :statistics
 
       def initialize(collection, listing)
         @collection = collection
-        listing.each {|k,v| instance_variable_set("@#{k}",v)}
+        @kind = listing['aggregate_kind']
+        @field = listing['field_name']
+        @count = listing['value_count']
+        @statistics = listing['statistics']
       end
-    end      
+    end
+
+    class RangeAggregate
+      
+      attr_reader :collection
+
+      attr_reader :kind
+
+      attr_reader :field
+
+      attr_reader :count
+
+      attr_reader :buckets
+
+      def initialize(collection, listing)
+        @collection = collection
+        @kind = listing['aggregate_kind']
+        @field = listing['field_name']
+        @count = listing['value_count']
+        @buckets = listing['buckets']
+      end
+    end
+
+    class DistanceAggregate < RangeAggregate 
+    end
+
+    class TimeSeriesAggregate
+      attr_reader :collection
+
+      attr_reader :kind
+
+      attr_reader :field
+
+      attr_reader :count
+
+      attr_reader :buckets
+
+      def initialize(collection, listing)
+        @collection = collection
+        @kind = listing['aggregate_kind']
+        @field = listing['field_name']
+        @count = listing['value_count']
+        @interval = listing['interval']
+        @buckets = listing['buckets']
+      end
+    end
 
   end
 end
