@@ -42,26 +42,26 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_basic_as_needed
-    @limit = 50
-    offset = 10
-    @handle_offset = lambda do |o|
-      case o
-      when "10"
-        { "results" => 50.times.map{|i| @make_listing.call(i+offset) }, "count" => @limit, "total_count" => @total,
-          "next" => "/v0/items?query=foo&offset=#{offset+@limit}&limit=#{@limit}"}
-      else
-        raise ArgumentError.new("unexpected offset: #{o}")
-      end
-    end
-    results = @items.search("foo").offset(offset).take(@limit).each.map { |e| e }
-    assert_equal 50, results.length
-    results.each_with_index do |item, idx|
-      assert_in_delta (@total-(idx+10)/@total * 5.0), item[0], 0.005
-      assert_equal "item-#{idx+10}", item[1].key
-      assert_nil item[1].reftime
-    end
-  end
+  # def test_basic_as_needed
+  #   @limit = 50
+  #   offset = 10
+  #   @handle_offset = lambda do |o|
+  #     case o
+  #     when "10"
+  #       { "results" => 50.times.map{|i| @make_listing.call(i+offset) }, "count" => @limit, "total_count" => @total,
+  #         "next" => "/v0/items?query=foo&offset=#{offset+@limit}&limit=#{@limit}"}
+  #     else
+  #       raise ArgumentError.new("unexpected offset: #{o}")
+  #     end
+  #   end
+  #   results = @items.search("foo").offset(offset).take(@limit).each.map { |e| e }
+  #   assert_equal 50, results.length
+  #   results.each_with_index do |item, idx|
+  #     assert_in_delta (@total-(idx+10)/@total * 5.0), item[0], 0.005
+  #     assert_equal "item-#{idx+10}", item[1].key
+  #     assert_nil item[1].reftime
+  #   end
+  # end
 
   def test_in_parallel_prefetches_enums
     items = nil
