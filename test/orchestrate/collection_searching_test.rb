@@ -33,7 +33,7 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_search
-    results = @items.search("foo").each.map{|i| i }
+    results = @items.search("foo").execute.each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -42,30 +42,29 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
     end
   end
 
-  # def test_basic_as_needed
-  #   @limit = 50
-  #   offset = 10
-  #   @handle_offset = lambda do |o|
-  #     case o
-  #     when "10"
-  #       { "results" => 50.times.map{|i| @make_listing.call(i+offset) }, "count" => @limit, "total_count" => @total,
-  #         "next" => "/v0/items?query=foo&offset=#{offset+@limit}&limit=#{@limit}"}
-  #     else
-  #       raise ArgumentError.new("unexpected offset: #{o}")
-  #     end
-  #   end
-  #   results = @items.search("foo").offset(offset).take(@limit).each.map { |e| e }
-  #   assert_equal 50, results.length
-  #   results.each_with_index do |item, idx|
-  #     assert_in_delta (@total-(idx+10)/@total * 5.0), item[0], 0.005
-  #     assert_equal "item-#{idx+10}", item[1].key
-  #     assert_nil item[1].reftime
-  #   end
-  # end
+  def test_basic_as_needed
+    @limit = 50
+    offset = 10
+    @handle_offset = lambda do |o|
+      case o
+      when "10"
+        { "results" => 50.times.map{|i| @make_listing.call(i+offset) }, "count" => @limit, "total_count" => @total }
+      else
+        raise ArgumentError.new("unexpected offset: #{o}")
+      end
+    end
+    results = @items.search("foo").offset(offset).limit(@limit).execute
+    assert_equal 10, results.options[:offset]
+    results.each_with_index do |item, idx|
+      assert_in_delta (@total-(idx+10)/@total * 5.0), item[0], 0.005
+      assert_equal "item-#{idx+10}", item[1].key
+      assert_nil item[1].reftime
+    end
+  end
 
   def test_in_parallel_prefetches_enums
     items = nil
-    @app.in_parallel { items = @app[:items].search("foo").each }
+    @app.in_parallel { items = @app[:items].search("foo").execute.each }
     assert @called, "enum wasn't prefetched inside in_parallel"
     assert_equal @total, items.to_a.size
   end
@@ -73,20 +72,20 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
   def test_in_parallel_prefetches_lazy_enums
     return unless [].respond_to?(:lazy)
     items = nil
-    @app.in_parallel { items = @app[:items].search("foo").lazy.map{|d| d } }
+    @app.in_parallel { items = @app[:items].search("foo").execute.lazy.map{|d| d } }
     assert @called, "lazy wasn't prefetched from in_parallel"
     assert_equal @total, items.force.size
   end
 
   def test_in_parallel_raises_if_forced
     assert_raises Orchestrate::ResultsNotReady do
-      @app.in_parallel { @app[:items].search("foo").each.to_a }
+      @app.in_parallel { @app[:items].search("foo").execute.each.to_a }
     end
   end
 
   def test_enums_prefetch
     items = nil
-    @app.in_parallel { items = @app[:items].search("foo").each }
+    @app.in_parallel { items = @app[:items].search("foo").execute.each }
     assert @called, "enum wasn't prefetched"
     assert_equal @total, items.to_a.size
   end

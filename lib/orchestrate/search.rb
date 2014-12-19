@@ -13,9 +13,6 @@ module Orchestrate
     # @return [#to_s] The aggregate parameters to insert into the search query.
     attr_reader :aggregate
 
-    # @return [Integer] The number of results to fetch per request.
-    attr_reader :limit
-
     # Initialize a new SearchBuilder object
     # @param collection [Orchestrate::Collection] The collection to search.
     # @param query [#to_s] The Lucene Query to perform.
@@ -39,13 +36,20 @@ module Orchestrate
       self
     end
 
-    # Returns the first n items.  Equivalent to Enumerable#take.  Sets the
-    # `limit` parameter on the query to Orchestrate, so we don't ask for more than is needed.
-    # @param count [Integer] The number of items to limit to.
-    # @return [Array]
-    def take(count)
-      @limit = count > 100 ? 100 : count
-      self
+    # Sets the limit for the query to Orchestrate, so we don't ask for more than is needed. 
+    # Does not fire a request.
+    # @overload limit
+    #   @return [Integer, nil] The number of items to retrieve.  Nil is equivalent to zero.
+    # @overload limit(count)
+    #   @param count [Integer] The number of items to retrieve.
+    #   @return [Search] self.
+    def limit(count=nil)
+      if count
+        @limit = count > 100 ? 100 : count
+        self
+      else
+        @limit
+      end
     end
 
     # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
@@ -95,27 +99,21 @@ module Orchestrate
     # @!endgroup
 
     # @return [SearchResults] A SearchResults object to enumerate over.
-    def each(&block)
-      options = build_params
-      SearchResults.new(@collection, @query, options).each(&block)
-    end
-
-    def aggregates(&block)
-      options = build_params
-      AggregateResults.new(@collection, @query, options).each(&block)
-    end
-
-    def lazy
-      options = build_params
-      SearchResults.new(@collection, @query, options).lazy
-    end
-
-    def build_params
+    def execute
       params = {limit:limit}
       params[:aggregate] = aggregate if aggregate
       params[:offset] = offset if offset
       params[:sort] = sort if sort
-      params
+      response = collection.perform(:search, query, params)
+      SearchResults.new(collection, query, params, response)
+    end
+
+    def lazy
+      params = {limit:limit}
+      params[:aggregate] = aggregate if aggregate
+      params[:offset] = offset if offset
+      params[:sort] = sort if sort
+      SearchResults.new(collection, query, params, nil).lazy
     end
 
     # An enumerator for searching an Orchestrate::Collection
@@ -130,12 +128,21 @@ module Orchestrate
       attr_reader :options
 
       # Initialize a new SearchResults object
-      # @param collection [Orchestrate::Collection] The collection to search.
-      # @param query [#to_s] The Lucene Query to perform.
-      def initialize(collection, query, options)
+      # @param collection [Orchestrate::Collection] The collection searched.
+      # @param query [#to_s] The Lucene Query performed.
+      # @param options [Hash] The query parameters.
+      # @param response [CollectionResponse] The initial Collection Response from the search query.
+      def initialize(collection, query, options, response)
         @collection = collection
         @query = query
         @options = options
+        @response = response
+        @aggregates = nil
+      end
+
+      # @return [#to_json] The aggregate results.
+      def aggregates
+        @aggregates ||= @response.aggregates
       end
 
       include Enumerable
@@ -147,11 +154,12 @@ module Orchestrate
       # @overload each(&block)
       #   @yieldparam [Array<(Float, Orchestrate::KeyValue)>] score,key_value  The item's score and the item.
       # @example
-      #   collection.search("trendy").take(5).each do |score, item|
+      #   collection.search("trendy").limit(5).execute.each do |score, item|
       #     puts "#{item.key} has a trend score of #{score}"
       #   end
       def each
         @response ||= collection.perform(:search, query, options)
+        @aggregates ||= @response.aggregates
         return enum_for(:each) unless block_given?
         raise ResultsNotReady.new if collection.app.inside_parallel?
         loop do
@@ -172,129 +180,73 @@ module Orchestrate
       end
     end
 
-    class AggregateResults
-      # @return [Collection] The collection this object will search.
-      attr_reader :collection
-
-      # @return [#to_s] The Lucene Query String given as the search query.
-      attr_reader :query
-
-      # @return [Hash] The query paramaters.
-      attr_reader :options
-
-      # Initialize a new SearchResults object
-      # @param collection [Orchestrate::Collection] The collection to search.
-      # @param query [#to_s] The Lucene Query to perform.
-      def initialize(collection, query, options)
-        @collection = collection
-        @query = query
-        @options = options
-      end
-
-      include Enumerable
-
-      # Iterates over each result from the Search.  Used as the basis for Enumerable methods.  Items are
-      # provided on the basis of score, with most relevant first.
-      # @overload each
-      #   @return Enumerator
-      # @overload each(&block)
-      #   @yieldparam [Array<(Float, Orchestrate::KeyValue)>] score,key_value  The item's score and the item.
-      # @example
-      #   collection.search("trendy").take(5).each do |score, item|
-      #     puts "#{item.key} has a trend score of #{score}"
-      #   end
-      def each
-        @response ||= collection.perform(:search, query, options)
-        return enum_for(:each) unless block_given?
-        raise ResultsNotReady.new if collection.app.inside_parallel?
-        @response.aggregates.each do |listing|
-          case listing['aggregate_kind']
-          when 'stats'
-            yield StatsAggregate.new(collection, listing)
-          when 'range'
-            yield RangeAggregate.new(collection, listing)
-          when 'distance'
-            yield DistanceAggregate.new(collection, listing)
-          when 'time_series'
-            yield TimeSeriesAggregate.new(collection, listing)
-          end
-        end
-        @response = nil
-      end
-
-      # Creates a Lazy Enumerator for the Search Results.  If called inside its
-      # app's `in_parallel` block, will pre-fetch results.
-      def lazy
-        return each.lazy if collection.app.inside_parallel?
-        super
-      end
-    end
-
-    class StatsAggregate
+    # class StatsAggregate
       
-      attr_reader :collection
+    #   attr_reader :collection
 
-      attr_reader :kind
+    #   attr_reader :kind
 
-      attr_reader :field
+    #   attr_reader :field
 
-      attr_reader :count
+    #   attr_reader :count
 
-      attr_reader :statistics
+    #   attr_reader :statistics
 
-      def initialize(collection, listing)
-        @collection = collection
-        @kind = listing['aggregate_kind']
-        @field = listing['field_name']
-        @count = listing['value_count']
-        @statistics = listing['statistics']
-      end
-    end
+    #   def initialize(collection, listing)
+    #     @collection = collection
+    #     @kind = listing['aggregate_kind']
+    #     @field = listing['field_name']
+    #     @count = listing['value_count']
+    #     @statistics = listing['statistics']
+    #   end
+    # end
 
-    class RangeAggregate
+    # class RangeAggregate
       
-      attr_reader :collection
+    #   attr_reader :collection
 
-      attr_reader :kind
+    #   attr_reader :kind
 
-      attr_reader :field
+    #   attr_reader :field
 
-      attr_reader :count
+    #   attr_reader :count
 
-      attr_reader :buckets
+    #   attr_reader :buckets
 
-      def initialize(collection, listing)
-        @collection = collection
-        @kind = listing['aggregate_kind']
-        @field = listing['field_name']
-        @count = listing['value_count']
-        @buckets = listing['buckets']
-      end
-    end
+    #   def initialize(collection, listing)
+    #     @collection = collection
+    #     @kind = listing['aggregate_kind']
+    #     @field = listing['field_name']
+    #     @count = listing['value_count']
+    #     @buckets = listing['buckets']
+    #   end
+    # end
 
-    class DistanceAggregate < RangeAggregate 
-    end
+    # class DistanceAggregate < RangeAggregate 
+    # end
 
-    class TimeSeriesAggregate
-      attr_reader :collection
+    # class TimeSeriesAggregate
+    #   attr_reader :collection
 
-      attr_reader :kind
+    #   attr_reader :kind
 
-      attr_reader :field
+    #   attr_reader :field
 
-      attr_reader :count
+    #   attr_reader :count
 
-      attr_reader :buckets
+    #   attr_reader :interval
 
-      def initialize(collection, listing)
-        @collection = collection
-        @kind = listing['aggregate_kind']
-        @field = listing['field_name']
-        @count = listing['value_count']
-        @interval = listing['interval']
-        @buckets = listing['buckets']
-      end
-    end
+    #   attr_reader :buckets
+
+    #   def initialize(collection, listing)
+    #     @collection = collection
+    #     @kind = listing['aggregate_kind']
+    #     @field = listing['field_name']
+    #     @count = listing['value_count']
+    #     @interval = listing['interval']
+    #     @buckets = listing['buckets']
+    #   end
+    # end
 
   end
 end
