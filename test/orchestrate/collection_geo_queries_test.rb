@@ -34,7 +34,7 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
 
   def test_near_search_without_units
     @query = @near_query
-    results = @items.near("location", 12, 56, 1).map{|i| i }
+    results = @items.near("location", 12, 56, 1).each.map{|i| i }
     assert_equal 10, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -45,7 +45,7 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
 
   def test_near_search_with_units
     @query = @near_query
-    results = @items.near("location", 12, 56, 1, 'km').map{|i| i }
+    results = @items.near("location", 12, 56, 1, 'km').each.map{|i| i }
     assert_equal 10, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -56,7 +56,7 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
 
   def test_near_search_with_sort
     @query = @near_query
-    results = @items.near("location", 12, 56, 1, 'km').order(:location).map{|i| i }
+    results = @items.near("location", 12, 56, 1, 'km').order(:location).each.map{|i| i }
     assert_equal 10, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -67,7 +67,7 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
 
   def test_in_bounding_box
     @query = @in_query
-    results = @items.in("location", {north:12, east:57, south:12, west:56}).map{|i| i }
+    results = @items.in("location", {north:12, east:57, south:12, west:56}).each.map{|i| i }
     assert_equal 12, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -78,7 +78,7 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
 
   def test_in_bounding_box_with_sort
     @query = @in_query
-    results = @items.in("location", {north:12, east:57, south:12, west:56}).order(:location).map{|i| i }
+    results = @items.in("location", {north:12, east:57, south:12, west:56}).order(:location).each.map{|i| i }
     assert_equal 12, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005

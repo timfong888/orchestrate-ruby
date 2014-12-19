@@ -1,23 +1,20 @@
 module Orchestrate
-
+  # Search builder object for constructing queries
   class Search
     # @return [Collection] The collection this object will search.
     attr_reader :collection
 
     # @return [#to_s] The Lucene Query String given as the search query.
     attr_reader :query
-    
+
     # @return [#to_s] The sorting parameters.
     attr_reader :sort
 
-    # @return [#to_s] The string of aggregate function params to insert into the search query.
+    # @return [#to_s] The aggregate parameters to insert into the search query.
     attr_reader :aggregate
 
     # @return [Integer] The number of results to fetch per request.
     attr_reader :limit
-
-    # @return [Integer] The number of results to fetch per request.
-    attr_reader :offset
 
     # Initialize a new SearchBuilder object
     # @param collection [Orchestrate::Collection] The collection to search.
@@ -32,12 +29,13 @@ module Orchestrate
     end
 
     # Sets the sorting parameters for a query's Search Results.
-    # #order takes multiple arguments, but each even numbered argument must be either :asc or :desc
+    # #order takes multiple arguments,
+    # but each even numbered argument must be either :asc or :desc
     # Odd-numbered arguments defaults to :asc
     # @example
-    #   @app[:items].search("some_query").order(:name, :asc, :rank, :desc, :created_at)
+    #   @app[:items].search("foo").order(:name, :asc, :rank, :desc, :created_at)
     def order(*args)
-      @sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(",")
+      @sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(',')
       self
     end
 
@@ -56,7 +54,7 @@ module Orchestrate
     #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
     # @overload offset(count)
     #   @param count [Integer] The number of items to skip.
-    #   @return [SearchBuilder] self.
+    #   @return [Search] self.
     def offset(count=nil)
       if count
         @offset = count
@@ -69,21 +67,21 @@ module Orchestrate
     # @!group Aggregate Queries
     def stats(field_name)
       stats = "#{field_name}:stats"
-      @aggregate = @aggregate ? @aggregate << "," + stats : stats
+      @aggregate = @aggregate ? @aggregate << ',' + stats : stats
       self
     end
 
     def range(field_name, *args)
       nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
       range = "#{field_name}:range:#{nums}"
-      @aggregate = @aggregate ? @aggregate << "," + range : range
+      @aggregate = @aggregate ? @aggregate << ',' + range : range
       self
     end
 
     def distance(field_name, *args)
       nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
       distance = "#{field_name}:distance:#{nums}"
-      @aggregate = @aggregate ? @aggregate << "," + distance : distance
+      @aggregate = @aggregate ? @aggregate << ',' + distance : distance
       self
     end
 
@@ -91,20 +89,25 @@ module Orchestrate
     # Accepted intervals are 'year', 'quarter', 'month', 'week', 'day', and 'hour'
     def time_series(field_name, interval)
       time = "#{field_name}:time_series:#{interval}"
-      @aggregate = @aggregate ? @aggregate << "," + time : time
+      @aggregate = @aggregate ? @aggregate << ',' + time : time
       self
     end
     # @!endgroup
 
     # @return [SearchResults] A SearchResults object to enumerate over.
     def each(&block)
-      options = self.build_params
+      options = build_params
       SearchResults.new(@collection, @query, options).each(&block)
     end
 
     def aggregates(&block)
-      options = self.build_params
+      options = build_params
       AggregateResults.new(@collection, @query, options).each(&block)
+    end
+
+    def lazy
+      options = build_params
+      SearchResults.new(@collection, @query, options).lazy
     end
 
     def build_params
@@ -137,7 +140,7 @@ module Orchestrate
 
       include Enumerable
 
-      # Iterates over each result from the Search.  Used as the basis for Enumerable methods.  Items are
+      # Iterates over each result from the Search. Used as the basis for Enumerable methods.  Items are
       # provided on the basis of score, with most relevant first.
       # @overload each
       #   @return Enumerator

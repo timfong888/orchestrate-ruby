@@ -33,7 +33,7 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_search
-    results = @items.search("foo").map{|i| i }
+    results = @items.search("foo").each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -54,7 +54,7 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
         raise ArgumentError.new("unexpected offset: #{o}")
       end
     end
-    results = @items.search("foo").offset(offset).take(@limit)
+    results = @items.search("foo").offset(offset).take(@limit).each.map { |e| e }
     assert_equal 50, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-(idx+10)/@total * 5.0), item[0], 0.005
@@ -80,7 +80,7 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
 
   def test_in_parallel_raises_if_forced
     assert_raises Orchestrate::ResultsNotReady do
-      @app.in_parallel { @app[:items].search("foo").to_a }
+      @app.in_parallel { @app[:items].search("foo").each.to_a }
     end
   end
 
