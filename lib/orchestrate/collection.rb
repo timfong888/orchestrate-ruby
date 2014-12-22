@@ -350,7 +350,7 @@ module Orchestrate
     #   to query the collection with.
     # @return [Orchestrate::Search] A Search object to construct the query.
     def search(query)
-      Search.new(self, query)
+      SearchBuilder.new(self, query)
     end
 
     # @!group Geo Queries
@@ -366,7 +366,7 @@ module Orchestrate
     def near(field, latitude, longitude, distance, units=nil)
       units ||= 'km'
       query = "#{field}:NEAR:{lat:#{latitude} lon:#{longitude} dist:#{distance}#{units}}"
-      Search.new(self, query)
+      SearchBuilder.new(self, query)
     end
 
     # Performs a search for items within a particular area, 
@@ -380,7 +380,7 @@ module Orchestrate
     def in(field, box={})
       box = box.flatten.each_slice(2).map {|dir, val| "#{dir}:#{val}" }.join(" ")
       query = "#{field}:IN:{#{box}}"
-      Search.new(self, query)
+      SearchBuilder.new(self, query)
     end
     # @!endgroup
 

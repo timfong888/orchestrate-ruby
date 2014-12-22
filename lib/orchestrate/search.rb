@@ -1,119 +1,108 @@
 module Orchestrate
-  # Search builder object for constructing queries
-  class Search
-    # @return [Collection] The collection this object will search.
-    attr_reader :collection
 
-    # @return [#to_s] The Lucene Query String given as the search query.
-    attr_reader :query
+  class Collection
 
-    # @return [#to_s] The sorting parameters.
-    attr_reader :sort
+    # Search Builder object for constructing search queries
+    class SearchBuilder
+      # @return [Collection] The collection this object will search.
+      attr_reader :collection
 
-    # @return [#to_s] The aggregate parameters to insert into the search query.
-    attr_reader :aggregate
+      # @return [#to_s] The Lucene Query String given as the search query.
+      attr_reader :query
 
-    # Initialize a new SearchBuilder object
-    # @param collection [Orchestrate::Collection] The collection to search.
-    # @param query [#to_s] The Lucene Query to perform.
-    def initialize(collection, query)
-      @collection = collection
-      @query = query
-      @aggregate = nil
-      @sort = nil
-      @limit = 100
-      @offset = nil
-    end
+      # @return [#to_s] The sorting parameters.
+      attr_reader :sort
 
-    # Sets the sorting parameters for a query's Search Results.
-    # #order takes multiple arguments,
-    # but each even numbered argument must be either :asc or :desc
-    # Odd-numbered arguments defaults to :asc
-    # @example
-    #   @app[:items].search("foo").order(:name, :asc, :rank, :desc, :created_at)
-    def order(*args)
-      @sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(',')
-      self
-    end
+      attr_reader :aggregates
 
-    # Sets the limit for the query to Orchestrate, so we don't ask for more than is needed. 
-    # Does not fire a request.
-    # @overload limit
-    #   @return [Integer, nil] The number of items to retrieve.  Nil is equivalent to zero.
-    # @overload limit(count)
-    #   @param count [Integer] The number of items to retrieve.
-    #   @return [Search] self.
-    def limit(count=nil)
-      if count
-        @limit = count > 100 ? 100 : count
-        self
-      else
-        @limit
+      # Initialize a new SearchBuilder object
+      # @param collection [Orchestrate::Collection] The collection to search.
+      # @param query [#to_s] The Lucene Query to perform.
+      def initialize(collection, query)
+        @collection = collection
+        @query = query
+        @aggregates = nil
+        @sort = nil
+        @limit = 100
+        @offset = nil
       end
-    end
 
-    # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
-    # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
-    # @overload offset
-    #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
-    # @overload offset(count)
-    #   @param count [Integer] The number of items to skip.
-    #   @return [Search] self.
-    def offset(count=nil)
-      if count
-        @offset = count
-        self
-      else
-        @offset
+      # @return Pretty-Printed string representation of the Search object
+      def to_s
+        "#<Orchestrate::Collection::SearchBuilder collection=#{collection.name} query=#{query} aggregate=#{aggregates} sort=#{sort} limit=#{limit} offset=#{offset}>"
       end
-    end
+      alias :inspect :to_s
 
-    # @!group Aggregate Queries
-    def stats(field_name)
-      stats = "#{field_name}:stats"
-      @aggregate = @aggregate ? @aggregate << ',' + stats : stats
-      self
-    end
+      # Sets the sorting parameters for a query's Search Results.
+      # #order takes multiple arguments,
+      # but each even numbered argument must be either :asc or :desc
+      # Odd-numbered arguments defaults to :asc
+      # @example
+      #   @app[:items].search("foo").order(:name, :asc, :rank, :desc, :created_at)
+      def order(*args)
+        @sort = args.each_slice(2).map {|field, dir| dir ||= :asc; "#{field}:#{dir}" }.join(',')
+        self
+      end
 
-    def range(field_name, *args)
-      nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
-      range = "#{field_name}:range:#{nums}"
-      @aggregate = @aggregate ? @aggregate << ',' + range : range
-      self
-    end
+      def aggregate
+        AggregateBuilder.new(self)
+      end
 
-    def distance(field_name, *args)
-      nums = args.each_slice(2).map {|first, last| dir ||= :asc; "#{first}~#{last}" }.join(":")
-      distance = "#{field_name}:distance:#{nums}"
-      @aggregate = @aggregate ? @aggregate << ',' + distance : distance
-      self
-    end
+      # Sets the limit for the query to Orchestrate, so we don't ask for more than is needed. 
+      # Does not fire a request.
+      # @overload limit
+      #   @return [Integer, nil] The number of items to retrieve.  Nil is equivalent to zero.
+      # @overload limit(count)
+      #   @param count [Integer] The number of items to retrieve.
+      #   @return [Search] self.
+      def limit(count=nil)
+        if count
+          @limit = count > 100 ? 100 : count
+          self
+        else
+          @limit
+        end
+      end
 
-    # @param interval [#to_s] The value measure chronological data by.
-    # Accepted intervals are 'year', 'quarter', 'month', 'week', 'day', and 'hour'
-    def time_series(field_name, interval)
-      time = "#{field_name}:time_series:#{interval}"
-      @aggregate = @aggregate ? @aggregate << ',' + time : time
-      self
-    end
-    # @!endgroup
+      # Sets the offset for the query to Orchestrate, so you can skip items.  Does not fire a request.
+      # Impelemented as separate method from drop, unlike #take, because take is a more common use case.
+      # @overload offset
+      #   @return [Integer, nil] The number of items to skip.  Nil is equivalent to zero.
+      # @overload offset(count)
+      #   @param count [Integer] The number of items to skip.
+      #   @return [Search] self.
+      def offset(count=nil)
+        if count
+          @offset = count
+          self
+        else
+          @offset
+        end
+      end
 
-    # @return [SearchResults] A SearchResults object to enumerate over.
-    def execute
-      params = {limit:limit}
-      params[:aggregate] = aggregate if aggregate
-      params[:offset] = offset if offset
-      params[:sort] = sort if sort
-      response = collection.perform(:search, query, params)
-      SearchResults.new(collection, query, params, response)
-    end
+      # @return [SearchResults] A SearchResults object to enumerate over.
+      def find
+        params = build
+        response = collection.perform(:search, query, params)
+        SearchResults.new(collection, query, params, response, response.aggregates)
+      end
 
-    def lazy
-      params = {limit:limit}
-      params[:aggregate] = aggregate if aggregate
-      params[:offset] = offset if offset
-      params[:sort] = sort if sort
-      SearchResults.new(collection, query, params, nil).lazy
+      def lazy
+        params = build
+        SearchResults.new(collection, query, params, nil, nil).lazy
+      end
+
+      def build
+        params = {limit:limit}
+        params[:offset] = offset if offset
+        params[:sort] = sort if sort
+        params[:aggregate] = aggregates if aggregates
+        params
+      end
+
+      def set_aggregates(arg)
+        @aggregates = @aggregates ? @aggregates << arg : arg
+      end
     end
 
     # An enumerator for searching an Orchestrate::Collection
@@ -132,12 +121,12 @@ module Orchestrate
       # @param query [#to_s] The Lucene Query performed.
       # @param options [Hash] The query parameters.
       # @param response [CollectionResponse] The initial Collection Response from the search query.
-      def initialize(collection, query, options, response)
+      def initialize(collection, query, options, response, aggregates)
         @collection = collection
         @query = query
         @options = options
         @response = response
-        @aggregates = nil
+        @aggregates = aggregates 
       end
 
       # @return [#to_json] The aggregate results.
@@ -179,74 +168,6 @@ module Orchestrate
         super
       end
     end
-
-    # class StatsAggregate
-      
-    #   attr_reader :collection
-
-    #   attr_reader :kind
-
-    #   attr_reader :field
-
-    #   attr_reader :count
-
-    #   attr_reader :statistics
-
-    #   def initialize(collection, listing)
-    #     @collection = collection
-    #     @kind = listing['aggregate_kind']
-    #     @field = listing['field_name']
-    #     @count = listing['value_count']
-    #     @statistics = listing['statistics']
-    #   end
-    # end
-
-    # class RangeAggregate
-      
-    #   attr_reader :collection
-
-    #   attr_reader :kind
-
-    #   attr_reader :field
-
-    #   attr_reader :count
-
-    #   attr_reader :buckets
-
-    #   def initialize(collection, listing)
-    #     @collection = collection
-    #     @kind = listing['aggregate_kind']
-    #     @field = listing['field_name']
-    #     @count = listing['value_count']
-    #     @buckets = listing['buckets']
-    #   end
-    # end
-
-    # class DistanceAggregate < RangeAggregate 
-    # end
-
-    # class TimeSeriesAggregate
-    #   attr_reader :collection
-
-    #   attr_reader :kind
-
-    #   attr_reader :field
-
-    #   attr_reader :count
-
-    #   attr_reader :interval
-
-    #   attr_reader :buckets
-
-    #   def initialize(collection, listing)
-    #     @collection = collection
-    #     @kind = listing['aggregate_kind']
-    #     @field = listing['field_name']
-    #     @count = listing['value_count']
-    #     @interval = listing['interval']
-    #     @buckets = listing['buckets']
-    #   end
-    # end
 
   end
 end
