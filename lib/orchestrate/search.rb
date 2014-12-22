@@ -13,7 +13,7 @@ module Orchestrate
       # @return [#to_s] The sorting parameters.
       attr_reader :sort
 
-      attr_reader :aggregates
+      attr_reader :aggregate
 
       # Initialize a new SearchBuilder object
       # @param collection [Orchestrate::Collection] The collection to search.
@@ -21,17 +21,17 @@ module Orchestrate
       def initialize(collection, query)
         @collection = collection
         @query = query
-        @aggregates = nil
+        @aggregate = nil
         @sort = nil
         @limit = 100
         @offset = nil
       end
 
-      # @return Pretty-Printed string representation of the Search object
-      def to_s
-        "#<Orchestrate::Collection::SearchBuilder collection=#{collection.name} query=#{query} aggregate=#{aggregates} sort=#{sort} limit=#{limit} offset=#{offset}>"
-      end
-      alias :inspect :to_s
+      # # @return Pretty-Printed string representation of the Search object
+      # def to_s
+      #   "#<Orchestrate::Collection::SearchBuilder collection=#{collection.name} query=#{query}>"
+      # end
+      # alias :inspect :to_s
 
       # Sets the sorting parameters for a query's Search Results.
       # #order takes multiple arguments,
@@ -44,7 +44,7 @@ module Orchestrate
         self
       end
 
-      def aggregate
+      def aggregates
         AggregateBuilder.new(self)
       end
 
@@ -81,27 +81,16 @@ module Orchestrate
       end
 
       # @return [SearchResults] A SearchResults object to enumerate over.
-      def execute
-        params = build
-        response = collection.perform(:search, query, params)
-        SearchResults.new(collection, query, params, response, response.aggregates)
-      end
-
-      def lazy
-        params = build
-        SearchResults.new(collection, query, params, nil, nil).lazy
-      end
-
-      def build
-        params = {limit:limit}
-        params[:offset] = offset if offset
+      def find
+        params = {limit: self.limit}
+        params[:offset] = self.offset if self.offset
         params[:sort] = sort if sort
-        params[:aggregate] = aggregates if aggregates
-        params
+        params[:aggregate] = aggregate if aggregate
+        SearchResults.new(collection, query, params)
       end
 
       def set_aggregates(arg)
-        @aggregates = @aggregates ? @aggregates << arg : arg
+        @aggregate = @aggregate ? @aggregate << arg : arg
       end
     end
 
@@ -115,23 +104,24 @@ module Orchestrate
 
       # @return [Hash] The query paramaters.
       attr_reader :options
+      attr_reader :response
+      attr_reader :aggregates
 
       # Initialize a new SearchResults object
       # @param collection [Orchestrate::Collection] The collection searched.
       # @param query [#to_s] The Lucene Query performed.
       # @param options [Hash] The query parameters.
-      # @param response [CollectionResponse] The initial Collection Response from the search query.
-      def initialize(collection, query, options, response, aggregates)
+      def initialize(collection, query, options)
         @collection = collection
         @query = query
         @options = options
-        @response = response
-        @aggregates = aggregates 
+        @response = nil
+        @aggregates = nil
       end
 
       # @return [#to_json] The aggregate results.
       def aggregates
-        @aggregates ||= @response.aggregates
+        @aggregates ||= collection.perform(:search, query, options).aggregates
       end
 
       include Enumerable

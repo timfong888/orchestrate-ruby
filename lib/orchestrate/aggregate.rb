@@ -81,7 +81,7 @@ module Orchestrate
         self
       end
 
-      def build
+      def set
         @builder.add_aggregate(field)
         @builder
       end
