@@ -81,7 +81,7 @@ module Orchestrate
       end
 
       # @return [SearchResults] A SearchResults object to enumerate over.
-      def find
+      def execute
         params = build
         response = collection.perform(:search, query, params)
         SearchResults.new(collection, query, params, response, response.aggregates)
