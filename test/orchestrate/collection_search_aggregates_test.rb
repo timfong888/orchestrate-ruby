@@ -83,22 +83,26 @@ class CollectionSearchAggregates < MiniTest::Unit::TestCase
   end
 
   def test_basic_stats_aggregate
-    results = @items.search("foo").aggregates.stats("bar").build.find
+    results = @items.search("foo").aggregate.stats("bar").find
+    results.each_aggregate
     assert_equal @stats, results.aggregates
   end
 
   def test_basic_range_aggregate
-    results = @items.search("foo").aggregates.range("bar").below(40).set.build.find
+    results = @items.search("foo").aggregate.range("bar").below(40).find
+    results.each_aggregate
     assert_equal @range, results.aggregates
   end
 
   def test_basic_distance_aggregate
-    results = @items.search("foo").aggregates.distance("bar").between(0,1).set.build.find
+    results = @items.search("foo").aggregate.distance("bar").between(0,1).find
+    results.each_aggregate
     assert_equal @distance, results.aggregates
   end
 
   def test_basic_time_series_aggregate
-    results = @items.search("foo").aggregates.time_series("bar","day").build.find
+    results = @items.search("foo").aggregate.time_series("bar","day").find
+    results.each_aggregate
     assert_equal @time_series, results.aggregates
   end
 end
