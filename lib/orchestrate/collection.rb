@@ -348,9 +348,9 @@ module Orchestrate
     # @param query [#to_s] The [Lucene Query
     #   String](http://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Overview)
     #   to query the collection with.
-    # @return [Orchestrate::Search] A Search object to construct the query.
+    # @return [Orchestrate::Search::QueryBuilder] A builder object to construct the query.
     def search(query)
-      SearchBuilder.new(self, query)
+      Search::QueryBuilder.new(self, query)
     end
 
     # @!group Geo Queries
@@ -362,11 +362,11 @@ module Orchestrate
     # @param distance [Integer] The number of distance units.
     # @param units [#to_s] Unit of measurement for distance, default to kilometers (km),
     # supported units: km, m, cm, mm, mi, yd, ft, in, nmi
-    # @return [SearchBuilder] A SearchBuilder object to construct the query.
+    # @return [Orchestrate::Search::QueryBuilder] A builder object to construct the query.
     def near(field, latitude, longitude, distance, units=nil)
       units ||= 'km'
       query = "#{field}:NEAR:{lat:#{latitude} lon:#{longitude} dist:#{distance}#{units}}"
-      SearchBuilder.new(self, query)
+      Search::QueryBuilder.new(self, query)
     end
 
     # Performs a search for items within a particular area, 
@@ -376,11 +376,11 @@ module Orchestrate
     # @param box [#to_json] The values to create the bounding box,
     # @example
     #   collection.in(:field, {north: 12.5, south: 15, east: 14, west: 3})
-    # @return [SearchBuilder] A SearchBuilder object to construct the query.
+    # @return [Orchestrate::Search::QueryBuilder] A builder object to construct the query.
     def in(field, box={})
       box = box.flatten.each_slice(2).map {|dir, val| "#{dir}:#{val}" }.join(" ")
       query = "#{field}:IN:{#{box}}"
-      SearchBuilder.new(self, query)
+      Search::QueryBuilder.new(self, query)
     end
     # @!endgroup
 

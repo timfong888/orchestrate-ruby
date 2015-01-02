@@ -65,20 +65,20 @@ jill.add('favorite_food', 'Pizza').remove('years_to_live').update()
 
 #### Searching, Sorting for KeyValues
 ```ruby
-users.search("name:Jill")                    # returns users with name "Jill"
-users.search("name:Jill").order(:created_at) # returns users with name "Jill" in ascending order
+users.search("name:Jill").find                      # returns users with name "Jill"
+users.search("name:Jill").order(:created_at).find   # returns users with name "Jill" in ascending order
 ```
 
 The `order` method accepts multiple arguments, allowing you to sort search results based multiple parameters. When providing multiple field names to sort by each even-numbered argument must be either `:asc` or `:desc`.
 
 ```ruby
-users.search("location: Portland").order(:name, :asc, :rank, :desc)
+users.search("location: Portland").order(:name, :asc, :rank, :desc).find
 ```
 
 By default, odd-numbered arguments will be sorted in ascending order.
 ```ruby
-users.search("location: Portland").order(:name) # returns users in ascending order by name
-users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at) # :created_at argument defaults to :asc
+users.search("location: Portland").order(:name).find  # returns users in ascending order by name
+users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at).find   # :created_at argument defaults to :asc
 ```
 
 ### Geo Queries
@@ -87,13 +87,56 @@ users.search("location: Portland").order(:name, :asc, :rank, :desc, :created_at)
 cafes = app[:cafes]
 
 # Find cafes near a given geographic point
-cafes.near(:location, 12.56, 19.443, 4, 'mi')   # returns cafes in a 4 mile radius of given latitude, longitude
+cafes.near(:location, 12.56, 19.443, 4, 'mi').find   # returns cafes in a 4 mile radius of given latitude, longitude
 
 # Sort nearby cafes by distance
-cafes.near(:location, 12.56, 19.443, 4, 'mi').order(:distance)  # returns nearby cafes in ascending order (closest to farthest)
+cafes.near(:location, 12.56, 19.443, 4, 'mi').order(:distance).find  # returns nearby cafes in ascending order (closest to farthest)
 
 # Find cafes in a given area using a bounding box
-cafes.in(:location, {north:12.5, east:57, south:12, west:56})   # returns all cafes within specified bounding box
+cafes.in(:location, {north:12.5, east:57, south:12, west:56}).find   # returns all cafes within specified bounding box
+```
+
+### Aggregate Functions
+
+```ruby
+# Statistical Aggregate
+products.search("*").aggregate  # Start the search query and aggregate param builder
+  .stats("price")               # statistics on the price field for products matching the query
+  .find                         # return SearchResults object to execute our query
+  .each_aggregate               # return enumerator for iterating over each aggregate result
+
+# Range Aggregate
+products.search("*").aggregate  # Start the search query and aggregate param builder
+  .range("num_sold")            # set field for range function
+  .below(99)                    # count items with num_sold value below 99
+  .between(1, 10)               # count items with num_sold value between 1 & 10
+  .above(5)                     # count items with num_sold value above 5
+  .find                         # return SearchResults object to execute our query
+  .each_aggregate               # return enumerator for iterating over each aggregate result
+
+# Distance Aggregate
+cafes.near(:location, 12, 19, 4, 'mi').aggregate  # Start the near search query and aggregate param builder
+  .distance("location")         # set field for distance function
+  .below(3)                     # count cafes within 3 miles of given geographic point
+  .between(3, 4)                # count cafes between 3 and 4 miles of given geographic point
+  .above(1)                     # count cafes beyond 1 mile of given geographic point
+  .find                         # return SearchResults object to execute our query
+  .each_aggregate               # return enumerator for iterating over each aggregate result
+
+# Time-Series Aggregate
+# Accepted intervals are: year, quarter, month, week, day, and hour
+comments.search("*").aggregate  # Start the near search query and aggregate param builder
+  .time_series("posted", "day") # get count of comments posted by day
+  .find                         # return SearchResults object to execute our query
+  .each_aggregate               # return enumerator for iterating over each aggregate result
+
+# Multiple Aggregate Functions
+products.search("*").aggregate  # Start the search query and aggregate param builder
+  .stats("price")               # statistics on the price field for products matching the query
+  .range("num_sold")            # set field for range function
+  .below(99)                    # count items with num_sold value below 99
+  .find                         # return SearchResults object to execute our query
+  .each_aggregate               # return enumerator for iterating over each aggregate result
 ```
 
 ### Method Client use
@@ -171,6 +214,82 @@ client.search(:cafes, query, {
 # Find cafes in a given area using a bounding box
 query = "value:IN:{ north:12.5 east:57 south:12 west:56 }"
 client.search(:cafes, query)
+```
+
+### Aggregate Functions
+
+```ruby
+# Statistical Aggregate
+query = "*"
+
+options = {
+  aggregate: "value.price:stats"    # get statistics for price across all items in the collection
+}
+
+response = client.search(:products, query, options)
+
+response.aggregates     # return aggregate results
+
+
+# Range Aggregate
+query = "*"
+
+options = {
+  # count items with num_sold below 99, in between 1 & 10, and above 5
+  aggregate: "value.num_sold:range:*~99:1~10:5~*"
+}
+
+response = client.search(:products, query, options)
+
+response.aggregates     # return aggregate results
+
+
+# Distance Aggregate
+coords = {
+  lat: 12.56,
+  lon: 19.443,
+  dist: '4mi' # Define size of search radius for NEAR query
+}
+
+options = {
+  # count cafes near give geographic point within 3 miles, between 3 and 4 miles, and beyond 1 mile
+  aggregate: "value.location:distance:*~3:3~4:1~*"
+}
+
+# Distance Aggregates require a near clause in the search query
+query = "value.location:NEAR:{lat:#{coords.lat} lon:#{coords.lon} dist:#{coords.dist}}"
+
+response = client.search(:cafes, query, options)
+
+response.aggregates     # return aggregate results
+
+
+# Time-Series Aggregate
+# Accepted intervals are: year, quarter, month, week, day, and hour
+
+options = {
+  # get count of comments posted by day
+  aggregate: "value.posted:time_series:day"
+}
+
+query = "*"
+
+response = client.search(:comments, query, options)
+
+response.aggregates     # return aggregate results
+
+
+# Multiple Aggregate Functions
+options = {
+  # multiple aggregate params are separated by commas
+  aggregate: "value.price:stats,value.num_sold:stats,value.num_sold:range:*~99:1~10:5~*"
+}
+
+query = "*"
+
+response = client.search(:products, query, options)
+
+response.aggregates     # return aggregate results
 ```
 
 ### Examples and Documentation
