@@ -60,13 +60,12 @@ module Orchestrate::Search
       dist
     end
 
-    # @param field_name [#to_s] 
-    # @param interval [#to_s] The value measure chronological data by.
-    #   Accepted intervals are 'year', 'quarter', 'month', 'week', 'day', and 'hour'
-    # @return [AggregateBuilder]
-    def time_series(field_name, interval)
-      aggregates << "#{field_name}:time_series:#{interval}"
-      self
+    # @param field_name [#to_s]
+    # @return [TimeSeriesBuilder]
+    def time_series(field_name)
+      time = TimeSeriesBuilder.new(self, "#{field_name}:time_series:")
+      aggregates << time
+      time
     end
     # @!endgroup
   end
@@ -134,7 +133,58 @@ module Orchestrate::Search
     end
   end
 
-  # Distance Builder object for constructing distance functions to be included in the aggregate param
+  # Distance Builder object for constructing distance functions for the aggregate param
   class DistanceBuilder < RangeBuilder
+  end
+
+  # Time Series Builder object for constructing time series functions for the aggregate param
+  class TimeSeriesBuilder
+
+    # @return [AggregateBuilder]
+    attr_reader :builder
+
+    # @return [#to_s]
+    attr_reader :field
+
+    def initialize(builder, field)
+      @builder = builder
+      @field = field
+    end
+
+    # @return string representation of the aggregate range param
+    def to_s
+      "#{field}"
+    end
+    alias :inspect :to_s
+
+    def year
+      @field << 'year'
+      @builder
+    end
+
+    def quarter
+      @field << 'quarter'
+      @builder
+    end
+
+    def month
+      @field << 'month'
+      @builder
+    end
+
+    def week
+      @field << 'week'
+      @builder
+    end
+
+    def day
+      @field << 'day'
+      @builder
+    end
+
+    def hour
+      @field << 'hour'
+      @builder
+    end
   end
 end

@@ -101,7 +101,7 @@ class CollectionSearchAggregates < MiniTest::Unit::TestCase
   end
 
   def test_basic_time_series_aggregate
-    results = @items.search("foo").aggregate.time_series("bar","day").find
+    results = @items.search("foo").aggregate.time_series("bar").day.find
     results.each_aggregate
     assert_equal @time_series, results.aggregates
   end
