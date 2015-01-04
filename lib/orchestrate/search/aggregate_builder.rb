@@ -2,7 +2,7 @@ module Orchestrate::Search
   # Aggregate Builder object for constructing aggregate params included in a search
   class AggregateBuilder
 
-    # @return [SearchBuilder] 
+    # @return [QueryBuilder] 
     attr_reader :builder
 
     # @return [Array] Aggregate param arguments
@@ -76,29 +76,25 @@ module Orchestrate::Search
     # @return [AggregateBuilder]
     attr_reader :builder
 
-    # @return [SearchBuilder]
-    attr_reader :search
-
     # @return [#to_s]
     attr_reader :field
 
     extend Forwardable
 
     # Initialize a new RangeBuilder object
-    # @param builder [Orchestrate::Search::AggregateBuilder] The Aggregate Builder object
+    # @param builder [AggregateBuilder] The Aggregate Builder object
     # @param field [#to_s]
     def initialize(builder, field)
       @builder = builder
-      @search = builder.builder
       @field = field
     end
 
-    def_delegator :@search, :options
-    def_delegator :@search, :order
-    def_delegator :@search, :limit
-    def_delegator :@search, :offset
-    def_delegator :@search, :aggregate
-    def_delegator :@search, :find
+    def_delegator :@builder, :options
+    def_delegator :@builder, :order
+    def_delegator :@builder, :limit
+    def_delegator :@builder, :offset
+    def_delegator :@builder, :aggregate
+    def_delegator :@builder, :find
     def_delegator :@builder, :stats
     def_delegator :@builder, :range
     def_delegator :@builder, :distance
@@ -157,31 +153,43 @@ module Orchestrate::Search
     end
     alias :inspect :to_s
 
+    # Set time series interval to year
+    # @return [AggregateBuilder]
     def year
       @field << 'year'
       @builder
     end
 
+    # Set time series interval to quarter
+    # @return [AggregateBuilder]
     def quarter
       @field << 'quarter'
       @builder
     end
 
+    # Set time series interval to month
+    # @return [AggregateBuilder]
     def month
       @field << 'month'
       @builder
     end
 
+    # Set time series interval to week
+    # @return [AggregateBuilder]
     def week
       @field << 'week'
       @builder
     end
 
+    # Set time series interval to day
+    # @return [AggregateBuilder]
     def day
       @field << 'day'
       @builder
     end
 
+    # Set time series interval to hour
+    # @return [AggregateBuilder]
     def hour
       @field << 'hour'
       @builder
