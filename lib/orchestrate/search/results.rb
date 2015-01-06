@@ -78,7 +78,6 @@ module Orchestrate::Search
           yield TimeSeriesResult.new(collection, listing)
         end
       end
-      @aggregates = nil
     end
 
     # Creates a Lazy Enumerator for the Search Results.  If called inside its
@@ -98,7 +97,7 @@ module Orchestrate::Search
     attr_reader :kind
 
     # @return [#to_s] The field name the aggregate function operated over.
-    attr_reader :field
+    attr_reader :field_name
 
     # @return [Integer] Number of field values included in the aggregate function.
     attr_reader :count
@@ -109,7 +108,7 @@ module Orchestrate::Search
     def initialize(collection, listing)
       @collection = collection
       @kind = listing['aggregate_kind']
-      @field = listing['field_name']
+      @field_name = listing['field_name']
       @count = listing['value_count']
     end
   end
@@ -158,7 +157,7 @@ module Orchestrate::Search
     # @return Pretty-Printed string representation of the StatsResult object
     def to_s
       stats = "statistics={\n  min=#{min},\n  max=#{max},\n  mean=#{mean},\n  sum=#{sum},\n  sum_of_squares=#{sum_of_squares},\n  variance=#{variance},\n  std_dev=#{std_dev}\n}"
-      "#<Orchestrate::Search::StatsResult collection=#{collection.name} field=#{field} count=#{count} #{stats}>"
+      "#<Orchestrate::Search::StatsResult collection=#{collection.name} field_name=#{field_name} count=#{count} #{stats}>"
     end
     alias :inspect :to_s
   end
@@ -178,7 +177,7 @@ module Orchestrate::Search
 
     # @return Pretty-Printed string representation of the RangeResult object
     def to_s
-      "#<Orchestrate::Search::RangeResult collection=#{collection.name} field=#{field} buckets=#{buckets}>"
+      "#<Orchestrate::Search::RangeResult collection=#{collection.name} field_name=#{field_name} buckets=#{buckets}>"
     end
     alias :inspect :to_s
   end
@@ -187,7 +186,7 @@ module Orchestrate::Search
   class DistanceResult < RangeResult
     # @return Pretty-Printed string representation of the DistanceResult object
     def to_s
-      "#<Orchestrate::Search::DistanceResult collection=#{collection.name} field=#{field} buckets=#{buckets}>"
+      "#<Orchestrate::Search::DistanceResult collection=#{collection.name} field_name=#{field_name} buckets=#{buckets}>"
     end
     alias :inspect :to_s
   end
@@ -207,7 +206,7 @@ module Orchestrate::Search
 
     # @return Pretty-Printed string representation of the TimeSeriesResult object
     def to_s
-      "#<Orchestrate::Search::TimeSeriesResult collection=#{collection.name} field=#{field} interval=#{interval} buckets=#{buckets}>"
+      "#<Orchestrate::Search::TimeSeriesResult collection=#{collection.name} field_name=#{field_name} interval=#{interval} buckets=#{buckets}>"
     end
     alias :inspect :to_s
   end

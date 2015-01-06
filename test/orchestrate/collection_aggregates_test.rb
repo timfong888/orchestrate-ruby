@@ -1,6 +1,6 @@
 require "test_helper"
 
-class CollectionSearchAggregates < MiniTest::Unit::TestCase
+class CollectionAggregates < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application({parallel:true})
     @items = @app[:items]

@@ -76,17 +76,17 @@ module Orchestrate::Search
     # @return [AggregateBuilder]
     attr_reader :builder
 
-    # @return [#to_s]
-    attr_reader :field
+    # @return [#to_s] The field to operate over
+    attr_reader :field_name
 
     extend Forwardable
 
     # Initialize a new RangeBuilder object
     # @param builder [AggregateBuilder] The Aggregate Builder object
     # @param field [#to_s]
-    def initialize(builder, field)
+    def initialize(builder, field_name)
       @builder = builder
-      @field = field
+      @field_name = field_name
     end
 
     def_delegator :@builder, :options
@@ -102,21 +102,21 @@ module Orchestrate::Search
 
     # @return string representation of the aggregate range param
     def to_s
-      "#{field}"
+      "#{field_name}"
     end
     alias :inspect :to_s
 
     # @param x [Integer]
     # @return [RangeBuilder]
     def below(x)
-      @field << "*~#{x}:"
+      @field_name << "*~#{x}:"
       self
     end
 
     # @param x [Integer]
     # @return [RangeBuilder]
     def above(x)
-      @field << "#{x}~*:"
+      @field_name << "#{x}~*:"
       self
     end
 
@@ -124,7 +124,7 @@ module Orchestrate::Search
     # @param y [Integer]
     # @return [RangeBuilder]
     def between(x, y)
-      @field << "#{x}~#{y}:"
+      @field_name << "#{x}~#{y}:"
       self
     end
   end
@@ -139,60 +139,80 @@ module Orchestrate::Search
     # @return [AggregateBuilder]
     attr_reader :builder
 
-    # @return [#to_s]
-    attr_reader :field
+    # @return [#to_s] The field to operate over
+    attr_reader :field_name
 
-    def initialize(builder, field)
+    # @return [#to_s] The interval of time for the TimeSeries function
+    attr_reader :interval
+
+    extend Forwardable
+
+    # Initialize a new TimeSeriesBuilder object
+    # @param builder [AggregateBuilder] The Aggregate Builder object
+    # @param field_name [#to_s] The field to operate over
+    def initialize(builder, field_name)
       @builder = builder
-      @field = field
+      @field_name = field_name
+      @interval = nil
     end
+
+    def_delegator :@builder, :options
+    def_delegator :@builder, :order
+    def_delegator :@builder, :limit
+    def_delegator :@builder, :offset
+    def_delegator :@builder, :aggregate
+    def_delegator :@builder, :find
+    def_delegator :@builder, :stats
+    def_delegator :@builder, :range
+    def_delegator :@builder, :distance
+    def_delegator :@builder, :time_series
 
     # @return string representation of the aggregate range param
     def to_s
-      "#{field}"
+      "#{field_name}#{interval}"
     end
     alias :inspect :to_s
 
     # Set time series interval to year
     # @return [AggregateBuilder]
     def year
-      @field << 'year'
-      @builder
+      @interval = 'year'
+      self
     end
 
     # Set time series interval to quarter
     # @return [AggregateBuilder]
     def quarter
-      @field << 'quarter'
-      @builder
+      @interval = 'quarter'
+      self
     end
 
     # Set time series interval to month
     # @return [AggregateBuilder]
     def month
-      @field << 'month'
-      @builder
+      @interval = 'month'
+      self
     end
 
     # Set time series interval to week
     # @return [AggregateBuilder]
     def week
-      @field << 'week'
-      @builder
+      @interval = 'week'
+      self
     end
 
     # Set time series interval to day
     # @return [AggregateBuilder]
     def day
-      @field << 'day'
-      @builder
+      @interval = 'day'
+      self
     end
 
     # Set time series interval to hour
     # @return [AggregateBuilder]
     def hour
-      @field << 'hour'
-      @builder
+      @interval = 'hour'
+      self
     end
   end
 end
