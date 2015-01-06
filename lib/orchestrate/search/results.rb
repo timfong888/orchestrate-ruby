@@ -64,7 +64,7 @@ module Orchestrate::Search
     def each_aggregate
       @response ||= collection.perform(:search, query, options)
       @aggregates ||= @response.aggregates
-      return enum_for(:each) unless block_given?
+      return enum_for(:each_aggregate) unless block_given?
       raise Orchestrate::ResultsNotReady.new if collection.app.inside_parallel?
       @aggregates.each do |listing|
         case listing['aggregate_kind']

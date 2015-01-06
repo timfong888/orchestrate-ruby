@@ -105,4 +105,13 @@ class CollectionAggregates < MiniTest::Unit::TestCase
     results.each_aggregate
     assert_equal @time_series, results.aggregates
   end
+
+  def test_each_aggregate_enum
+    results = @items.search("foo").aggregate.time_series("bar").day.find
+    enum = results.each_aggregate
+    aggregates = enum.to_a
+    assert_equal 1, aggregates.size
+    assert aggregates.first.is_a?(Orchestrate::Search::TimeSeriesResult)
+    assert_equal "day", aggregates.first.interval
+  end
 end
