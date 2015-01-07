@@ -33,15 +33,7 @@ module Orchestrate::Search
 
     # @return constructed aggregate string parameter for search query
     def to_param
-      aggs = []
-      aggregates.each do |a|
-        if a.respond_to?('to_param')
-          aggs << a.to_param
-        else
-          aggs << a.to_s
-        end
-      end
-      aggs.join(',')
+      aggregates.map {|agg| agg.to_param }.join(',')
     end
 
     # @!group Aggregate Functions
@@ -49,14 +41,15 @@ module Orchestrate::Search
     # @param field_name [#to_s]
     # @return [AggregateBuilder]
     def stats(field_name)
-      aggregates << "#{field_name}:stats"
-      self
+      stat = StatsBuilder.new(self, "#{field_name}")
+      aggregates << stat
+      stat
     end
 
     # @param field_name [#to_s]
     # @return [RangeBuilder]
     def range(field_name)
-      rng = RangeBuilder.new(self, "#{field_name}:range:")
+      rng = RangeBuilder.new(self, "#{field_name}")
       aggregates << rng
       rng
     end
@@ -64,7 +57,7 @@ module Orchestrate::Search
     # @param field_name [#to_s]
     # @return [DistanceBuilder]
     def distance(field_name)
-      dist = DistanceBuilder.new(self, "#{field_name}:distance:")
+      dist = DistanceBuilder.new(self, "#{field_name}")
       aggregates << dist
       dist
     end
@@ -72,11 +65,54 @@ module Orchestrate::Search
     # @param field_name [#to_s]
     # @return [TimeSeriesBuilder]
     def time_series(field_name)
-      time = TimeSeriesBuilder.new(self, "#{field_name}:time_series:")
+      time = TimeSeriesBuilder.new(self, "#{field_name}")
       aggregates << time
       time
     end
     # @!endgroup
+  end
+
+  # Stats Builder object for constructing stats functions to be included in the aggregate param
+  class StatsBuilder
+    
+    # @return [AggregateBuilder]
+    attr_reader :builder
+
+    # @return [#to_s] The field to operate over
+    attr_reader :field_name
+
+    extend Forwardable
+
+    # Initialize a new RangeBuilder object
+    # @param builder [AggregateBuilder] The Aggregate Builder object
+    # @param field_name [#to_s]
+    def initialize(builder, field_name)
+      @builder = builder
+      @field_name = field_name
+    end
+
+    def_delegator :@builder, :options
+    def_delegator :@builder, :order
+    def_delegator :@builder, :limit
+    def_delegator :@builder, :offset
+    def_delegator :@builder, :aggregate
+    def_delegator :@builder, :find
+    def_delegator :@builder, :stats
+    def_delegator :@builder, :range
+    def_delegator :@builder, :distance
+    def_delegator :@builder, :time_series
+    def_delegator :@builder, :collection
+
+    # @return Pretty-Printed string representation of the StatsBuilder object
+    def to_s
+      "#<Orchestrate::Search::StatsBuilder collection=#{collection.name} field_name=#{field_name}>"
+    end
+    alias :inspect :to_s
+
+    # @return [#to_s] constructed aggregate string clause
+    def to_param
+      "#{field_name}:stats"
+    end
   end
 
   # Range Builder object for constructing range functions to be included in the aggregate param
@@ -95,7 +131,7 @@ module Orchestrate::Search
 
     # Initialize a new RangeBuilder object
     # @param builder [AggregateBuilder] The Aggregate Builder object
-    # @param field [#to_s]
+    # @param field_name [#to_s]
     def initialize(builder, field_name)
       @builder = builder
       @field_name = field_name
@@ -122,7 +158,7 @@ module Orchestrate::Search
 
     # @return [#to_s] constructed aggregate string clause
     def to_param
-      "#{field_name}#{ranges}"
+      "#{field_name}:range:#{ranges}"
     end
 
     # @param x [Integer]
@@ -156,6 +192,11 @@ module Orchestrate::Search
       "#<Orchestrate::Search::DistanceBuilder collection=#{collection.name} field_name=#{field_name} ranges=#{ranges}>"
     end
     alias :inspect :to_s
+
+    # @return [#to_s] constructed aggregate string clause
+    def to_param
+      "#{field_name}:distance:#{ranges}"
+    end
   end
 
   # Time Series Builder object for constructing time series functions for the aggregate param
@@ -201,7 +242,7 @@ module Orchestrate::Search
 
     # @return [#to_s] constructed aggregate string clause
     def to_param
-      "#{field_name}#{interval}"
+      "#{field_name}:time_series:#{interval}"
     end
 
     # Set time series interval to year
