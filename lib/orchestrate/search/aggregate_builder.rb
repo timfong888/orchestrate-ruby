@@ -23,16 +23,25 @@ module Orchestrate::Search
     def_delegator :@builder, :offset
     def_delegator :@builder, :aggregate
     def_delegator :@builder, :find
+    def_delegator :@builder, :collection
 
     # @return Pretty-Printed string representation of the AggregateBuilder object
     def to_s
-      "#<Orchestrate::Search::AggregateBuilder collection=#{builder.collection.name} query=#{builder.query} aggregate=#{to_param}>"
+      "#<Orchestrate::Search::AggregateBuilder collection=#{collection.name} query=#{builder.query} aggregate=#{to_param}>"
     end
     alias :inspect :to_s
 
     # @return constructed aggregate string parameter for search query
     def to_param
-      aggregates.map {|agg| agg.to_s }.join(',')
+      aggs = []
+      aggregates.each do |a|
+        if a.respond_to?('to_param')
+          aggs << a.to_param
+        else
+          aggs << a.to_s
+        end
+      end
+      aggs.join(',')
     end
 
     # @!group Aggregate Functions
@@ -79,6 +88,9 @@ module Orchestrate::Search
     # @return [#to_s] The field to operate over
     attr_reader :field_name
 
+    # @return [#to_s] The range sets
+    attr_reader :ranges 
+
     extend Forwardable
 
     # Initialize a new RangeBuilder object
@@ -87,6 +99,7 @@ module Orchestrate::Search
     def initialize(builder, field_name)
       @builder = builder
       @field_name = field_name
+      @ranges = ''
     end
 
     def_delegator :@builder, :options
@@ -99,24 +112,30 @@ module Orchestrate::Search
     def_delegator :@builder, :range
     def_delegator :@builder, :distance
     def_delegator :@builder, :time_series
+    def_delegator :@builder, :collection
 
-    # @return string representation of the aggregate range param
+    # @return Pretty-Printed string representation of the RangeBuilder object
     def to_s
-      "#{field_name}"
+      "#<Orchestrate::Search::RangeBuilder collection=#{collection.name} field_name=#{field_name} ranges=#{ranges}>"
     end
     alias :inspect :to_s
+
+    # @return [#to_s] constructed aggregate string clause
+    def to_param
+      "#{field_name}#{ranges}"
+    end
 
     # @param x [Integer]
     # @return [RangeBuilder]
     def below(x)
-      @field_name << "*~#{x}:"
+      @ranges << "*~#{x}:"
       self
     end
 
     # @param x [Integer]
     # @return [RangeBuilder]
     def above(x)
-      @field_name << "#{x}~*:"
+      @ranges << "#{x}~*:"
       self
     end
 
@@ -124,13 +143,19 @@ module Orchestrate::Search
     # @param y [Integer]
     # @return [RangeBuilder]
     def between(x, y)
-      @field_name << "#{x}~#{y}:"
+      @ranges << "#{x}~#{y}:"
       self
     end
   end
 
   # Distance Builder object for constructing distance functions for the aggregate param
   class DistanceBuilder < RangeBuilder
+
+    # @return Pretty-Printed string representation of the DistanceBuilder object
+    def to_s
+      "#<Orchestrate::Search::DistanceBuilder collection=#{collection.name} field_name=#{field_name} ranges=#{ranges}>"
+    end
+    alias :inspect :to_s
   end
 
   # Time Series Builder object for constructing time series functions for the aggregate param
@@ -166,12 +191,18 @@ module Orchestrate::Search
     def_delegator :@builder, :range
     def_delegator :@builder, :distance
     def_delegator :@builder, :time_series
+    def_delegator :@builder, :collection
 
-    # @return string representation of the aggregate range param
+    # @return Pretty-Printed string representation of the TimeSeriesBuilder object
     def to_s
-      "#{field_name}#{interval}"
+      "#<Orchestrate::Search::TimeSeriesBuilder collection=#{collection.name} field_name=#{field_name} interval=#{interval}>"
     end
     alias :inspect :to_s
+
+    # @return [#to_s] constructed aggregate string clause
+    def to_param
+      "#{field_name}#{interval}"
+    end
 
     # Set time series interval to year
     # @return [AggregateBuilder]
