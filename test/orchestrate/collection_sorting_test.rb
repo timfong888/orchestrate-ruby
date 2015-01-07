@@ -33,7 +33,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_sort_ascending
-    results = @items.search("foo").order(:score, :asc).map{|i| i }
+    results = @items.search("foo").order(:score, :asc).find.each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -44,7 +44,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_sort_descending
-    results = @items.search("foo").order(:score, :desc).map{|i| i }
+    results = @items.search("foo").order(:score, :desc).find.each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -55,7 +55,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_multiple_fields_sort_ascending
-    results = @items.search("foo").order(:score, :asc, :rank, :asc).map{|i| i }
+    results = @items.search("foo").order(:score, :asc, :rank, :asc).find.each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005
@@ -67,7 +67,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
   end
 
   def test_basic_multiple_fields_sort_descending
-    results = @items.search("foo").order(:score, :asc, :rank, :desc).map{|i| i }
+    results = @items.search("foo").order(:score, :asc, :rank, :desc).find.each.map{|i| i }
     assert_equal 110, results.length
     results.each_with_index do |item, idx|
       assert_in_delta (@total-idx/@total * 5.0), item[0], 0.005

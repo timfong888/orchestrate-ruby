@@ -109,6 +109,9 @@ module Orchestrate::API
     # @return [Array] The items in the response.
     attr_reader :results
 
+    # @return [Array] The aggregate items in the response.
+    attr_reader :aggregates
+
     # @return [String] The location for the next page of results
     attr_reader :next_link
 
@@ -122,6 +125,7 @@ module Orchestrate::API
         @count = body['count']
         @total_count = body['total_count']
         @results = body['results']
+        @aggregates = body['aggregates']
         @next_link = body['next']
         @prev_link = body['prev']
       end
