@@ -144,14 +144,16 @@ module Orchestrate::Search
     # @param listing [#to_json] The aggregate result returned from the search.
     def initialize(collection, listing)
       super(collection, listing)
-      @statistics = listing['statistics']
-      @min = @statistics['min']
-      @max = @statistics['max']
-      @mean = @statistics['mean']
-      @sum = @statistics['sum']
-      @sum_of_squares = @statistics['sum_of_squares']
-      @variance = @statistics['variance']
-      @std_dev = @statistics['std_dev']
+      if listing['statistics']
+        @statistics = listing['statistics']
+        @min = @statistics['min']
+        @max = @statistics['max']
+        @mean = @statistics['mean']
+        @sum = @statistics['sum']
+        @sum_of_squares = @statistics['sum_of_squares']
+        @variance = @statistics['variance']
+        @std_dev = @statistics['std_dev']
+      end
     end
 
     # @return Pretty-Printed string representation of the StatsResult object
