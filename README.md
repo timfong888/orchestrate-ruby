@@ -396,6 +396,15 @@ end
 
 ## Release Notes
 
+### January 7, 2014: release 0.11.0
+  - **BACKWARDS-INCOMPATIBLE** `Orchestrate::Collection` searches require `#find` method at the end of the method call/chain. Example: `users.search('foo').find`.
+  - Implement `Orchestrate::Search` module, refactor functionality of prior `Orchestrate::Collection::SearchResults`.
+  - Implement results enumeration & request firing functionality in prior `Orchestrate::Collection::SearchResults` to `Orchestrate::Search::Results`
+  - Implement `Search::QueryBuilder` to construct `Collection` search queries. 
+  - Implement `Search::AggregateBuilder` to construct aggregate params on `Collection` search queries.
+  - Implement `Search::StatsBuilder`, `Search::RangeBuilder`, `Search::DistanceBuilder`, & `Search::TimeSeriesBuilder` to construct aggregate function clauses for aggregate params.
+  - Implement `Search::AggregateResult` objects to repesent aggregate results returned from `Collection` search.
+
 ### December 11, 2014: release 0.10.0
   - **BACKWARDS-INCOMPATIBLE** Prior `KeyValue#update` & `KeyValue#update!` renamed to `KeyValue#set` & `KeyValue#set!`. `KeyValue#update` now used after `PATCH` operations to fire the request.
   - Implement `Collection#near` & `Collection#in`, allowing `Collection` to perform geo queries.
