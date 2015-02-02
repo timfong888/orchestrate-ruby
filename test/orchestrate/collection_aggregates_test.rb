@@ -59,7 +59,8 @@ class CollectionAggregates < MiniTest::Unit::TestCase
         "bucket" => "2014-11-01",
         "count" => 17
       }]
-    }]    @limit = 100
+    }]
+    @limit = 100
     @total = 110
 
     @make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: @total-i/@total*5.0) }
