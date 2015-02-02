@@ -49,7 +49,17 @@ class CollectionAggregates < MiniTest::Unit::TestCase
         "count" => 17
       }]
     }]
-    @limit = 100
+    @time_series_with_time_zone = [{
+      "aggregate_kind" => "time_series",
+      "field_name" => "value.bar",
+      "interval" => "day",
+      "time_zone" => "+1100",
+      "value_count" => 100,
+      "buckets" => [{
+        "bucket" => "2014-11-01",
+        "count" => 17
+      }]
+    }]    @limit = 100
     @total = 110
 
     @make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: @total-i/@total*5.0) }
@@ -67,6 +77,9 @@ class CollectionAggregates < MiniTest::Unit::TestCase
       when 'bar:time_series:day'
         { "results" => 100.times.map{|i| @make_listing.call(i)}, "count" => 100, "total_count" => @total,
           "aggregates" => @time_series }
+      when 'bar:time_series:day:+1100'
+        { "results" => 100.times.map{|i| @make_listing.call(i)}, "count" => 100, "total_count" => @total,
+          "aggregates" => @time_series_with_time_zone }
       else
         raise ArgumentError.new("unexpected aggregate: #{aggregate}")
       end
@@ -105,6 +118,12 @@ class CollectionAggregates < MiniTest::Unit::TestCase
     results = @items.search("foo").aggregate.time_series("bar").day.find
     results.each_aggregate
     assert_equal @time_series, results.aggregates
+  end
+
+  def test_basic_time_series_aggregate_with_time_zone
+    results = @items.search("foo").aggregate.time_series("bar").day.time_zone("+1100").find
+    results.each_aggregate
+    assert_equal @time_series_with_time_zone, results.aggregates
   end
 
   def test_each_aggregate_enum
