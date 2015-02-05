@@ -211,9 +211,6 @@ module Orchestrate::Search
     # @return [#to_s] The interval of time for the TimeSeries function
     attr_reader :interval
 
-    # @return [#to_s] The time zone for the TimeSeries function
-    attr_reader :time_zone
-
     extend Forwardable
 
     # Initialize a new TimeSeriesBuilder object
@@ -240,7 +237,7 @@ module Orchestrate::Search
 
     # @return Pretty-Printed string representation of the TimeSeriesBuilder object
     def to_s
-      "#<Orchestrate::Search::TimeSeriesBuilder collection=#{collection.name} field_name=#{field_name} interval=#{interval} time_zone=#{time_zone}>"
+      "#<Orchestrate::Search::TimeSeriesBuilder collection=#{collection.name} field_name=#{field_name} interval=#{interval} time_zone=#{@time_zone}>"
     end
     alias :inspect :to_s
 
@@ -249,7 +246,7 @@ module Orchestrate::Search
       if @time_zone.nil?
         "#{field_name}:time_series:#{interval}"
       else
-        "#{field_name}:time_series:#{interval}:#{time_zone}"
+        "#{field_name}:time_series:#{interval}:#{@time_zone}"
       end
     end
 
