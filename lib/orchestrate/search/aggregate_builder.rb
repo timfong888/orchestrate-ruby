@@ -220,6 +220,7 @@ module Orchestrate::Search
       @builder = builder
       @field_name = field_name
       @interval = nil
+      @time_zone = nil
     end
 
     def_delegator :@builder, :options
@@ -236,13 +237,17 @@ module Orchestrate::Search
 
     # @return Pretty-Printed string representation of the TimeSeriesBuilder object
     def to_s
-      "#<Orchestrate::Search::TimeSeriesBuilder collection=#{collection.name} field_name=#{field_name} interval=#{interval}>"
+      "#<Orchestrate::Search::TimeSeriesBuilder collection=#{collection.name} field_name=#{field_name} interval=#{interval} time_zone=#{@time_zone}>"
     end
     alias :inspect :to_s
 
     # @return [#to_s] constructed aggregate string clause
     def to_param
-      "#{field_name}:time_series:#{interval}"
+      if @time_zone.nil?
+        "#{field_name}:time_series:#{interval}"
+      else
+        "#{field_name}:time_series:#{interval}:#{@time_zone}"
+      end
     end
 
     # Set time series interval to year
@@ -284,6 +289,14 @@ module Orchestrate::Search
     # @return [AggregateBuilder]
     def hour
       @interval = 'hour'
+      self
+    end
+
+    # Use the designated time zone (e.g., "-0500" or "+0430") when calculating bucket boundaries
+    # @param zone [String]
+    # @return [RangeBuilder]
+    def time_zone(zone)
+      @time_zone = zone
       self
     end
   end
