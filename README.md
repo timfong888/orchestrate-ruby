@@ -127,6 +127,7 @@ cafes.near(:location, 12, 19, 4, 'mi').aggregate  # Start the near search query 
 # Accepted intervals are: year, quarter, month, week, day, and hour
 comments.search("*").aggregate  # Start the near search query and aggregate param builder
   .time_series("posted", "day") # get count of comments posted by day
+  .time_zone("+1100")           # set a specific time zone
   .find                         # return SearchResults object to execute our query
   .each_aggregate               # return enumerator for iterating over each aggregate result
 
@@ -279,6 +280,21 @@ response = client.search(:comments, query, options)
 response.aggregates     # return aggregate results
 
 
+# Time-Series Aggregate with Time Zone
+
+options = {
+  # get count of comments posted by day
+  aggregate: "value.posted:time_series:day:+1100"
+}
+
+query = "*"
+
+response = client.search(:comments, query, options)
+
+response.aggregates     # return aggregate results
+
+
+
 # Multiple Aggregate Functions
 options = {
   # multiple aggregate params are separated by commas
@@ -396,7 +412,10 @@ end
 
 ## Release Notes
 
-### January 7, 2014: release 0.11.0
+### February 17, 2015: release 0.11.1
+  - Implement `Search::TimeSeriesBuilder#time_zone` to designate time zone when calculating time series bucket boundaries.
+
+### January 7, 2015: release 0.11.0
   - **BACKWARDS-INCOMPATIBLE** `Orchestrate::Collection` searches require `#find` method at the end of the method call/chain. Example: `users.search('foo').find`.
   - Implement `Orchestrate::Search` module, refactor functionality of prior `Orchestrate::Collection::SearchResults`.
   - Implement results enumeration & request firing functionality in prior `Orchestrate::Collection::SearchResults` to `Orchestrate::Search::Results`
