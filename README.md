@@ -4,7 +4,7 @@ Orchestrate API for Ruby
 
 Ruby client interface for the [Orchestrate.io](http://orchestrate.io) REST API.
 
-[rDoc Documentation](http://rdoc.info/gems/orchestrate/frames)
+[rDoc Documentation](http://rdoc.info/gems/orchestrate)
 
 ## Getting Started
 
@@ -138,6 +138,21 @@ products.search("*").aggregate  # Start the search query and aggregate param bui
   .below(99)                    # count items with num_sold value below 99
   .find                         # return SearchResults object to execute our query
   .each_aggregate               # return enumerator for iterating over each aggregate result
+```
+
+### Events
+```ruby
+steve = users['Steve']
+
+# create new events
+steve.events['wall_post'] << { text: "Hello!" }
+steve.events['activities'] << { text: "first post" }
+
+# search for events
+users.search('first post').kinds('event').find
+
+# search for 'wall_post' events
+users.search('Hello').kinds('event').types('wall_post').find
 ```
 
 ### Method Client use
@@ -310,9 +325,10 @@ response.aggregates     # return aggregate results
 
 ### Examples and Documentation
 
-There are more examples at [Orchestrate's API Documentation][apidoc] and documentation in the [rdoc][].
+There are more examples and documentation in [Orchestrate's API Documentation][apidoc] and the [rdoc][rdoc].
 
 [apidoc]: http://orchestrate.io/api/version
+[rdoc]: http://rdoc.info/gems/orchestrate
 
 ## Swapping out the HTTP back end
 
@@ -419,7 +435,7 @@ end
   - **BACKWARDS-INCOMPATIBLE** `Orchestrate::Collection` searches require `#find` method at the end of the method call/chain. Example: `users.search('foo').find`.
   - Implement `Orchestrate::Search` module, refactor functionality of prior `Orchestrate::Collection::SearchResults`.
   - Implement results enumeration & request firing functionality in prior `Orchestrate::Collection::SearchResults` to `Orchestrate::Search::Results`
-  - Implement `Search::QueryBuilder` to construct `Collection` search queries. 
+  - Implement `Search::QueryBuilder` to construct `Collection` search queries.
   - Implement `Search::AggregateBuilder` to construct aggregate params on `Collection` search queries.
   - Implement `Search::StatsBuilder`, `Search::RangeBuilder`, `Search::DistanceBuilder`, & `Search::TimeSeriesBuilder` to construct aggregate function clauses for aggregate params.
   - Implement `Search::AggregateResult` objects to repesent aggregate results returned from `Collection` search.

@@ -240,25 +240,25 @@ class EventTest < MiniTest::Unit::TestCase
     assert_nil tweets <=> bar.events['tweets']
 
     ts = (Time.now.to_f * 1000).floor
-    make_tweet_1 = lambda { Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref}, "timestamp" => ts, "ordinal" => 10}) }
+    make_tweet_1 = lambda { Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref, "timestamp" => ts, "ordinal" => 10}}) }
     tweet1 = make_tweet_1.call
     assert_equal tweet1, make_tweet_1.call
     assert tweet1.eql?(make_tweet_1.call)
     assert_equal 0, tweet1 <=> make_tweet_1.call
 
-    tweet2 = Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref}, "timestamp" => ts, "ordinal" => 11})
+    tweet2 = Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref, "timestamp" => ts, "ordinal" => 11}})
     refute_equal tweet1, tweet2
     refute tweet1.eql?(tweet2)
     assert_equal 1, tweet1 <=> tweet2
     assert_equal(-1, tweet2 <=> tweet1)
 
-    tweet3 = Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref}, "timestamp" => ts - 1, "ordinal" => 2})
+    tweet3 = Orchestrate::Event.from_listing(tweets, {"path" => {"ref" => make_ref, "timestamp" => ts - 1, "ordinal" => 2}})
     assert_equal(1, tweet1 <=> tweet3)
     assert_equal(-1, tweet3 <=> tweet1)
     assert_equal(1, tweet2 <=> tweet3)
     assert_equal(-1, tweet3 <=> tweet2)
 
-    checkin = Orchestrate::Event.from_listing(foo.events[:checkins], {"path" => {"ref" => make_ref}, "timestamp" => ts, "ordinal" => 40})
+    checkin = Orchestrate::Event.from_listing(foo.events[:checkins], {"path" => {"ref" => make_ref, "timestamp" => ts, "ordinal" => 40}})
     refute_equal tweet1, checkin
     refute tweet1.eql?(checkin)
     assert_nil tweet1 <=> checkin
