@@ -233,12 +233,20 @@ module Orchestrate
     # @param value [#to_json] Hash of partial values, to be converted to json,
     # and merged into the KeyValue item.
     # @param ref [String] optional condition, provide ref for 'If-Match' header
-    def merge(value, ref=nil)
-      self.perform(:patch_merge, value, ref)
+    def merge(value, ref=nil, upsert=false)
+      self.perform(:patch_merge, value, ref, upsert)
     end
 
     # @!endgroup patch-merge
     # @!group patch-operations
+
+    # Create a new patch builder.
+    # @return Orchestrate::KeyValue::OperationSet
+    # @todo Consider deprecating methods per operation in favor of using this
+    #       method.
+    def patch
+      OperationSet.new(self)
+    end
 
     # Manipulate a KeyValue item with a set of operations.
     # Chain a series of operation methods (#add, #remove, etc) to build the set,
@@ -297,7 +305,7 @@ module Orchestrate
     # Increases a KeyValue item's field number value by given amount
     # @param path [#to_s] The field (with a number value) to increment.
     # @param amount [Integer] The amount to increment the field's value by.
-    # @raise Orchestrate::API::RequestError if field does not exist or 
+    # @raise Orchestrate::API::RequestError if field does not exist or
     # if existing value is not a number type
     # @return Orchestrate::KeyValue::OperationSet
     def increment(path, amount)
@@ -308,7 +316,7 @@ module Orchestrate
     # Decreases a KeyValue item's field number value by given amount
     # @param path [#to_s] The field (with a number value) to decrement.
     # @param amount [Integer] The amount to decrement the field's value by.
-    # @raise Orchestrate::API::RequestError if field does not exist or 
+    # @raise Orchestrate::API::RequestError if field does not exist or
     # if existing value is not a number type
     # @return Orchestrate::KeyValue::OperationSet
     def decrement(path, amount)
@@ -332,52 +340,101 @@ module Orchestrate
       # @return [KeyValue] The keyvalue this object will manipulate.
       attr_reader :key_value
 
-      # @return operations to be performed.
       attr_reader :operations
 
       # Initialize a new OperationSet object
       # @param key_value [Orchestrate::KeyValue] The keyvalue to manipulate.
-      def initialize(key_value, operations=[])
+      def initialize(key_value, operations = [], child = false)
         @key_value = key_value
         @operations = operations
+        @child = child
+        @upsert = false
       end
 
-      def update(ref=nil)
-        key_value.perform(:patch, operations, ref)
+      def update(ref = nil)
+        return false if @child
+        key_value.perform(:patch, @operations, ref, @upsert)
+      end
+
+      def upsert(upsert = true)
+        @upsert = upsert
+        self
       end
 
       def add(path, value)
-        self.class.new(key_value, operations.push({op: "add", path: "#{path}", value: value}))
+        @operations.push(op: "add", path: path, value: value)
+        self
       end
 
       def remove(path)
-        self.class.new(key_value, operations.push({op: "remove", path: "#{path}"}))
+        @operations.push(op: "remove", path: path)
+        self
       end
 
       def replace(path, value)
-        self.class.new(key_value, operations.push({op: "replace", path: "#{path}", value: value}))
+        @operations.push(op: "replace", path: path, value: value)
+        self
       end
 
       def move(from_path, to_path)
-        self.class.new(key_value, operations.push({op: "move", from: "#{from_path}", path: "#{to_path}"}))
+        @operations.push(op: "move", from: from_path, path: to_path)
+        self
       end
 
       def copy(from_path, to_path)
-        self.class.new(key_value, operations.push({op: "copy", from: "#{from_path}", path: "#{to_path}"}))
+        @operations.push(op: "copy", from: from_path, path: to_path)
+        self
       end
 
       def increment(path, amount)
-        self.class.new(key_value, operations.push({op: "inc", path: "#{path}", value: amount}))
+        @operations.push(op: "inc", path: path, value: amount)
+        self
       end
       alias :inc :increment
 
       def decrement(path, amount)
-        self.class.new(key_value, operations.push({op: "inc", path: "#{path}", value: -amount}))
+        @operations.push(op: "inc", path: path, value: -amount)
+        self
       end
       alias :dec :decrement
 
-      def test(path, value)
-        self.class.new(key_value, operations.push({op: "test", path: "#{path}", value: value}))
+      def test(path, value, options = {})
+        negate = options[:negate] || false
+        @operations.push(op: 'test', path: path, value: value, negate: negate)
+        self
+      end
+
+      def test_presence(path)
+        @operations.push(op: 'test', path: path)
+        self
+      end
+
+      def test_absence(path)
+        @operations.push(op: 'test', path: path, negate: true)
+        self
+      end
+
+      def init(path, value)
+        @operations.push(op: 'init', path: path, value: value)
+        self
+      end
+
+      def append(path, value)
+        @operations.push(op: 'append', path: path, value: value)
+        self
+      end
+
+      # item.patch.add('a', {}).patch('a') { |p| p.add('b', 'c') }.update
+      def patch(path, conditional = false)
+        p = OperationSet.new(@key_value, [], true)
+        yield p
+        @operations.push(op: 'patch', path: path, value: p.operations, conditional: conditional)
+        self
+      end
+
+      def merge(path, value)
+        @operations.push(op: 'merge', path: path, value: value)
+        self
       end
     end
 

@@ -178,12 +178,12 @@ module Orchestrate
     # @return Orchestrate::API::ItemResponse
     # @raise Orchestrate::API::BadRequest the body is not valid JSON.
     # @raise Orchestrate::API::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
-    def patch(collection, key, body, condition=nil)
+    def patch(collection, key, body, condition=nil, upsert=false)
       headers = {'Content-Type' => 'application/json-patch+json'}
       if condition.is_a?(String)
         headers['If-Match'] = API::Helpers.format_ref(condition)
       end
-      send_request :patch, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
+      send_request :patch, [collection, key], { query: { upsert: upsert }, body: body, headers: headers, response: API::ItemResponse }
     end
 
     # Merge field/value pairs into existing key, without retrieving the key object.
@@ -198,12 +198,12 @@ module Orchestrate
     # @return Orchestrate::API::ItemResponse
     # @raise Orchestrate::API::BadRequest the body is not valid JSON.
     # @raise Orchestrate::API::AlreadyPresent the `false` condition was given, but a value already exists for this collection/key combo.
-    def patch_merge(collection, key, body, condition=nil)
+    def patch_merge(collection, key, body, condition=nil, upsert=false)
       headers = {'Content-Type' => 'application/merge-patch+json'}
       if condition.is_a?(String)
         headers['If-Match'] = API::Helpers.format_ref(condition)
       end
-      send_request :patch, [collection, key], { body: body, headers: headers, response: API::ItemResponse }
+      send_request :patch, [collection, key], { query: { upsert: upsert }, body: body, headers: headers, response: API::ItemResponse }
     end
 
     # [Sets the current value of a key to a null
