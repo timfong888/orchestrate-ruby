@@ -5,8 +5,8 @@ require 'orchestrate/version'
 Gem::Specification.new do |s|
   s.name          = 'orchestrate'
   s.version       = Orchestrate::VERSION
-  s.authors       = ['Matthew Lyon', 'Justin Mecham', 'James Carrasquer', 'Eric Johnson']
-  s.email         = ['matthew@lyonheart.us', 'justin@mecham.me', 'jimcar@aracnet.com', 'erjohnson.pdx@gmail.com']
+  s.authors       = ['Matthew Lyon', 'Justin Mecham', 'James Carrasquer', 'Eric Johnson', 'Daniel Reverri']
+  s.email         = ['matthew@lyonheart.us', 'justin@mecham.me', 'jimcar@aracnet.com', 'erjohnson.pdx@gmail.com', 'reverri@gmail.com']
   s.summary       = 'Ruby client for Orchestrate.io'
   s.description   = 'Client for the Orchestrate REST API'
   s.homepage      = 'https://github.com/orchestrate-io/orchestrate-ruby'
