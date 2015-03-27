@@ -4,15 +4,22 @@ module Orchestrate::Search
     # @return [Collection] The collection this object will search.
     attr_reader :collection
 
-    # @return [#to_s] The Lucene Query String given as the search query.
-    attr_reader :query
-
     # Initialize a new SearchBuilder object
     # @param collection [Orchestrate::Collection] The collection to search.
     # @param query [#to_s] The Lucene Query to perform.
     def initialize(collection, query)
       @collection = collection
       @query = query
+      @kinds = []
+      @types = []
+    end
+
+    # @return [#to_s] The Lucene Query String.
+    def query
+      query = "(#{@query})"
+      query << " AND @path.kind:(#{@kinds.join(' ')})" if @kinds.any?
+      query << " AND @path.type:(#{@types.join(' ')})" if @types.any?
+      query
     end
 
     # @return Pretty-Printed string representation of the Search object
@@ -37,7 +44,7 @@ module Orchestrate::Search
       self
     end
 
-    # Sets the limit for the query to Orchestrate, so we don't ask for more than is needed. 
+    # Sets the limit for the query to Orchestrate, so we don't ask for more than is needed.
     # Does not fire a request.
     # @overload limit
     #   @return [Integer, nil] The number of items to retrieve.  Nil is equivalent to zero.
@@ -67,6 +74,22 @@ module Orchestrate::Search
       else
         options[:offset]
       end
+    end
+
+    # Sets the 'kind' to search.
+    # @param kinds [Array<String>] The orchestrate kinds to be included ('item' or 'event').
+    # @return [QueryBuilder] self.
+    def kinds(*kinds)
+      @kinds = kinds
+      self
+    end
+
+    # Sets the event types to search.
+    # @param types [Array<String>] The orchestrate event types to search (e.g. 'activities', 'wall_posts')
+    # @return [QueryBuilder] self.
+    def types(*types)
+      @types = types
+      self
     end
 
     # @return [AggregateBuilder] An AggregateBuilder object to construct aggregate search params

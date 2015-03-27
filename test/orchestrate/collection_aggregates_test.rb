@@ -5,7 +5,7 @@ class CollectionAggregates < MiniTest::Unit::TestCase
     @app, @stubs = make_application({parallel:true})
     @items = @app[:items]
 
-    @query = "foo"
+    @query = '(foo)'
     @stats = [{
       "aggregate_kind" => "stats",
       "field_name" => "value.bar",
@@ -109,7 +109,7 @@ class CollectionAggregates < MiniTest::Unit::TestCase
   end
 
   def test_basic_distance_aggregate
-    @query = "foo:NEAR:{lat:12.3 lon:56.7 dist:100km}"
+    @query = "(foo:NEAR:{lat:12.3 lon:56.7 dist:100km})"
     results = @items.near("foo", 12.3, 56.7, 100).aggregate.distance("bar").between(0,1).find
     results.each_aggregate
     assert_equal @distance, results.aggregates

@@ -1,11 +1,12 @@
-require "test_helper"
+require 'test_helper'
+require 'cgi'
 
 class CollectionSortingTest < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application({parallel:true})
     @items = @app[:items]
 
-    @query = "foo"
+    @query = '(foo)'
     @limit = 100
     @total = 110
 
@@ -14,7 +15,7 @@ class CollectionSortingTest < MiniTest::Unit::TestCase
       case offset
       when nil
         { "results" => 100.times.map{|i| @make_listing.call(i)}, "count" => 100, "total_count" => @total,
-          "next" => "/v0/items?query=foo&offset=100&limit=100"}
+          "next" => "/v0/items?query=#{CGI.escape(@query)}&offset=100&limit=100"}
       when "100"
         { "results" => 10.times.map{|i| @make_listing.call(i+100)}, "count" => 10, "total_count" => @total }
       else

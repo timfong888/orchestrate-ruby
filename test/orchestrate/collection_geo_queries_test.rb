@@ -5,21 +5,21 @@ class CollectionGeoQueriesTest < MiniTest::Unit::TestCase
     @app, @stubs = make_application({parallel:true})
     @items = @app[:items]
 
-    @near_query = "location:NEAR:{lat:12 lon:56 dist:1km}"
-    @in_query = "location:IN:{north:12 east:57 south:12 west:56}"
+    @near_query = "(location:NEAR:{lat:12 lon:56 dist:1km})"
+    @in_query = "(location:IN:{north:12 east:57 south:12 west:56})"
     @total = 110
 
     @make_listing = lambda{|i| make_kv_listing(:items, key: "item-#{i}", reftime: nil, score: @total-i/@total*5.0) }
     @handle_geo = lambda do |query|
       case query
-      when "location:NEAR:{lat:12 lon:56 dist:1km}"
+      when "(location:NEAR:{lat:12 lon:56 dist:1km})"
         { "results" => 10.times.map{|i| @make_listing.call(i)}, "count" => 10, "total_count" => 10 }
-      when "location:IN:{north:12 east:57 south:12 west:56}"
+      when "(location:IN:{north:12 east:57 south:12 west:56})"
         { "results" => 12.times.map{|i| @make_listing.call(i)}, "count" => 12, "total_count" => 12 }
-      when "location:NEAR:{lat:12 lon:56 dist:1km}&sort=location:distance:asc"
+      when "(location:NEAR:{lat:12 lon:56 dist:1km}&sort=location:distance:asc)"
         { "results" => 10.times.map{|i| @make_listing.call(i)}, "count" => 10, "total_count" => 10 }
       else
-        raise ArgumentError.new("unexpected query: #{env.params['query']}")
+        raise ArgumentError.new("unexpected query: #{query}")
       end
     end
 

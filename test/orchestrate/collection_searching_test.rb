@@ -1,11 +1,12 @@
-require "test_helper"
+require 'test_helper'
+require 'cgi'
 
 class CollectionSearchingTest < MiniTest::Unit::TestCase
   def setup
     @app, @stubs = make_application({parallel:true})
     @items = @app[:items]
 
-    @query = "foo"
+    @query = '(foo)'
     @limit = 100
     @total = 110
 
@@ -14,7 +15,7 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
       case offset
       when nil
         { "results" => 100.times.map{|i| @make_listing.call(i)}, "count" => 100, "total_count" => @total,
-          "next" => "/v0/items?query=foo&offset=100&limit=100"}
+          "next" => "/v0/items?query=#{CGI.escape(@query)}&offset=100&limit=100"}
       when "100"
         { "results" => 10.times.map{|i| @make_listing.call(i+100)}, "count" => 10, "total_count" => @total }
       else
@@ -97,4 +98,55 @@ class CollectionSearchingTest < MiniTest::Unit::TestCase
     assert_equal @total, items.force.size
   end
 
+  def test_search_with_events
+    body = '{
+    "count": 2,
+    "total_count": 2,
+    "results": [
+      {
+        "path": {
+          "collection": "users",
+          "kind": "item",
+          "key": "sjkaliski@gmail.com",
+          "ref": "74c22b1736b9d50e",
+          "reftime": 1424473968410
+        },
+        "value": {
+          "name": "Steve Kaliski",
+          "hometown": "New York, NY",
+          "twitter": "@stevekaliski"
+        },
+        "score": 3.7323708534240723,
+        "reftime": 1424473968410
+      },
+      {
+        "path": {
+          "collection": "users",
+          "kind": "event",
+          "key": "byrd@bowery.io",
+          "type": "activities",
+          "timestamp": 1412787145997,
+          "ordinal": 406893558185357300,
+          "ref": "82eafab14dc84ed3",
+          "reftime": 1412787145997,
+          "ordinal_str": "05a593890d087000"
+        },
+        "value": {
+          "activity": "followed",
+          "user": "sjkaliski@gmail.com",
+          "userName": "Steve Kaliski"
+        },
+        "score": 2.331388473510742,
+        "reftime": 1412787145997
+      }
+    ]
+    }'
+    @stubs.get('/v0/users') do
+      [200, { 'Content-Type' => 'application/json' }, body]
+    end
+    results = @app[:users].search('*').find.each.map { |d| d[1] }
+    assert_equal 2, results.count
+    assert results[0].is_a? Orchestrate::KeyValue
+    assert results[1].is_a? Orchestrate::Event
+  end
 end

@@ -23,8 +23,8 @@ module Orchestrate
     def self.from_listing(stem, listing, response=nil)
       event = new(stem)
       event.value = listing['value']
-      event.instance_variable_set(:@timestamp, listing['timestamp'])
-      event.instance_variable_set(:@ordinal, listing['ordinal'])
+      event.instance_variable_set(:@timestamp, listing['path']['timestamp'])
+      event.instance_variable_set(:@ordinal, listing['path']['ordinal'])
       event.instance_variable_set(:@ref, listing['path']['ref'])
       event.instance_variable_set(:@last_request_time, response.request_time) if response
       event

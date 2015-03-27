@@ -47,7 +47,15 @@ module Orchestrate::Search
       raise Orchestrate::ResultsNotReady.new if collection.app.inside_parallel?
       loop do
         @response.results.each do |listing|
-          yield [ listing['score'], Orchestrate::KeyValue.from_listing(collection, listing, @response) ]
+          case listing['path']['kind']
+          when 'event'
+            kv = collection.stub(listing['key'])
+            event_type = Orchestrate::EventType.new(kv, listing['type'])
+            event = Orchestrate::Event.from_listing(event_type, listing, @response)
+            yield [listing['score'], event]
+          else
+            yield [listing['score'], Orchestrate::KeyValue.from_listing(collection, listing, @response)]
+          end
         end
         break unless @response.next_link
         @response = @response.next_results
