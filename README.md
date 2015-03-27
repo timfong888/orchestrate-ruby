@@ -428,6 +428,10 @@ end
 
 ## Release Notes
 
+### March 27, 2015: release 0.11.2
+  - Implement `Orchestrate::Search::QueryBuilder#kinds` to search events as well as KV items.
+  - Implement `Orchestrate::Search::QueryBuilder#types` to search specific types of events.
+
 ### February 17, 2015: release 0.11.1
   - Implement `Search::TimeSeriesBuilder#time_zone` to designate time zone when calculating time series bucket boundaries.
 
