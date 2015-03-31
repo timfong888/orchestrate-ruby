@@ -1,14 +1,23 @@
 module Orchestrate::Search
+  module QueryBuilderDelegator
+    extend Forwardable
+    def_delegators :@builder, :options, :order, :limit, :offset, :aggregate, :find, :collection
+  end
+
+  module AggregateBuilderDelegator
+    extend Forwardable
+    def_delegators :@builder, :top_values, :stats, :range, :distance, :time_series
+  end
+
   # Aggregate Builder object for constructing aggregate params included in a search
   class AggregateBuilder
+    include QueryBuilderDelegator
 
-    # @return [QueryBuilder] 
+    # @return [QueryBuilder]
     attr_reader :builder
 
     # @return [Array] Aggregate param arguments
     attr_reader :aggregates
-
-    extend Forwardable
 
     # Initialize a new AggregateBuilder object
     # @param builder [Orchestrate::Search::SearchBuilder] The Search Builder object
@@ -16,14 +25,6 @@ module Orchestrate::Search
       @builder = builder
       @aggregates = []
     end
-
-    def_delegator :@builder, :options
-    def_delegator :@builder, :order
-    def_delegator :@builder, :limit
-    def_delegator :@builder, :offset
-    def_delegator :@builder, :aggregate
-    def_delegator :@builder, :find
-    def_delegator :@builder, :collection
 
     # @return Pretty-Printed string representation of the AggregateBuilder object
     def to_s
@@ -37,6 +38,16 @@ module Orchestrate::Search
     end
 
     # @!group Aggregate Functions
+
+    # @param field_name [#to_s]
+    # @param offset [Integer, nil]
+    # @param limit [Integer, nil]
+    # @return [AggregateBuilder]
+    def top_values(field_name, offset = nil, limit = nil)
+      top_values = TopValuesBuilder.new(self, "#{field_name}", offset, limit)
+      aggregates << top_values
+      top_values
+    end
 
     # @param field_name [#to_s]
     # @return [AggregateBuilder]
@@ -72,16 +83,60 @@ module Orchestrate::Search
     # @!endgroup
   end
 
-  # Stats Builder object for constructing stats functions to be included in the aggregate param
-  class StatsBuilder
-    
+  # Stats Builder object for constructing top-values functions to be included in the aggregate param
+  class TopValuesBuilder
+    include QueryBuilderDelegator
+    include AggregateBuilderDelegator
+
     # @return [AggregateBuilder]
     attr_reader :builder
 
     # @return [#to_s] The field to operate over
     attr_reader :field_name
 
-    extend Forwardable
+    # Initialize a new TopValuesBuilder object
+    # @param builder [AggregateBuilder] The Aggregate Builder object
+    # @param field_name [#to_s] The field to operate over
+    # @param offset [Integer,nil] The zero-based index of the first paged value to retrieve in this aggregation.
+    # If omitted, uses the server default value of zero.
+    # @param limit [Integer,nil] The maximum number of values to retrieve per page of results for this aggregation.
+    # If omitted, uses the server default value of ten.
+    def initialize(builder, field_name, offset=nil, limit=nil)
+      @builder = builder
+      @field_name = field_name
+      if offset.nil? ^ limit.nil?
+        raise ArgumentError, "offset and limit arguments can only be supplied together, or not at all"
+      end
+      @offset = offset
+      @limit = limit
+    end
+
+    # @return [#to_s] Pretty-Printed string representation of the TopValuesBuilder object
+    def to_s
+      "#<Orchestrate::Search::TopValuesBuilder collection=#{collection.name} field_name=#{field_name} offset=#{offset} limit=#{limit}>"
+    end
+    alias :inspect :to_s
+
+    # @return [#to_s] constructed aggregate string clause
+    def to_param
+      if @offset.nil? && @limit.nil?
+        "#{@field_name}:top_values"
+      else
+        "#{@field_name}:top_values:offset:#{@offset}:limit:#{@limit}"
+      end
+    end
+  end
+
+  # Stats Builder object for constructing stats functions to be included in the aggregate param
+  class StatsBuilder
+    include QueryBuilderDelegator
+    include AggregateBuilderDelegator
+
+    # @return [AggregateBuilder]
+    attr_reader :builder
+
+    # @return [#to_s] The field to operate over
+    attr_reader :field_name
 
     # Initialize a new RangeBuilder object
     # @param builder [AggregateBuilder] The Aggregate Builder object
@@ -90,18 +145,6 @@ module Orchestrate::Search
       @builder = builder
       @field_name = field_name
     end
-
-    def_delegator :@builder, :options
-    def_delegator :@builder, :order
-    def_delegator :@builder, :limit
-    def_delegator :@builder, :offset
-    def_delegator :@builder, :aggregate
-    def_delegator :@builder, :find
-    def_delegator :@builder, :stats
-    def_delegator :@builder, :range
-    def_delegator :@builder, :distance
-    def_delegator :@builder, :time_series
-    def_delegator :@builder, :collection
 
     # @return Pretty-Printed string representation of the StatsBuilder object
     def to_s
@@ -117,6 +160,8 @@ module Orchestrate::Search
 
   # Range Builder object for constructing range functions to be included in the aggregate param
   class RangeBuilder
+    include QueryBuilderDelegator
+    include AggregateBuilderDelegator
 
     # @return [AggregateBuilder]
     attr_reader :builder
@@ -125,9 +170,7 @@ module Orchestrate::Search
     attr_reader :field_name
 
     # @return [#to_s] The range sets
-    attr_reader :ranges 
-
-    extend Forwardable
+    attr_reader :ranges
 
     # Initialize a new RangeBuilder object
     # @param builder [AggregateBuilder] The Aggregate Builder object
@@ -137,18 +180,6 @@ module Orchestrate::Search
       @field_name = field_name
       @ranges = ''
     end
-
-    def_delegator :@builder, :options
-    def_delegator :@builder, :order
-    def_delegator :@builder, :limit
-    def_delegator :@builder, :offset
-    def_delegator :@builder, :aggregate
-    def_delegator :@builder, :find
-    def_delegator :@builder, :stats
-    def_delegator :@builder, :range
-    def_delegator :@builder, :distance
-    def_delegator :@builder, :time_series
-    def_delegator :@builder, :collection
 
     # @return Pretty-Printed string representation of the RangeBuilder object
     def to_s
@@ -201,6 +232,8 @@ module Orchestrate::Search
 
   # Time Series Builder object for constructing time series functions for the aggregate param
   class TimeSeriesBuilder
+    include QueryBuilderDelegator
+    include AggregateBuilderDelegator
 
     # @return [AggregateBuilder]
     attr_reader :builder
@@ -211,8 +244,6 @@ module Orchestrate::Search
     # @return [#to_s] The interval of time for the TimeSeries function
     attr_reader :interval
 
-    extend Forwardable
-
     # Initialize a new TimeSeriesBuilder object
     # @param builder [AggregateBuilder] The Aggregate Builder object
     # @param field_name [#to_s] The field to operate over
@@ -222,18 +253,6 @@ module Orchestrate::Search
       @interval = nil
       @time_zone = nil
     end
-
-    def_delegator :@builder, :options
-    def_delegator :@builder, :order
-    def_delegator :@builder, :limit
-    def_delegator :@builder, :offset
-    def_delegator :@builder, :aggregate
-    def_delegator :@builder, :find
-    def_delegator :@builder, :stats
-    def_delegator :@builder, :range
-    def_delegator :@builder, :distance
-    def_delegator :@builder, :time_series
-    def_delegator :@builder, :collection
 
     # @return Pretty-Printed string representation of the TimeSeriesBuilder object
     def to_s
