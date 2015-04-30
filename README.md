@@ -428,6 +428,9 @@ end
 
 ## Release Notes
 
+### April 30, 2015: release 0.11.3
+  - Implement `Orchestrate::Search::TopValuesBuilder` to construct top values aggregates.
+
 ### March 27, 2015: release 0.11.2
   - Implement `Orchestrate::Search::QueryBuilder#kinds` to search events as well as KV items.
   - Implement `Orchestrate::Search::QueryBuilder#types` to search specific types of events.
