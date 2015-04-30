@@ -438,6 +438,7 @@ module Orchestrate
       headers = options.fetch(:headers, {})
       headers['User-Agent'] = "ruby/orchestrate/#{Orchestrate::VERSION}"
       headers['Accept'] = 'application/json' if method == :get
+      headers['Connection'] = 'close' if method == :head
 
       http_response = http.send(method) do |request|
         request.url path, query_string
@@ -445,7 +446,7 @@ module Orchestrate
           headers['Content-Type'] = 'application/json'
           request.body = body.to_json
         elsif [:patch].include?(method)
-          request.body = body.to_json    
+          request.body = body.to_json
         end
         headers.each {|header, value| request[header] = value }
       end
