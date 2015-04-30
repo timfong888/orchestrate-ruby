@@ -113,7 +113,7 @@ module Orchestrate::Search
 
     # @return [#to_s] Pretty-Printed string representation of the TopValuesBuilder object
     def to_s
-      "#<Orchestrate::Search::TopValuesBuilder collection=#{collection.name} field_name=#{field_name} offset=#{offset} limit=#{limit}>"
+      "#<Orchestrate::Search::TopValuesBuilder collection=#{collection.name} field_name=#{@field_name} offset=#{@offset} limit=#{@limit}>"
     end
     alias :inspect :to_s
 

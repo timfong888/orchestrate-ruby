@@ -2,7 +2,8 @@ require 'test_helper'
 
 class AggregateBuilderTest < MiniTest::Unit::TestCase
   def setup
-    @query_builder = Orchestrate::Search::QueryBuilder.new(nil, '*')
+    collection = OpenStruct.new(name: 'users')
+    @query_builder = Orchestrate::Search::QueryBuilder.new(collection, '*')
     @builder = Orchestrate::Search::AggregateBuilder.new(@query_builder)
   end
 
@@ -26,6 +27,11 @@ class AggregateBuilderTest < MiniTest::Unit::TestCase
     assert_raises(ArgumentError) do
       @builder.top_values('name', nil, 10)
     end
+  end
+
+  def test_top_values_aggregate_to_s
+    top_values = @builder.top_values('name', 3, 4)
+    assert_equal '#<Orchestrate::Search::TopValuesBuilder collection=users field_name=name offset=3 limit=4>', top_values.to_s
   end
 
   # TODO: abstract delegator assertions into a re-usable helper
