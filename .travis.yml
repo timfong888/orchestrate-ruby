@@ -5,3 +5,7 @@ rvm:
   - 2.0.0
   - 1.9.3
 before_install: gem install bundler -v 1.6.2
+notifications:
+  email: false
+  slack:
+    secure: jlOIVX3b5ot5IjG97PxmtZUr/rXwkWjFt0y5u0hlVQhdZcuipm2jpac2AcAdvuSU+X5eIAgXsRxPGiQkIT6NZgGFpTNEihhO+G3UHbtjhbiaFefOEqqLQLcPDy+CS84gELfTnUGIEIzm2Soemjf5mL0sn858Ce3IRUBy3IgCoqo=
