@@ -384,7 +384,7 @@ module Orchestrate
     # @return Orchestrate::API::Response
     # @raise Orchestrate::API::NotFound If either end of the relation doesn't exist.
     def put_relation(collection, key, kind, to_collection, to_key)
-      send_request :put, [collection, key, 'relation', kind, to_collection, to_key]
+      send_request :put, [collection, key, 'relation', kind, to_collection, to_key], { body: {} }
     end
 
     # [Deletes a relationship between two objects](http://orchestrate.io/docs/api/#graph/delete28).
